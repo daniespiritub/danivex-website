@@ -18,6 +18,7 @@ const seoDescription = 'Consulta tu UID de Free Fire, nivel Prime, rareza, antig
 
 function FreeFirePrimeScanner() {
   const [uid, setUid] = useState('')
+  const [accountName, setAccountName] = useState('')
   const [region, setRegion] = useState('auto')
   const [isLoading, setIsLoading] = useState(false)
   const [activeStep, setActiveStep] = useState(0)
@@ -47,7 +48,7 @@ function FreeFirePrimeScanner() {
       await wait(460 + index * 70)
     }
 
-    const nextPlayer = generateMockPlayer(uid, region)
+    const nextPlayer = generateMockPlayer(uid, region, accountName)
     setProgress(100)
     await wait(260)
     setPlayer(nextPlayer)
@@ -57,6 +58,7 @@ function FreeFirePrimeScanner() {
 
   function resetScanner() {
     setUid('')
+    setAccountName('')
     setPlayer(null)
     setActionMessage('')
     setShowShareCard(false)
@@ -104,14 +106,16 @@ function FreeFirePrimeScanner() {
           <span className="scanner-kicker">Nueva herramienta mock</span>
           <h1>Free Fire Prime AI Scanner</h1>
           <p>
-            Ingresa tu UID y recibe una lectura visual de Prime, rareza, antiguedad estimada, perfil de gasto y analisis IA.
+            Ingresa tu UID, nombre visible y recibe una lectura visual de Prime, region autodetectada, rareza y analisis IA.
           </p>
         </div>
 
         <UIDSearchForm
+          accountName={accountName}
           isLoading={isLoading}
           region={region}
           uid={uid}
+          onAccountNameChange={setAccountName}
           onRegionChange={setRegion}
           onSubmit={handleSubmit}
           onUidChange={setUid}
@@ -130,10 +134,12 @@ function FreeFirePrimeScanner() {
           </div>
 
           <div className="metrics-grid">
+            <Metric label="Nombre de cuenta" value={player.username} />
             <Metric label="Estimated Creation Date" value={formatDate(player.creationDate)} />
             <Metric label="Account Age" value={player.accountAge} />
             <Metric label="Account Rarity %" value={`${player.rarity}% ${player.rarityLabel}`} />
             <Metric label="OG Level" value={`${player.ogLevel}/10`} />
+            <Metric label="Region" value={`${player.region} (${player.regionConfidence}% ${player.regionSource})`} />
             <Metric label="Spending Profile" value={player.spendingProfile} />
             <Metric label="Diamantes estimados" value={formatNumber(player.prime.diamonds)} />
           </div>

@@ -1,12 +1,10 @@
 export const scannerRegions = [
-  { value: 'auto', label: 'Detectar region' },
-  { value: 'latam', label: 'LATAM' },
-  { value: 'br', label: 'Brasil' },
-  { value: 'na', label: 'Norteamerica' },
-  { value: 'eu', label: 'Europa' },
-  { value: 'ind', label: 'India' },
-  { value: 'sg', label: 'Singapore' },
-  { value: 'me', label: 'MENA' },
+  { value: 'auto', label: 'Autodetectar region' },
+  { value: 'south-america', label: 'Sudamerica' },
+  { value: 'north-america', label: 'Norteamerica' },
+  { value: 'europe', label: 'Europa' },
+  { value: 'brazil', label: 'Brazil' },
+  { value: 'latam-north', label: 'Latinoamerica Norte' },
 ]
 
 export const primeLevels = [
@@ -22,27 +20,24 @@ export const primeLevels = [
 
 export const scannerSteps = [
   'Verificando UID...',
-  'Buscando jugador...',
-  'Detectando region...',
+  'Leyendo nombre de cuenta...',
+  'Autodetectando region...',
   'Consultando estado Prime...',
   'Calculando diamantes...',
   'Generando analisis IA...',
 ]
 
-const mockNames = [
-  '꧁༒DaniVex༒꧂',
-  'ＤＡＮＩ 亗 PRIME',
-  '☆ ʙᴘᴇ Gaming ☆',
-  'MᴀsʜᴇsᴘㅤFF',
-  '亗 Prime Hunter 亗',
-  'Dani VeXㅤAI',
-  'ꜰꜰㅤLegendary',
-  'OGㅤDaniVex!',
-]
-
 const statuses = ['Activa', 'Activa - Prime verificado', 'Activa - sin sanciones visibles', 'Activa - revision limpia']
 const rarityLabels = ['Comun', 'Rara', 'Epica', 'Legendaria', 'Mitica']
-const regionFallback = ['LATAM', 'Brasil', 'Norteamerica', 'Europa', 'Singapore', 'MENA']
+const regionPriority = ['south-america', 'north-america', 'europe', 'brazil', 'latam-north']
+
+const regionRules = [
+  { code: 'south-america', label: 'Sudamerica', prefixes: ['1', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24'] },
+  { code: 'north-america', label: 'Norteamerica', prefixes: ['25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36'] },
+  { code: 'europe', label: 'Europa', prefixes: ['37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48'] },
+  { code: 'brazil', label: 'Brazil', prefixes: ['49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60'] },
+  { code: 'latam-north', label: 'Latinoamerica Norte', prefixes: ['61', '62', '63', '64', '65', '66', '67', '68', '69', '70', '71', '72'] },
+]
 
 export function formatNumber(value) {
   return new Intl.NumberFormat('en-US').format(value)
@@ -62,25 +57,67 @@ export function getSpendingProfile(level) {
   return 'Legendary Prime'
 }
 
+export function detectRegionFromUid(uid, selectedRegion = 'auto') {
+  const cleanUid = normalizeUid(uid)
+  const forcedRegion = scannerRegions.find((item) => item.value === selectedRegion && item.value !== 'auto')
+
+  if (forcedRegion) {
+    return {
+      code: forcedRegion.value,
+      label: forcedRegion.label,
+      confidence: 100,
+      source: 'Seleccion manual',
+    }
+  }
+
+  const prefix2 = cleanUid.slice(0, 2)
+  const prefix1 = cleanUid.slice(0, 1)
+  const directRule = regionRules.find((rule) => rule.prefixes.includes(prefix2) || rule.prefixes.includes(prefix1))
+
+  if (directRule) {
+    return {
+      code: directRule.code,
+      label: directRule.label,
+      confidence: cleanUid.length >= 8 ? 78 : 62,
+      source: 'Autodetectada por UID',
+    }
+  }
+
+  const numericUid = Number(cleanUid || 0)
+  const code = regionPriority[numericUid % regionPriority.length]
+  const fallback = scannerRegions.find((item) => item.value === code)
+
+  return {
+    code,
+    label: fallback?.label || 'Sudamerica',
+    confidence: 54,
+    source: 'Autodetectada por patron mock',
+  }
+}
+
 export function generateAIAnalysis(playerData) {
   const investment = playerData.prime.level >= 6 ? 'alta' : playerData.prime.level >= 3 ? 'media' : 'ligera'
   const rarityRead = playerData.rarity >= 80 ? 'muy superior al promedio' : playerData.rarity >= 55 ? 'competitiva' : 'en crecimiento'
   const ogRead = playerData.ogLevel >= 7 ? 'con perfil OG fuerte' : playerData.ogLevel >= 4 ? 'con senales OG moderadas' : 'todavia joven dentro del ecosistema'
+  const nameRead = playerData.nameSource === 'manual'
+    ? `El nombre visible analizado es "${playerData.username}", respetando mayusculas, espacios y simbolos ingresados.`
+    : 'El nombre real aun no esta conectado a API; no se invento otro username para evitar confundir cuentas.'
 
   return [
-    `Esta cuenta pertenece a un jugador Prime activo con inversion ${investment} dentro de Free Fire.`,
+    nameRead,
+    `Esta cuenta aparece como Prime activo con inversion ${investment} dentro de Free Fire.`,
     `Su Prime Level ${playerData.prime.level} y sus ${formatNumber(playerData.prime.points)} Prime Points indican una cuenta ${rarityRead}.`,
-    `Por antiguedad estimada, region ${playerData.region} y estado ${playerData.status.toLowerCase()}, el sistema la clasifica ${ogRead}.`,
-    `El UID ${playerData.uid} mantiene una lectura mock lista para conectarse a APIs reales cuando activemos la siguiente fase.`,
+    `La region ${playerData.region} fue marcada como ${playerData.regionSource.toLowerCase()} con ${playerData.regionConfidence}% de confianza mock.`,
+    `Por antiguedad estimada y estado ${playerData.status.toLowerCase()}, el sistema la clasifica ${ogRead}.`,
   ].join(' ')
 }
 
-export function generateMockPlayer(uid, selectedRegion) {
-  const cleanUid = uid.trim()
-  const seed = hashString(cleanUid || 'danivex')
-  const region = selectedRegion === 'auto'
-    ? regionFallback[seed % regionFallback.length]
-    : scannerRegions.find((item) => item.value === selectedRegion)?.label || 'LATAM'
+export function generateMockPlayer(uid, selectedRegion, accountName = '') {
+  const cleanUid = normalizeUid(uid)
+  const exactAccountName = String(accountName || '').slice(0, 32)
+  const hasAccountName = exactAccountName.trim().length > 0
+  const seed = hashString(`${cleanUid}:${hasAccountName ? exactAccountName : 'no-name'}`)
+  const regionDetection = detectRegionFromUid(cleanUid, selectedRegion)
   const baseLevelIndex = seed % primeLevels.length
   const baseLevel = primeLevels[baseLevelIndex]
   const nextLevel = getNextPrimeLevel(baseLevel.level)
@@ -89,19 +126,22 @@ export function generateMockPlayer(uid, selectedRegion) {
   const points = Math.min(levelCap - 1, baseLevel.points + (seed % room))
   const primeLevel = getPrimeLevelByPoints(points)
   const creationYear = 2018 + (seed % 7)
-  const creationMonth = (seed % 12)
+  const creationMonth = seed % 12
   const creationDay = 1 + (seed % 27)
   const creationDate = new Date(Date.UTC(creationYear, creationMonth, creationDay))
   const ageMonths = getAccountAgeInMonths(creationDate)
   const rarity = Math.min(99, 28 + primeLevel.level * 7 + Math.floor(ageMonths / 7) + (seed % 9))
   const ogLevel = Math.min(10, Math.max(1, Math.round((ageMonths / 12) + primeLevel.level / 2)))
-  const username = mockNames[seed % mockNames.length]
 
   const player = {
     uid: cleanUid || '123456789',
-    username,
+    username: hasAccountName ? exactAccountName : `UID ${cleanUid || '123456789'}`,
+    nameSource: hasAccountName ? 'manual' : 'pending-api',
     avatarSeed: seed,
-    region,
+    region: regionDetection.label,
+    regionCode: regionDetection.code,
+    regionSource: regionDetection.source,
+    regionConfidence: regionDetection.confidence,
     status: statuses[seed % statuses.length],
     creationDate: creationDate.toISOString(),
     accountAge: formatAccountAge(ageMonths),
@@ -122,6 +162,10 @@ export function generateMockPlayer(uid, selectedRegion) {
     ...player,
     aiAnalysis: generateAIAnalysis(player),
   }
+}
+
+export function normalizeUid(value) {
+  return String(value || '').replace(/[^\d]/g, '').slice(0, 14)
 }
 
 function hashString(value) {

@@ -310,6 +310,13 @@
   unicode-bidi: plaintext;
 }
 
+.player-name-source {
+  color: #facc15;
+  font-size: 0.82rem;
+  font-weight: 900;
+  margin: -4px 0 12px;
+}
+
 .player-tags {
   display: flex;
   flex-wrap: wrap;

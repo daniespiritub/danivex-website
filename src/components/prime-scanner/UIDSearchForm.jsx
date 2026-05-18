@@ -1,7 +1,16 @@
 import { FaSearch } from 'react-icons/fa'
-import { scannerRegions } from '../../data/primeScanner'
+import { normalizeUid, scannerRegions } from '../../data/primeScanner'
 
-function UIDSearchForm({ uid, region, isLoading, onRegionChange, onSubmit, onUidChange }) {
+function UIDSearchForm({
+  accountName,
+  uid,
+  region,
+  isLoading,
+  onAccountNameChange,
+  onRegionChange,
+  onSubmit,
+  onUidChange,
+}) {
   return (
     <form className="scanner-form" onSubmit={onSubmit}>
       <label className="scanner-field">
@@ -13,7 +22,19 @@ function UIDSearchForm({ uid, region, isLoading, onRegionChange, onSubmit, onUid
           required
           type="text"
           value={uid}
-          onChange={(event) => onUidChange(event.target.value.replace(/[^\d]/g, '').slice(0, 14))}
+          onChange={(event) => onUidChange(normalizeUid(event.target.value))}
+        />
+      </label>
+
+      <label className="scanner-field">
+        <span>Nombre exacto de la cuenta</span>
+        <input
+          autoComplete="off"
+          maxLength="32"
+          placeholder="Ej: DaniVex Prime"
+          type="text"
+          value={accountName}
+          onChange={(event) => onAccountNameChange(event.target.value)}
         />
       </label>
 
