@@ -599,6 +599,10 @@ function App() {
         <h2>{text.nav[4]}</h2>
         <p>{text.communityText}</p>
         <div className="social-actions">
+          <a className="social-button discord" href={links.discord} target="_blank" rel="noreferrer">
+            <FaDiscord aria-hidden="true" />
+            <span>{text.discordServer}</span>
+          </a>
           <a className="social-button whatsapp" href={links.whatsapp} target="_blank" rel="noreferrer">
             <FaWhatsapp aria-hidden="true" />
             <span>{text.whatsapp}</span>
@@ -610,10 +614,6 @@ function App() {
         <h2>{text.nav[5]}</h2>
         <p>{text.contactText}</p>
         <div className="social-actions contact-actions">
-          <a className="social-button discord" href={links.discord} target="_blank" rel="noreferrer">
-            <FaDiscord aria-hidden="true" />
-            <span>{text.discordServer}</span>
-          </a>
           <a className="social-button instagram" href={links.instagram} target="_blank" rel="noreferrer">
             <FaInstagram aria-hidden="true" />
             <span>{text.instagram}</span>
