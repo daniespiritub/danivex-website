@@ -20,6 +20,13 @@ const defaultProfile = {
 }
 
 const resultKeys = ['general', 'redDot', 'scope2x', 'scope4x', 'sniper', 'camera360']
+const links = {
+  discord: 'https://discord.gg/AmTUUANzRr',
+  whatsapp: 'https://whatsapp.com/channel/0029Vb7ChEo2UPBIcPCSTI0m',
+  instagram: 'https://www.instagram.com/dani.bpe/',
+  tiktokMain: 'https://www.tiktok.com/@.mashesp',
+  tiktokSecond: 'https://www.tiktok.com/@.danibpe',
+}
 
 const copy = {
   es: {
@@ -68,7 +75,15 @@ const copy = {
     downloadsText: 'Archivos, plantillas, overlays y recursos seguros para jugadores y creadores.',
     communityText: 'Unete a la comunidad Danivex y comparte setups, configuraciones y resultados.',
     discord: 'Entrar al Discord',
-    contactText: 'Proximamente: formulario, Discord y redes oficiales.',
+    contactText: 'Conecta con DaniVex por Discord, WhatsApp y redes sociales oficiales.',
+    discordServer: 'Servidor de Discord',
+    whatsappChannel: 'Canal de WhatsApp',
+    socialNetworks: 'Redes sociales',
+    instagram: 'Instagram',
+    tiktokMain: 'TikTok principal',
+    tiktokSecond: 'Segundo TikTok',
+    visitorCounter: 'Entradas registradas',
+    visitorNote: 'contador local',
     resultLabels: {
       general: 'General',
       redDot: 'Mira de punto rojo',
@@ -134,7 +149,15 @@ const copy = {
     downloadsText: 'Arquivos, modelos, overlays e recursos seguros para jogadores e criadores.',
     communityText: 'Entre na comunidade DaniVex e compartilhe setups, configuracoes e resultados.',
     discord: 'Entrar no Discord',
-    contactText: 'Em breve: formulario, Discord e redes oficiais.',
+    contactText: 'Conecte-se com DaniVex pelo Discord, WhatsApp e redes sociais oficiais.',
+    discordServer: 'Servidor do Discord',
+    whatsappChannel: 'Canal do WhatsApp',
+    socialNetworks: 'Redes sociais',
+    instagram: 'Instagram',
+    tiktokMain: 'TikTok principal',
+    tiktokSecond: 'Segundo TikTok',
+    visitorCounter: 'Entradas registradas',
+    visitorNote: 'contador local',
     resultLabels: {
       general: 'Geral',
       redDot: 'Mira ponto vermelho',
@@ -209,7 +232,15 @@ const copy = {
     downloadsText: 'Files, templates, overlays and safe resources for players and creators.',
     communityText: 'Join the DaniVex community and share setups, configurations and results.',
     discord: 'Join Discord',
-    contactText: 'Coming soon: form, Discord and official socials.',
+    contactText: 'Connect with DaniVex through Discord, WhatsApp and official socials.',
+    discordServer: 'Discord server',
+    whatsappChannel: 'WhatsApp channel',
+    socialNetworks: 'Social networks',
+    instagram: 'Instagram',
+    tiktokMain: 'Main TikTok',
+    tiktokSecond: 'Second TikTok',
+    visitorCounter: 'Registered entries',
+    visitorNote: 'local counter',
     resultLabels: {
       general: 'General',
       redDot: 'Red dot sight',
@@ -257,12 +288,30 @@ function getPreferredLanguage() {
   return 'es'
 }
 
+function getLocalVisitCount() {
+  const storageKey = 'danivex-visit-count'
+  const sessionKey = 'danivex-visit-counted'
+
+  try {
+    const currentCount = Number(localStorage.getItem(storageKey) || '0')
+    if (sessionStorage.getItem(sessionKey)) return Math.max(1, currentCount)
+
+    const nextCount = currentCount + 1
+    localStorage.setItem(storageKey, String(nextCount))
+    sessionStorage.setItem(sessionKey, 'true')
+    return nextCount
+  } catch {
+    return 1
+  }
+}
+
 function App() {
   const [language] = useState(getPreferredLanguage)
   const [search, setSearch] = useState(defaultDevice.name)
   const [selectedDevice, setSelectedDevice] = useState(defaultDevice)
   const [profile, setProfile] = useState(defaultProfile)
   const [copied, setCopied] = useState(false)
+  const [visitCount] = useState(getLocalVisitCount)
   const text = copy[language]
   const isApplePlatform = selectedDevice.os === 'iOS' || selectedDevice.os === 'iPadOS'
   const experienceOptions = Array.from({ length: MAX_EXPERIENCE_YEARS + 1 }, (_, year) => year)
@@ -358,6 +407,12 @@ function App() {
           <div className="buttons">
             <a href="#sensibilidad" className="btn primary">{text.primaryCta}</a>
             <a href="#comunidad" className="btn secondary">{text.community}</a>
+          </div>
+
+          <div className="visitor-counter" aria-live="polite">
+            <span>{text.visitorCounter}</span>
+            <strong>{visitCount}</strong>
+            <small>{text.visitorNote}</small>
           </div>
         </div>
       </section>
@@ -547,7 +602,7 @@ function App() {
         <h2>{text.nav[4]}</h2>
         <p>{text.communityText}</p>
         <a
-          href="https://discord.gg/Ryg5usRZjv"
+          href={links.discord}
           className="discord-btn"
           target="_blank"
           rel="noreferrer"
@@ -559,6 +614,25 @@ function App() {
       <section id="contacto" className="section">
         <h2>{text.nav[5]}</h2>
         <p>{text.contactText}</p>
+        <div className="contact-grid">
+          <a className="contact-card discord-card" href={links.discord} target="_blank" rel="noreferrer">
+            <span>{text.discordServer}</span>
+            <strong>Discord</strong>
+          </a>
+          <a className="contact-card whatsapp-card" href={links.whatsapp} target="_blank" rel="noreferrer">
+            <span>{text.whatsappChannel}</span>
+            <strong>WhatsApp</strong>
+          </a>
+        </div>
+
+        <div className="social-block">
+          <h3>{text.socialNetworks}</h3>
+          <div className="social-links">
+            <a href={links.instagram} target="_blank" rel="noreferrer">{text.instagram}</a>
+            <a href={links.tiktokMain} target="_blank" rel="noreferrer">{text.tiktokMain}</a>
+            <a href={links.tiktokSecond} target="_blank" rel="noreferrer">{text.tiktokSecond}</a>
+          </div>
+        </div>
       </section>
     </div>
   )
