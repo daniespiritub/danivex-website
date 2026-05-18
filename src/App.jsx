@@ -76,13 +76,13 @@ const copy = {
     downloadsText: 'Archivos, plantillas, overlays y recursos seguros para jugadores y creadores.',
     communityText: 'Unete a la comunidad Danivex y comparte setups, configuraciones y resultados.',
     discord: 'Entrar al Discord',
-    whatsapp: 'Canal de WhatsApp',
+    whatsapp: 'Comunidad DaniVex',
     contactText: 'Conecta con DaniVex por Discord y redes sociales oficiales.',
-    discordServer: 'Servidor de Discord',
+    discordServer: 'Discord',
     socialNetworks: 'Redes sociales',
     instagram: 'Instagram',
-    tiktokMain: 'TikTok principal',
-    tiktokSecond: 'Segundo TikTok',
+    tiktokMain: 'TikTok / Gaming',
+    tiktokSecond: 'TikTok Personal',
     visits: 'Visitas',
     resultLabels: {
       general: 'General',
@@ -149,13 +149,13 @@ const copy = {
     downloadsText: 'Arquivos, modelos, overlays e recursos seguros para jogadores e criadores.',
     communityText: 'Entre na comunidade DaniVex e compartilhe setups, configuracoes e resultados.',
     discord: 'Entrar no Discord',
-    whatsapp: 'Canal do WhatsApp',
+    whatsapp: 'Comunidade DaniVex',
     contactText: 'Conecte-se com DaniVex pelo Discord e redes sociais oficiais.',
-    discordServer: 'Servidor do Discord',
+    discordServer: 'Discord',
     socialNetworks: 'Redes sociais',
     instagram: 'Instagram',
-    tiktokMain: 'TikTok principal',
-    tiktokSecond: 'Segundo TikTok',
+    tiktokMain: 'TikTok / Gaming',
+    tiktokSecond: 'TikTok Pessoal',
     visits: 'Visitas',
     resultLabels: {
       general: 'Geral',
@@ -231,13 +231,13 @@ const copy = {
     downloadsText: 'Files, templates, overlays and safe resources for players and creators.',
     communityText: 'Join the DaniVex community and share setups, configurations and results.',
     discord: 'Join Discord',
-    whatsapp: 'WhatsApp channel',
+    whatsapp: 'DaniVex Community',
     contactText: 'Connect with DaniVex through Discord and official socials.',
-    discordServer: 'Discord server',
+    discordServer: 'Discord',
     socialNetworks: 'Social networks',
     instagram: 'Instagram',
-    tiktokMain: 'Main TikTok',
-    tiktokSecond: 'Second TikTok',
+    tiktokMain: 'TikTok / Gaming',
+    tiktokSecond: 'Personal TikTok',
     visits: 'Visits',
     resultLabels: {
       general: 'General',
@@ -599,10 +599,6 @@ function App() {
         <h2>{text.nav[4]}</h2>
         <p>{text.communityText}</p>
         <div className="social-actions">
-          <a className="social-button discord" href={links.discord} target="_blank" rel="noreferrer">
-            <FaDiscord aria-hidden="true" />
-            <span>{text.discord}</span>
-          </a>
           <a className="social-button whatsapp" href={links.whatsapp} target="_blank" rel="noreferrer">
             <FaWhatsapp aria-hidden="true" />
             <span>{text.whatsapp}</span>
