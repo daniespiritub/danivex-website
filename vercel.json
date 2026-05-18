@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/free-fire-prime-scanner",
+      "destination": "/"
+    },
+    {
+      "source": "/free-fire-prime-scanner/",
+      "destination": "/"
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import logo from './assets/logo.png'
 import fondo from './assets/fondo-gamer.png'
 import { devices, tierLabels as fallbackTierLabels } from './data/devices'
 import { calculateSensitivity } from './utils/sensitivity'
+import FreeFirePrimeScanner from './pages/FreeFirePrimeScanner'
 import './App.css'
 
 const FREE_FIRE_RELEASE_DATE = new Date('2017-12-04T00:00:00')
@@ -36,6 +37,7 @@ const copy = {
     heroText: 'Recursos gamer, optimizaciones legales, guias y herramientas para mejorar tu experiencia de juego.',
     primaryCta: 'Calcular sensibilidad',
     community: 'Comunidad',
+    primeScanner: 'Prime Scanner',
     toolBadge: 'Herramienta principal',
     toolTitle: 'Sensibilidad FF',
     toolText: 'Elige tu dispositivo y deja que DaniVex arme una base lista para levantar mira con mas control.',
@@ -109,6 +111,7 @@ const copy = {
     heroText: 'Recursos gamer, otimizacoes legais, guias e ferramentas para melhorar sua experiencia de jogo.',
     primaryCta: 'Calcular sensibilidade',
     community: 'Comunidade',
+    primeScanner: 'Prime Scanner',
     toolBadge: 'Ferramenta principal',
     toolTitle: 'Sensibilidade FF',
     toolText: 'Escolha seu aparelho e deixe a DaniVex montar uma base pronta para subir capa com mais controle.',
@@ -191,6 +194,7 @@ const copy = {
     heroText: 'Gaming resources, safe optimizations, guides and tools to improve your play.',
     primaryCta: 'Calculate sensitivity',
     community: 'Community',
+    primeScanner: 'Prime Scanner',
     toolBadge: 'Main tool',
     toolTitle: 'FF Sensitivity',
     toolText: 'Pick your device and let DaniVex build a ready base for cleaner drag and better control.',
@@ -303,7 +307,7 @@ function getLocalVisitCount() {
   }
 }
 
-function App() {
+function HomePage() {
   const [language] = useState(getPreferredLanguage)
   const [search, setSearch] = useState(defaultDevice.name)
   const [selectedDevice, setSelectedDevice] = useState(defaultDevice)
@@ -389,6 +393,7 @@ function App() {
         <div className="menu">
           <a href="#inicio">{text.nav[0]}</a>
           <a href="#sensibilidad">{text.nav[1]}</a>
+          <a href="/free-fire-prime-scanner">{text.primeScanner}</a>
           <a href="#optimizaciones">{text.nav[2]}</a>
           <a href="#descargas">{text.nav[3]}</a>
           <a href="#comunidad">{text.nav[4]}</a>
@@ -409,6 +414,7 @@ function App() {
 
           <div className="buttons">
             <a href="#sensibilidad" className="btn primary">{text.primaryCta}</a>
+            <a href="/free-fire-prime-scanner" className="btn secondary">{text.primeScanner}</a>
             <a href="#comunidad" className="btn secondary">{text.community}</a>
           </div>
         </div>
@@ -630,6 +636,12 @@ function App() {
       </section>
     </div>
   )
+}
+
+function App() {
+  const normalizedPath = window.location.pathname.replace(/\/$/, '')
+  if (normalizedPath === '/free-fire-prime-scanner') return <FreeFirePrimeScanner />
+  return <HomePage />
 }
 
 export default App
