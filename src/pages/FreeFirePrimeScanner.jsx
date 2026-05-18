@@ -10,7 +10,7 @@ import ShareCard from '../components/prime-scanner/ShareCard'
 import UIDSearchForm from '../components/prime-scanner/UIDSearchForm'
 import logo from '../assets/logo.png'
 import fondo from '../assets/fondo-gamer.png'
-import { formatNumber, generateMockPlayer, scannerSteps } from '../data/primeScanner'
+import { formatNumber, generatePlayerFromLookup, scannerSteps } from '../data/primeScanner'
 import '../styles/prime-scanner.css'
 
 const seoTitle = 'Free Fire Prime AI Scanner - Analiza tu cuenta por UID'
@@ -18,8 +18,6 @@ const seoDescription = 'Consulta tu UID de Free Fire, nivel Prime, rareza, antig
 
 function FreeFirePrimeScanner() {
   const [uid, setUid] = useState('')
-  const [accountName, setAccountName] = useState('')
-  const [region, setRegion] = useState('auto')
   const [isLoading, setIsLoading] = useState(false)
   const [activeStep, setActiveStep] = useState(0)
   const [progress, setProgress] = useState(0)
@@ -48,7 +46,8 @@ function FreeFirePrimeScanner() {
       await wait(460 + index * 70)
     }
 
-    const nextPlayer = generateMockPlayer(uid, region, accountName)
+    const lookup = await lookupFreeFireUid(uid)
+    const nextPlayer = generatePlayerFromLookup(uid, lookup)
     setProgress(100)
     await wait(260)
     setPlayer(nextPlayer)
@@ -58,7 +57,6 @@ function FreeFirePrimeScanner() {
 
   function resetScanner() {
     setUid('')
-    setAccountName('')
     setPlayer(null)
     setActionMessage('')
     setShowShareCard(false)
@@ -106,17 +104,13 @@ function FreeFirePrimeScanner() {
           <span className="scanner-kicker">Nueva herramienta mock</span>
           <h1>Free Fire Prime AI Scanner</h1>
           <p>
-            Ingresa tu UID, nombre visible y recibe una lectura visual de Prime, region autodetectada, rareza y analisis IA.
+            Ingresa solo el UID y el scanner intentara detectar automaticamente nombre, region, Prime, rareza y analisis IA.
           </p>
         </div>
 
         <UIDSearchForm
-          accountName={accountName}
           isLoading={isLoading}
-          region={region}
           uid={uid}
-          onAccountNameChange={setAccountName}
-          onRegionChange={setRegion}
           onSubmit={handleSubmit}
           onUidChange={setUid}
         />
@@ -140,6 +134,7 @@ function FreeFirePrimeScanner() {
             <Metric label="Account Rarity %" value={`${player.rarity}% ${player.rarityLabel}`} />
             <Metric label="OG Level" value={`${player.ogLevel}/10`} />
             <Metric label="Region" value={`${player.region} (${player.regionConfidence}% ${player.regionSource})`} />
+            <Metric label="Fuente UID" value={player.lookupProvider} />
             <Metric label="Spending Profile" value={player.spendingProfile} />
             <Metric label="Diamantes estimados" value={formatNumber(player.prime.diamonds)} />
           </div>
@@ -157,12 +152,34 @@ function FreeFirePrimeScanner() {
             <button type="button" onClick={roastPlayer}><FaBolt aria-hidden="true" /> AI Gamer Roast</button>
           </div>
 
+          {player.lookupStatus !== 'real' && (
+            <p className="action-message warning">
+              {player.lookupMessage || 'La consulta real no devolvio nickname/region. No se invento identidad de cuenta.'}
+            </p>
+          )}
+
           {actionMessage && <p className="action-message">{actionMessage}</p>}
           {showShareCard && <ShareCard player={player} />}
         </section>
       )}
     </main>
   )
+}
+
+async function lookupFreeFireUid(uid) {
+  try {
+    const response = await fetch(`/api/free-fire-uid?uid=${encodeURIComponent(uid)}`)
+    if (!response.ok) throw new Error(`lookup_http_${response.status}`)
+    return await response.json()
+  } catch (error) {
+    return {
+      ok: false,
+      error: 'lookup_unavailable',
+      uid,
+      provider: 'Garena Top-Up / Pagostore',
+      message: `No se pudo conectar el validador real desde esta sesion (${error.message}).`,
+    }
+  }
 }
 
 function Metric({ label, value }) {

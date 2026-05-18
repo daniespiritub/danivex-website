@@ -4,7 +4,11 @@ function ShareCard({ player }) {
       <div className="share-card">
         <div className="share-card-top">
           <div className="player-avatar compact" style={{ '--avatar-hue': `${player.avatarSeed % 360}deg` }}>
-            <span>{player.username.slice(0, 2)}</span>
+            {player.avatarUrl ? (
+              <img src={player.avatarUrl} alt="" />
+            ) : (
+              <span>{player.username.slice(0, 2)}</span>
+            )}
           </div>
           <div>
             <span>DaniVex Prime Scan</span>

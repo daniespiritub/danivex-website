@@ -20,8 +20,8 @@ export const primeLevels = [
 
 export const scannerSteps = [
   'Verificando UID...',
-  'Leyendo nombre de cuenta...',
-  'Autodetectando region...',
+  'Consultando Pagostore/Garena...',
+  'Autodetectando nombre y region...',
   'Consultando estado Prime...',
   'Calculando diamantes...',
   'Generando analisis IA...',
@@ -99,9 +99,9 @@ export function generateAIAnalysis(playerData) {
   const investment = playerData.prime.level >= 6 ? 'alta' : playerData.prime.level >= 3 ? 'media' : 'ligera'
   const rarityRead = playerData.rarity >= 80 ? 'muy superior al promedio' : playerData.rarity >= 55 ? 'competitiva' : 'en crecimiento'
   const ogRead = playerData.ogLevel >= 7 ? 'con perfil OG fuerte' : playerData.ogLevel >= 4 ? 'con senales OG moderadas' : 'todavia joven dentro del ecosistema'
-  const nameRead = playerData.nameSource === 'manual'
-    ? `El nombre visible analizado es "${playerData.username}", respetando mayusculas, espacios y simbolos ingresados.`
-    : 'El nombre real aun no esta conectado a API; no se invento otro username para evitar confundir cuentas.'
+  const nameRead = playerData.nameSource === 'garena-topup'
+    ? `El nombre detectado por la modalidad de recarga es "${playerData.username}", respetando el texto devuelto por el proveedor.`
+    : 'La consulta real no devolvio nickname; el sistema evita inventar otro nombre para no confundir cuentas.'
 
   return [
     nameRead,
@@ -164,6 +164,45 @@ export function generateMockPlayer(uid, selectedRegion, accountName = '') {
   }
 }
 
+export function generatePlayerFromLookup(uid, lookup) {
+  const cleanUid = normalizeUid(uid)
+  const seed = hashString(`${cleanUid}:${lookup.nickname || 'lookup'}`)
+  const prime = buildPrime(seed)
+  const creationDate = buildCreationDate(seed)
+  const ageMonths = getAccountAgeInMonths(creationDate)
+  const rarity = Math.min(99, 35 + prime.level * 7 + Math.floor(ageMonths / 8) + (seed % 7))
+  const ogLevel = Math.min(10, Math.max(1, Math.round((ageMonths / 12) + prime.level / 2)))
+
+  const player = {
+    uid: cleanUid,
+    username: lookup.nickname || `UID ${cleanUid}`,
+    nameSource: lookup.nickname ? 'garena-topup' : 'pending-api',
+    lookupStatus: lookup.ok ? 'real' : 'unverified',
+    lookupMessage: lookup.message || '',
+    lookupProvider: lookup.provider || lookup.source || 'Garena Top-Up / Pagostore',
+    avatarUrl: lookup.avatar || '',
+    avatarSeed: seed,
+    region: lookup.region || detectRegionFromUid(cleanUid, 'auto').label,
+    regionCode: lookup.regionCode || detectRegionFromUid(cleanUid, 'auto').code,
+    regionCountry: lookup.regionCountry || '',
+    regionSource: lookup.ok ? 'Garena Top-Up / Pagostore' : 'Pendiente de API real',
+    regionConfidence: lookup.regionConfidence || (lookup.ok ? 100 : 0),
+    status: lookup.ok ? 'Activa - UID validado' : 'UID sin validar',
+    creationDate: creationDate.toISOString(),
+    accountAge: formatAccountAge(ageMonths),
+    rarity,
+    rarityLabel: rarityLabels[Math.min(rarityLabels.length - 1, Math.floor(rarity / 22))],
+    ogLevel,
+    spendingProfile: getSpendingProfile(prime.level),
+    prime,
+  }
+
+  return {
+    ...player,
+    aiAnalysis: generateAIAnalysis(player),
+  }
+}
+
 export function normalizeUid(value) {
   return String(value || '').replace(/[^\d]/g, '').slice(0, 14)
 }
@@ -173,6 +212,31 @@ function hashString(value) {
     const nextHash = ((hash << 5) - hash) + char.codePointAt(0)
     return Math.abs(nextHash | 0)
   }, 5381)
+}
+
+function buildPrime(seed) {
+  const baseLevelIndex = seed % primeLevels.length
+  const baseLevel = primeLevels[baseLevelIndex]
+  const nextLevel = getNextPrimeLevel(baseLevel.level)
+  const levelCap = nextLevel?.points || 260000
+  const room = Math.max(900, levelCap - baseLevel.points)
+  const points = Math.min(levelCap - 1, baseLevel.points + (seed % room))
+  const primeLevel = getPrimeLevelByPoints(points)
+
+  return {
+    level: primeLevel.level,
+    points,
+    diamonds: points,
+    currentFloor: primeLevel.points,
+    next: getNextPrimeLevel(primeLevel.level),
+  }
+}
+
+function buildCreationDate(seed) {
+  const creationYear = 2018 + (seed % 7)
+  const creationMonth = seed % 12
+  const creationDay = 1 + (seed % 27)
+  return new Date(Date.UTC(creationYear, creationMonth, creationDay))
 }
 
 function getAccountAgeInMonths(date) {
