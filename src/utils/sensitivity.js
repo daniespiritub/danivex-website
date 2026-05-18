@@ -14,7 +14,7 @@ function clamp(value, min = 0, max = 200) {
 }
 
 function effectiveAge(device, requested) {
-  if (requested !== 'auto') return requested
+  if (requested && requested !== 'auto') return requested
   if (device.tier === 'gaming') return 'gaming'
   if (device.name.match(/\b(8|9|10|11|12|A10|A11|A12|A20|A30|S8|S9|Mi Pad 4)\b/i)) {
     return 'old'
@@ -26,6 +26,8 @@ export function calculateSensitivity(device, profile, tierLabels) {
   let base = baseByTier[device.tier] || 142
   const reasons = []
   const age = effectiveAge(device, profile.ageTier)
+  const tiers = tierLabels.tiers || tierLabels
+  const reasonText = tierLabels.reasons || {}
 
   if (device.hz >= 165) base += 8
   else if (device.hz >= 144) base += 6
@@ -52,6 +54,8 @@ export function calculateSensitivity(device, profile, tierLabels) {
   else if (profile.dpi > 0 && profile.dpi < 360) base -= 4
 
   if (profile.fireButton < 42) base += 4
+  else if (profile.fireButton > 150) base -= 12
+  else if (profile.fireButton > 100) base -= 8
   else if (profile.fireButton > 62) base -= 5
   else base += 1
 
@@ -65,15 +69,15 @@ export function calculateSensitivity(device, profile, tierLabels) {
   if (profile.style === 'aggressive') base += 8
   if (profile.style === 'precise') base -= 8
 
-  reasons.push(`${device.name} se trata como ${tierLabels[device.tier] || device.tier}.`)
-  reasons.push(`${device.hz}Hz ajusta la base por respuesta tactil.`)
-  if (age === 'old') reasons.push('El modo antiguo baja sensibilidad para evitar saltos.')
-  if (device.tier === 'gaming') reasons.push('La categoria gaming permite valores mas agresivos.')
+  reasons.push(reasonText.device?.(device.name, tiers[device.tier] || device.tier) || `${device.name} se trata como ${tiers[device.tier] || device.tier}.`)
+  reasons.push(reasonText.hz?.(device.hz) || `${device.hz}Hz ajusta la base por respuesta tactil.`)
+  if (age === 'old') reasons.push(reasonText.old || 'El modo antiguo baja sensibilidad para evitar saltos.')
+  if (device.tier === 'gaming') reasons.push(reasonText.gaming || 'La categoria gaming permite valores mas agresivos.')
   if (profile.rootState === 'root' && device.os === 'Android') {
-    reasons.push('Root suma margen por menor latencia configurable.')
+    reasons.push(reasonText.root || 'Root suma margen por menor latencia configurable.')
   }
-  if (profile.style === 'precise') reasons.push('El estilo preciso reduce la levantada para ganar control.')
-  if (profile.style === 'aggressive') reasons.push('El estilo agresivo sube la levantada.')
+  if (profile.style === 'precise') reasons.push(reasonText.precise || 'El estilo preciso reduce la levantada para ganar control.')
+  if (profile.style === 'aggressive') reasons.push(reasonText.aggressive || 'El estilo agresivo sube la levantada.')
 
   const general = clamp(base)
   const values = {
@@ -82,6 +86,7 @@ export function calculateSensitivity(device, profile, tierLabels) {
     scope2x: clamp(general - 14),
     scope4x: clamp(general - 27),
     sniper: clamp(general - 43),
+    camera360: clamp(general - (device.type === 'tablet' ? 12 : 8) + (device.tier === 'gaming' ? 4 : 0)),
   }
 
   return { values, reasons, age }

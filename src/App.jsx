@@ -1,36 +1,275 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import logo from './assets/logo.png'
 import fondo from './assets/fondo-gamer.png'
-import { devices, sources, tierLabels } from './data/devices'
+import { devices, tierLabels as fallbackTierLabels } from './data/devices'
 import { calculateSensitivity } from './utils/sensitivity'
 import './App.css'
 
+const FREE_FIRE_RELEASE_DATE = new Date('2017-12-04T00:00:00')
+const MAX_EXPERIENCE_YEARS = getMaxExperienceYears()
 const defaultDevice = devices.find((device) => device.name === 'RedMagic 11 Pro') || devices[0]
 
 const defaultProfile = {
   gameVersion: 'ff',
-  rootState: 'no-root',
-  ageTier: 'auto',
+  rootState: defaultDevice.os === 'Android' ? 'no-root' : 'ios',
   style: 'balanced',
-  years: 2,
-  dpi: 400,
+  years: Math.min(2, MAX_EXPERIENCE_YEARS),
+  dpi: defaultDevice.defaultDpi,
   fireButton: 52,
   fpsTarget: 'auto',
 }
 
-const resultLabels = [
-  ['general', 'General'],
-  ['redDot', 'Punto rojo'],
-  ['scope2x', 'Mira 2x'],
-  ['scope4x', 'Mira 4x'],
-  ['sniper', 'Francotirador'],
-]
+const resultKeys = ['general', 'redDot', 'scope2x', 'scope4x', 'sniper', 'camera360']
+
+const copy = {
+  es: {
+    lang: 'es',
+    nav: ['Inicio', 'Sensibilidad', 'Optimizaciones', 'Descargas', 'Comunidad', 'Contacto'],
+    heroText: 'Recursos gamer, optimizaciones legales, guias y herramientas para mejorar tu experiencia de juego.',
+    primaryCta: 'Calcular sensibilidad',
+    community: 'Comunidad',
+    toolBadge: 'Herramienta principal',
+    toolTitle: 'Sensibilidad FF',
+    toolText: 'Elige tu dispositivo y deja que DaniVex arme una base lista para levantar mira con mas control.',
+    step1: 'Paso 1',
+    step2: 'Paso 2',
+    result: 'Resultado',
+    device: 'Dispositivo',
+    profile: 'Perfil',
+    models: 'modelos',
+    searchModel: 'Buscar modelo',
+    searchPlaceholder: 'Ej: iPhone 17, Galaxy A56, RedMagic 11 Pro',
+    noModel: 'No encontre ese modelo. Prueba con marca o serie.',
+    mobile: 'Movil',
+    tablet: 'Tablet',
+    defaultDpi: 'DPI base',
+    version: 'Version',
+    androidState: 'Estado Android',
+    noRoot: 'No root',
+    root: 'Root',
+    style: 'Estilo',
+    balanced: 'Balanceado',
+    aggressive: 'Levantada agresiva',
+    precise: 'Precision estable',
+    years: 'Anos jugando',
+    dpi: 'DPI del dispositivo',
+    fireButton: 'Boton de disparo',
+    fpsTarget: 'FPS objetivo',
+    auto: 'Automatico',
+    recommended: 'Sensibilidad recomendada',
+    copy: 'Copiar',
+    copied: 'Copiado',
+    scale: 'Escala 0-200',
+    coachStart: 'Lectura DaniVex:',
+    coachEnd: 'Prueba 3 partidas, ajusta de 3 en 3 y guarda el mejor resultado.',
+    optimizationsTitle: 'Optimizaciones',
+    optimizationsText: 'Guias para mejorar rendimiento, estabilidad, FPS y configuracion de dispositivos.',
+    downloadsTitle: 'Descargas legales',
+    downloadsText: 'Archivos, plantillas, overlays y recursos seguros para jugadores y creadores.',
+    communityText: 'Unete a la comunidad Danivex y comparte setups, configuraciones y resultados.',
+    discord: 'Entrar al Discord',
+    contactText: 'Proximamente: formulario, Discord y redes oficiales.',
+    resultLabels: {
+      general: 'General',
+      redDot: 'Mira de punto rojo',
+      scope2x: 'Mira 2x',
+      scope4x: 'Mira 4x',
+      sniper: 'Mira Francotirador',
+      camera360: 'Boton de Camara 360',
+    },
+    tiers: fallbackTierLabels,
+    reasons: {
+      device: (name, tier) => `${name} se trata como ${tier}.`,
+      hz: (hz) => `${hz}Hz ajusta la base por respuesta tactil.`,
+      old: 'El modelo se detecta como antiguo y baja sensibilidad para evitar saltos.',
+      gaming: 'La categoria gaming permite valores mas agresivos.',
+      root: 'Root suma margen por menor latencia configurable.',
+      precise: 'El estilo preciso reduce la levantada para ganar control.',
+      aggressive: 'El estilo agresivo sube la levantada.',
+    },
+  },
+  pt: {
+    lang: 'pt-BR',
+    nav: ['Inicio', 'Sensibilidade', 'Otimizacoes', 'Downloads', 'Comunidade', 'Contato'],
+    heroText: 'Recursos gamer, otimizacoes legais, guias e ferramentas para melhorar sua experiencia de jogo.',
+    primaryCta: 'Calcular sensibilidade',
+    community: 'Comunidade',
+    toolBadge: 'Ferramenta principal',
+    toolTitle: 'Sensibilidade FF',
+    toolText: 'Escolha seu aparelho e deixe a DaniVex montar uma base pronta para subir capa com mais controle.',
+    step1: 'Passo 1',
+    step2: 'Passo 2',
+    result: 'Resultado',
+    device: 'Aparelho',
+    profile: 'Perfil',
+    models: 'modelos',
+    searchModel: 'Buscar modelo',
+    searchPlaceholder: 'Ex: iPhone 17, Galaxy A56, RedMagic 11 Pro',
+    noModel: 'Nao encontrei esse modelo. Tente marca ou serie.',
+    mobile: 'Celular',
+    tablet: 'Tablet',
+    defaultDpi: 'DPI base',
+    version: 'Versao',
+    androidState: 'Estado Android',
+    noRoot: 'Sem root',
+    root: 'Root',
+    style: 'Estilo',
+    balanced: 'Balanceado',
+    aggressive: 'Puxada agressiva',
+    precise: 'Precisao estavel',
+    years: 'Anos jogando',
+    dpi: 'DPI do aparelho',
+    fireButton: 'Botao de tiro',
+    fpsTarget: 'FPS alvo',
+    auto: 'Automatico',
+    recommended: 'Sensibilidade recomendada',
+    copy: 'Copiar',
+    copied: 'Copiado',
+    scale: 'Escala 0-200',
+    coachStart: 'Leitura DaniVex:',
+    coachEnd: 'Teste 3 partidas, ajuste de 3 em 3 e salve o melhor resultado.',
+    optimizationsTitle: 'Otimizacoes',
+    optimizationsText: 'Guias para melhorar desempenho, estabilidade, FPS e configuracao de aparelhos.',
+    downloadsTitle: 'Downloads legais',
+    downloadsText: 'Arquivos, modelos, overlays e recursos seguros para jogadores e criadores.',
+    communityText: 'Entre na comunidade DaniVex e compartilhe setups, configuracoes e resultados.',
+    discord: 'Entrar no Discord',
+    contactText: 'Em breve: formulario, Discord e redes oficiais.',
+    resultLabels: {
+      general: 'Geral',
+      redDot: 'Mira ponto vermelho',
+      scope2x: 'Mira 2x',
+      scope4x: 'Mira 4x',
+      sniper: 'Mira Sniper',
+      camera360: 'Botao Camera 360',
+    },
+    tiers: {
+      entry: 'Entrada',
+      budget: 'Intermediario baixo',
+      mid: 'Intermediario',
+      upper: 'Intermediario alto',
+      flagship: 'Top de linha',
+      gaming: 'Gaming',
+      tablet: 'Tablet',
+      ipad: 'iPad',
+    },
+    reasons: {
+      device: (name, tier) => `${name} entra como ${tier}.`,
+      hz: (hz) => `${hz}Hz ajusta a base pela resposta ao toque.`,
+      old: 'O modelo foi detectado como antigo e reduz sensibilidade para evitar pulos.',
+      gaming: 'A categoria gaming permite valores mais agressivos.',
+      root: 'Root soma margem por menor latencia configuravel.',
+      precise: 'O estilo preciso reduz a puxada para ganhar controle.',
+      aggressive: 'O estilo agressivo aumenta a puxada.',
+    },
+  },
+  en: {
+    lang: 'en',
+    nav: ['Home', 'Sensitivity', 'Optimizations', 'Downloads', 'Community', 'Contact'],
+    heroText: 'Gaming resources, safe optimizations, guides and tools to improve your play.',
+    primaryCta: 'Calculate sensitivity',
+    community: 'Community',
+    toolBadge: 'Main tool',
+    toolTitle: 'FF Sensitivity',
+    toolText: 'Pick your device and let DaniVex build a ready base for cleaner drag and better control.',
+    step1: 'Step 1',
+    step2: 'Step 2',
+    result: 'Result',
+    device: 'Device',
+    profile: 'Profile',
+    models: 'models',
+    searchModel: 'Search model',
+    searchPlaceholder: 'Ex: iPhone 17, Galaxy A56, RedMagic 11 Pro',
+    noModel: 'I could not find that model. Try a brand or series.',
+    mobile: 'Phone',
+    tablet: 'Tablet',
+    defaultDpi: 'Base DPI',
+    version: 'Version',
+    androidState: 'Android state',
+    noRoot: 'No root',
+    root: 'Root',
+    style: 'Style',
+    balanced: 'Balanced',
+    aggressive: 'Aggressive drag',
+    precise: 'Stable precision',
+    years: 'Years playing',
+    dpi: 'Device DPI',
+    fireButton: 'Fire button',
+    fpsTarget: 'Target FPS',
+    auto: 'Automatic',
+    recommended: 'Recommended sensitivity',
+    copy: 'Copy',
+    copied: 'Copied',
+    scale: '0-200 scale',
+    coachStart: 'DaniVex read:',
+    coachEnd: 'Try 3 matches, adjust by 3 and keep the best result.',
+    optimizationsTitle: 'Optimizations',
+    optimizationsText: 'Guides to improve performance, stability, FPS and device configuration.',
+    downloadsTitle: 'Legal downloads',
+    downloadsText: 'Files, templates, overlays and safe resources for players and creators.',
+    communityText: 'Join the DaniVex community and share setups, configurations and results.',
+    discord: 'Join Discord',
+    contactText: 'Coming soon: form, Discord and official socials.',
+    resultLabels: {
+      general: 'General',
+      redDot: 'Red dot sight',
+      scope2x: '2x scope',
+      scope4x: '4x scope',
+      sniper: 'Sniper scope',
+      camera360: '360 Camera Button',
+    },
+    tiers: {
+      entry: 'Entry',
+      budget: 'Lower mid-range',
+      mid: 'Mid-range',
+      upper: 'Upper mid-range',
+      flagship: 'Flagship',
+      gaming: 'Gaming',
+      tablet: 'Tablet',
+      ipad: 'iPad',
+    },
+    reasons: {
+      device: (name, tier) => `${name} is treated as ${tier}.`,
+      hz: (hz) => `${hz}Hz adjusts the base through touch response.`,
+      old: 'The model is detected as older and lowers sensitivity to avoid jumps.',
+      gaming: 'Gaming class devices allow more aggressive values.',
+      root: 'Root adds room through configurable lower latency.',
+      precise: 'Precision style lowers drag for control.',
+      aggressive: 'Aggressive style raises drag.',
+    },
+  },
+}
+
+function getMaxExperienceYears(now = new Date()) {
+  let years = now.getFullYear() - FREE_FIRE_RELEASE_DATE.getFullYear()
+  const beforeReleaseDay =
+    now.getMonth() < FREE_FIRE_RELEASE_DATE.getMonth()
+    || (now.getMonth() === FREE_FIRE_RELEASE_DATE.getMonth() && now.getDate() < FREE_FIRE_RELEASE_DATE.getDate())
+
+  if (beforeReleaseDay) years -= 1
+  return Math.min(8, Math.max(0, years))
+}
+
+function getPreferredLanguage() {
+  const locale = (navigator.languages?.[0] || navigator.language || 'es').toLowerCase()
+  if (locale.startsWith('pt') || locale.includes('-br')) return 'pt'
+  if (locale.startsWith('en')) return 'en'
+  return 'es'
+}
 
 function App() {
+  const [language] = useState(getPreferredLanguage)
   const [search, setSearch] = useState(defaultDevice.name)
   const [selectedDevice, setSelectedDevice] = useState(defaultDevice)
   const [profile, setProfile] = useState(defaultProfile)
   const [copied, setCopied] = useState(false)
+  const text = copy[language]
+  const isApplePlatform = selectedDevice.os === 'iOS' || selectedDevice.os === 'iPadOS'
+  const experienceOptions = Array.from({ length: MAX_EXPERIENCE_YEARS + 1 }, (_, year) => year)
+
+  useEffect(() => {
+    document.documentElement.lang = text.lang
+  }, [text.lang])
 
   const filteredDevices = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -43,41 +282,48 @@ function App() {
   }, [search])
 
   const result = useMemo(
-    () => calculateSensitivity(selectedDevice, profile, tierLabels),
-    [selectedDevice, profile],
+    () => calculateSensitivity(selectedDevice, profile, text),
+    [selectedDevice, profile, text],
   )
 
   function updateProfile(key, value) {
-    setProfile((current) => ({
-      ...current,
-      [key]: ['years', 'dpi', 'fireButton'].includes(key) ? Number(value || 0) : value,
-    }))
+    setProfile((current) => {
+      let parsedValue = value
+      if (key === 'years') parsedValue = Math.min(MAX_EXPERIENCE_YEARS, Math.max(0, Number(value || 0)))
+      if (key === 'dpi') parsedValue = Math.min(1200, Math.max(0, Number(value || 0)))
+      if (key === 'fireButton') parsedValue = Math.min(200, Math.max(0, Number(value || 0)))
+
+      return {
+        ...current,
+        [key]: parsedValue,
+      }
+    })
   }
 
   function selectDevice(device) {
     setSelectedDevice(device)
     setSearch(device.name)
-    if ((device.os === 'iOS' || device.os === 'iPadOS') && profile.rootState !== 'ios') {
-      updateProfile('rootState', 'ios')
-    }
-    if (device.os === 'Android' && profile.rootState === 'ios') {
-      updateProfile('rootState', 'no-root')
-    }
+    setProfile((current) => ({
+      ...current,
+      dpi: device.defaultDpi,
+      rootState: device.os === 'Android' ? (current.rootState === 'ios' ? 'no-root' : current.rootState) : 'ios',
+    }))
   }
 
   async function copyPreset() {
     const values = result.values
-    const text = [
-      `DaniVex Sensibilidad - ${selectedDevice.name}`,
-      `General: ${values.general}`,
-      `Punto rojo: ${values.redDot}`,
-      `Mira 2x: ${values.scope2x}`,
-      `Mira 4x: ${values.scope4x}`,
-      `Francotirador: ${values.sniper}`,
-    ].join('\n')
+    const lines = [
+      `DaniVex - ${selectedDevice.name}`,
+      `${text.resultLabels.general}: ${values.general}`,
+      `${text.resultLabels.redDot}: ${values.redDot}`,
+      `${text.resultLabels.scope2x}: ${values.scope2x}`,
+      `${text.resultLabels.scope4x}: ${values.scope4x}`,
+      `${text.resultLabels.sniper}: ${values.sniper}`,
+      `${text.resultLabels.camera360}: ${values.camera360}`,
+    ]
 
     try {
-      await navigator.clipboard.writeText(text)
+      await navigator.clipboard.writeText(lines.join('\n'))
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1400)
     } catch {
@@ -94,12 +340,12 @@ function App() {
         </div>
 
         <div className="menu">
-          <a href="#inicio">Inicio</a>
-          <a href="#sensibilidad">Sensibilidad</a>
-          <a href="#optimizaciones">Optimizaciones</a>
-          <a href="#descargas">Descargas</a>
-          <a href="#comunidad">Comunidad</a>
-          <a href="#contacto">Contacto</a>
+          <a href="#inicio">{text.nav[0]}</a>
+          <a href="#sensibilidad">{text.nav[1]}</a>
+          <a href="#optimizaciones">{text.nav[2]}</a>
+          <a href="#descargas">{text.nav[3]}</a>
+          <a href="#comunidad">{text.nav[4]}</a>
+          <a href="#contacto">{text.nav[5]}</a>
         </div>
       </nav>
 
@@ -107,48 +353,43 @@ function App() {
         <div className="hero-card">
           <img src={logo} alt="Danivex Logo" className="hero-logo" />
           <h1>DANIVEX</h1>
-          <p>
-            Recursos gamer, optimizaciones legales, guias y herramientas para mejorar tu experiencia de juego.
-          </p>
+          <p>{text.heroText}</p>
 
           <div className="buttons">
-            <a href="#sensibilidad" className="btn primary">Calcular sensibilidad</a>
-            <a href="#comunidad" className="btn secondary">Comunidad</a>
+            <a href="#sensibilidad" className="btn primary">{text.primaryCta}</a>
+            <a href="#comunidad" className="btn secondary">{text.community}</a>
           </div>
         </div>
       </section>
 
       <section id="sensibilidad" className="tool-section">
         <div className="section-heading">
-          <span>Herramienta principal</span>
-          <h2>Generador de sensibilidad Free Fire</h2>
-          <p>
-            Calcula una base 0-200 segun dispositivo, Hz, DPI, experiencia, boton de disparo,
-            root/no root y estilo de juego.
-          </p>
+          <span>{text.toolBadge}</span>
+          <h2>{text.toolTitle}</h2>
+          <p>{text.toolText}</p>
         </div>
 
         <div className="senselab">
           <div className="tool-panel device-panel">
             <div className="panel-head">
               <div>
-                <span>Paso 1</span>
-                <h3>Dispositivo</h3>
+                <span>{text.step1}</span>
+                <h3>{text.device}</h3>
               </div>
-              <strong>{devices.length} modelos</strong>
+              <strong>{devices.length} {text.models}</strong>
             </div>
 
             <label className="field full">
-              <span>Buscar modelo</span>
+              <span>{text.searchModel}</span>
               <input
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Ej: iPhone 17, Galaxy A56, RedMagic 11 Pro"
+                placeholder={text.searchPlaceholder}
               />
             </label>
 
-            <div className="suggestions" role="listbox" aria-label="Resultados de dispositivos">
+            <div className="suggestions" role="listbox" aria-label={text.searchModel}>
               {filteredDevices.length > 0 ? (
                 filteredDevices.map((device) => (
                   <button
@@ -160,14 +401,14 @@ function App() {
                     <span>
                       <strong>{device.name}</strong>
                       <small>
-                        {device.brand} · {device.os} · {device.type === 'tablet' ? 'Tablet' : 'Movil'} · {device.hz}Hz
+                        {device.brand} - {device.os} - {device.type === 'tablet' ? text.tablet : text.mobile} - {device.hz}Hz
                       </small>
                     </span>
-                    <em>{tierLabels[device.tier]}</em>
+                    <em>{text.tiers[device.tier]}</em>
                   </button>
                 ))
               ) : (
-                <div className="empty-state">No encontre ese modelo. Prueba con marca o serie.</div>
+                <div className="empty-state">{text.noModel}</div>
               )}
             </div>
 
@@ -176,10 +417,11 @@ function App() {
               <div>
                 <span>{selectedDevice.brand}</span>
                 <span>{selectedDevice.os}</span>
-                <span>{selectedDevice.type === 'tablet' ? 'Tablet' : 'Movil'}</span>
+                <span>{selectedDevice.type === 'tablet' ? text.tablet : text.mobile}</span>
                 <span>{selectedDevice.hz}Hz</span>
                 <span>{selectedDevice.screen}"</span>
-                <span>{tierLabels[selectedDevice.tier]}</span>
+                <span>{text.defaultDpi}: {selectedDevice.defaultDpi}</span>
+                <span>{text.tiers[selectedDevice.tier]}</span>
               </div>
             </div>
           </div>
@@ -187,67 +429,62 @@ function App() {
           <div className="tool-panel profile-panel">
             <div className="panel-head">
               <div>
-                <span>Paso 2</span>
-                <h3>Perfil</h3>
+                <span>{text.step2}</span>
+                <h3>{text.profile}</h3>
               </div>
             </div>
 
             <div className="form-grid">
               <label className="field">
-                <span>Version</span>
+                <span>{text.version}</span>
                 <select value={profile.gameVersion} onChange={(event) => updateProfile('gameVersion', event.target.value)}>
-                  <option value="ff">Free Fire normal</option>
+                  <option value="ff">Free Fire</option>
                   <option value="ffmax">Free Fire MAX</option>
                 </select>
               </label>
 
-              <label className="field">
-                <span>Estado</span>
-                <select value={profile.rootState} onChange={(event) => updateProfile('rootState', event.target.value)}>
-                  <option value="no-root">No root</option>
-                  <option value="root">Root</option>
-                  <option value="ios">iOS / iPadOS</option>
-                </select>
-              </label>
+              {!isApplePlatform && (
+                <label className="field">
+                  <span>{text.androidState}</span>
+                  <select value={profile.rootState} onChange={(event) => updateProfile('rootState', event.target.value)}>
+                    <option value="no-root">{text.noRoot}</option>
+                    <option value="root">{text.root}</option>
+                  </select>
+                </label>
+              )}
 
               <label className="field">
-                <span>Antiguedad</span>
-                <select value={profile.ageTier} onChange={(event) => updateProfile('ageTier', event.target.value)}>
-                  <option value="auto">Automatico</option>
-                  <option value="old">Antiguo</option>
-                  <option value="new">Nuevo</option>
-                  <option value="gaming">Gaming</option>
-                </select>
-              </label>
-
-              <label className="field">
-                <span>Estilo</span>
+                <span>{text.style}</span>
                 <select value={profile.style} onChange={(event) => updateProfile('style', event.target.value)}>
-                  <option value="balanced">Balanceado</option>
-                  <option value="aggressive">Levantada agresiva</option>
-                  <option value="precise">Precision estable</option>
+                  <option value="balanced">{text.balanced}</option>
+                  <option value="aggressive">{text.aggressive}</option>
+                  <option value="precise">{text.precise}</option>
                 </select>
               </label>
 
               <label className="field">
-                <span>Anos jugando</span>
-                <input type="number" min="0" max="15" value={profile.years} onChange={(event) => updateProfile('years', event.target.value)} />
+                <span>{text.years}</span>
+                <select value={profile.years} onChange={(event) => updateProfile('years', event.target.value)}>
+                  {experienceOptions.map((year) => (
+                    <option value={year} key={year}>{year}</option>
+                  ))}
+                </select>
               </label>
 
               <label className="field">
-                <span>DPI dispositivo</span>
+                <span>{text.dpi}</span>
                 <input type="number" min="0" max="1200" value={profile.dpi} onChange={(event) => updateProfile('dpi', event.target.value)} />
               </label>
 
               <label className="field">
-                <span>Boton disparo</span>
-                <input type="number" min="25" max="100" value={profile.fireButton} onChange={(event) => updateProfile('fireButton', event.target.value)} />
+                <span>{text.fireButton}</span>
+                <input type="number" min="0" max="200" value={profile.fireButton} onChange={(event) => updateProfile('fireButton', event.target.value)} />
               </label>
 
               <label className="field">
-                <span>FPS objetivo</span>
+                <span>{text.fpsTarget}</span>
                 <select value={profile.fpsTarget} onChange={(event) => updateProfile('fpsTarget', event.target.value)}>
-                  <option value="auto">Automatico</option>
+                  <option value="auto">{text.auto}</option>
                   <option value="60">60 FPS</option>
                   <option value="90">90 FPS</option>
                   <option value="120">120 FPS</option>
@@ -260,28 +497,28 @@ function App() {
           <div className="tool-panel result-panel">
             <div className="panel-head">
               <div>
-                <span>Resultado</span>
-                <h3>Sensibilidad recomendada</h3>
+                <span>{text.result}</span>
+                <h3>{text.recommended}</h3>
               </div>
               <button type="button" className="copy-btn" onClick={copyPreset}>
-                {copied ? 'Copiado' : 'Copiar'}
+                {copied ? text.copied : text.copy}
               </button>
             </div>
 
             <div className="result-grid">
-              {resultLabels.map(([key, label]) => (
+              {resultKeys.map((key) => (
                 <div className="result-card" key={key}>
-                  <span>{label}</span>
+                  <span>{text.resultLabels[key]}</span>
                   <strong>{result.values[key]}</strong>
-                  <small>Escala 0-200</small>
+                  <small>{text.scale}</small>
                 </div>
               ))}
             </div>
 
-            <div className="bars" aria-label="Grafico de sensibilidad">
-              {resultLabels.map(([key, label]) => (
+            <div className="bars" aria-label={text.recommended}>
+              {resultKeys.map((key) => (
                 <div className="bar-row" key={key}>
-                  <span>{label}</span>
+                  <span>{text.resultLabels[key]}</span>
                   <div><i style={{ width: `${result.values[key] / 2}%` }} /></div>
                   <b>{result.values[key]}</b>
                 </div>
@@ -289,47 +526,39 @@ function App() {
             </div>
 
             <p className="coach">
-              <strong>Lectura DaniVex:</strong> {result.reasons.join(' ')}
-              {' '}Prueba 3 partidas, ajusta de 3 en 3 y guarda el mejor resultado.
+              <strong>{text.coachStart}</strong> {result.reasons.join(' ')}
+              {' '}{text.coachEnd}
             </p>
           </div>
-        </div>
-
-        <div className="source-row">
-          {sources.map((source) => (
-            <a href={source.url} key={source.name} target="_blank" rel="noreferrer">
-              {source.name}
-            </a>
-          ))}
         </div>
       </section>
 
       <section id="optimizaciones" className="section">
-        <h2>Optimizaciones</h2>
-        <p>Guias para mejorar rendimiento, estabilidad, FPS y configuracion de dispositivos.</p>
+        <h2>{text.optimizationsTitle}</h2>
+        <p>{text.optimizationsText}</p>
       </section>
 
       <section id="descargas" className="section">
-        <h2>Descargas legales</h2>
-        <p>Archivos, plantillas, overlays y recursos seguros para jugadores y creadores.</p>
+        <h2>{text.downloadsTitle}</h2>
+        <p>{text.downloadsText}</p>
       </section>
 
       <section id="comunidad" className="section">
-        <h2>Comunidad</h2>
-        <p>Unete a la comunidad Danivex y comparte setups, configuraciones y resultados.</p>
+        <h2>{text.nav[4]}</h2>
+        <p>{text.communityText}</p>
         <a
           href="https://discord.gg/Ryg5usRZjv"
           className="discord-btn"
           target="_blank"
           rel="noreferrer"
         >
-          Entrar al Discord
+          {text.discord}
         </a>
       </section>
 
       <section id="contacto" className="section">
-        <h2>Contacto</h2>
-        <p>Proximamente: formulario, Discord y redes oficiales.</p>
+        <h2>{text.nav[5]}</h2>
+        <p>{text.contactText}</p>
       </section>
     </div>
   )

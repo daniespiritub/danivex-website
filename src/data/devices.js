@@ -16,7 +16,22 @@ export const sources = [
   { name: 'Xiaomi Pad', url: 'https://www.mi.com/global/product/xiaomi-pad-7/specs/' },
 ]
 
+function inferDefaultDpi({ name, os, type, tier, screen }) {
+  if (os === 'iOS') return name.includes('SE') || name.includes('8') ? 326 : 460
+  if (os === 'iPadOS') return 264
+  if (type === 'tablet') return Number(screen) >= 12 ? 320 : 360
+  if (tier === 'entry') return 320
+  if (tier === 'budget') return 360
+  if (tier === 'mid') return 400
+  if (tier === 'upper') return 420
+  if (tier === 'flagship') return name.includes('Ultra') ? 500 : 480
+  if (tier === 'gaming') return 480
+  return 400
+}
+
 function device(name, brand, os, type, tier, hz, screen, aliases = []) {
+  const defaultDpi = inferDefaultDpi({ name, os, type, tier, screen })
+
   return {
     name,
     brand,
@@ -25,8 +40,9 @@ function device(name, brand, os, type, tier, hz, screen, aliases = []) {
     tier,
     hz,
     screen,
+    defaultDpi,
     aliases,
-    search: [name, brand, os, type, tier, ...aliases].join(' ').toLowerCase(),
+    search: [name, brand, os, type, tier, defaultDpi, ...aliases].join(' ').toLowerCase(),
   }
 }
 
