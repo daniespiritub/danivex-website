@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { FaDiscord, FaEye, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa'
 import logo from './assets/logo.png'
 import fondo from './assets/fondo-gamer.png'
 import { devices, tierLabels as fallbackTierLabels } from './data/devices'
@@ -75,15 +76,14 @@ const copy = {
     downloadsText: 'Archivos, plantillas, overlays y recursos seguros para jugadores y creadores.',
     communityText: 'Unete a la comunidad Danivex y comparte setups, configuraciones y resultados.',
     discord: 'Entrar al Discord',
-    contactText: 'Conecta con DaniVex por Discord, WhatsApp y redes sociales oficiales.',
+    whatsapp: 'Canal de WhatsApp',
+    contactText: 'Conecta con DaniVex por Discord y redes sociales oficiales.',
     discordServer: 'Servidor de Discord',
-    whatsappChannel: 'Canal de WhatsApp',
     socialNetworks: 'Redes sociales',
     instagram: 'Instagram',
     tiktokMain: 'TikTok principal',
     tiktokSecond: 'Segundo TikTok',
-    visitorCounter: 'Entradas registradas',
-    visitorNote: 'contador local',
+    visits: 'Visitas',
     resultLabels: {
       general: 'General',
       redDot: 'Mira de punto rojo',
@@ -149,15 +149,14 @@ const copy = {
     downloadsText: 'Arquivos, modelos, overlays e recursos seguros para jogadores e criadores.',
     communityText: 'Entre na comunidade DaniVex e compartilhe setups, configuracoes e resultados.',
     discord: 'Entrar no Discord',
-    contactText: 'Conecte-se com DaniVex pelo Discord, WhatsApp e redes sociais oficiais.',
+    whatsapp: 'Canal do WhatsApp',
+    contactText: 'Conecte-se com DaniVex pelo Discord e redes sociais oficiais.',
     discordServer: 'Servidor do Discord',
-    whatsappChannel: 'Canal do WhatsApp',
     socialNetworks: 'Redes sociais',
     instagram: 'Instagram',
     tiktokMain: 'TikTok principal',
     tiktokSecond: 'Segundo TikTok',
-    visitorCounter: 'Entradas registradas',
-    visitorNote: 'contador local',
+    visits: 'Visitas',
     resultLabels: {
       general: 'Geral',
       redDot: 'Mira ponto vermelho',
@@ -232,15 +231,14 @@ const copy = {
     downloadsText: 'Files, templates, overlays and safe resources for players and creators.',
     communityText: 'Join the DaniVex community and share setups, configurations and results.',
     discord: 'Join Discord',
-    contactText: 'Connect with DaniVex through Discord, WhatsApp and official socials.',
+    whatsapp: 'WhatsApp channel',
+    contactText: 'Connect with DaniVex through Discord and official socials.',
     discordServer: 'Discord server',
-    whatsappChannel: 'WhatsApp channel',
     socialNetworks: 'Social networks',
     instagram: 'Instagram',
     tiktokMain: 'Main TikTok',
     tiktokSecond: 'Second TikTok',
-    visitorCounter: 'Registered entries',
-    visitorNote: 'local counter',
+    visits: 'Visits',
     resultLabels: {
       general: 'General',
       redDot: 'Red dot sight',
@@ -398,6 +396,11 @@ function App() {
         </div>
       </nav>
 
+      <div className="visitor-counter" aria-label={`${text.visits}: ${visitCount}`}>
+        <FaEye aria-hidden="true" />
+        <strong>{visitCount}</strong>
+      </div>
+
       <section id="inicio" className="hero">
         <div className="hero-card">
           <img src={logo} alt="Danivex Logo" className="hero-logo" />
@@ -407,12 +410,6 @@ function App() {
           <div className="buttons">
             <a href="#sensibilidad" className="btn primary">{text.primaryCta}</a>
             <a href="#comunidad" className="btn secondary">{text.community}</a>
-          </div>
-
-          <div className="visitor-counter" aria-live="polite">
-            <span>{text.visitorCounter}</span>
-            <strong>{visitCount}</strong>
-            <small>{text.visitorNote}</small>
           </div>
         </div>
       </section>
@@ -601,37 +598,38 @@ function App() {
       <section id="comunidad" className="section">
         <h2>{text.nav[4]}</h2>
         <p>{text.communityText}</p>
-        <a
-          href={links.discord}
-          className="discord-btn"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {text.discord}
-        </a>
+        <div className="social-actions">
+          <a className="social-button discord" href={links.discord} target="_blank" rel="noreferrer">
+            <FaDiscord aria-hidden="true" />
+            <span>{text.discord}</span>
+          </a>
+          <a className="social-button whatsapp" href={links.whatsapp} target="_blank" rel="noreferrer">
+            <FaWhatsapp aria-hidden="true" />
+            <span>{text.whatsapp}</span>
+          </a>
+        </div>
       </section>
 
       <section id="contacto" className="section">
         <h2>{text.nav[5]}</h2>
         <p>{text.contactText}</p>
-        <div className="contact-grid">
-          <a className="contact-card discord-card" href={links.discord} target="_blank" rel="noreferrer">
+        <div className="social-actions contact-actions">
+          <a className="social-button discord" href={links.discord} target="_blank" rel="noreferrer">
+            <FaDiscord aria-hidden="true" />
             <span>{text.discordServer}</span>
-            <strong>Discord</strong>
           </a>
-          <a className="contact-card whatsapp-card" href={links.whatsapp} target="_blank" rel="noreferrer">
-            <span>{text.whatsappChannel}</span>
-            <strong>WhatsApp</strong>
+          <a className="social-button instagram" href={links.instagram} target="_blank" rel="noreferrer">
+            <FaInstagram aria-hidden="true" />
+            <span>{text.instagram}</span>
           </a>
-        </div>
-
-        <div className="social-block">
-          <h3>{text.socialNetworks}</h3>
-          <div className="social-links">
-            <a href={links.instagram} target="_blank" rel="noreferrer">{text.instagram}</a>
-            <a href={links.tiktokMain} target="_blank" rel="noreferrer">{text.tiktokMain}</a>
-            <a href={links.tiktokSecond} target="_blank" rel="noreferrer">{text.tiktokSecond}</a>
-          </div>
+          <a className="social-button tiktok" href={links.tiktokMain} target="_blank" rel="noreferrer">
+            <FaTiktok aria-hidden="true" />
+            <span>{text.tiktokMain}</span>
+          </a>
+          <a className="social-button tiktok" href={links.tiktokSecond} target="_blank" rel="noreferrer">
+            <FaTiktok aria-hidden="true" />
+            <span>{text.tiktokSecond}</span>
+          </a>
         </div>
       </section>
     </div>
