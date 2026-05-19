@@ -8,23 +8,23 @@ export const scannerRegions = [
 ]
 
 export const primeLevels = [
-  { level: 1, points: 100, diamonds: 100, privileges: ['Acceso Prime inicial', 'Insignia basica', 'Recompensas de recarga'] },
-  { level: 2, points: 1000, diamonds: 1000, privileges: ['Recompensas Prime mejoradas', 'Mayor prioridad de eventos', 'Insignia Prime 2'] },
-  { level: 3, points: 3000, diamonds: 3000, privileges: ['Beneficios avanzados', 'Mayor progreso Prime', 'Insignia Prime 3'] },
-  { level: 4, points: 10000, diamonds: 10000, privileges: ['Privilegios superiores', 'Recompensas de mayor valor', 'Insignia Prime 4'] },
-  { level: 5, points: 30000, diamonds: 30000, privileges: ['Estado Prime avanzado', 'Recompensas premium', 'Insignia Prime 5'] },
-  { level: 6, points: 60000, diamonds: 60000, privileges: ['Privilegios legendarios', 'Perfil de alta inversion', 'Insignia Prime 6'] },
-  { level: 7, points: 120000, diamonds: 120000, privileges: ['Acceso Prime elite', 'Recompensas top', 'Insignia Prime 7'] },
-  { level: 8, points: 200000, diamonds: 200000, privileges: ['Maximo rango Prime', 'Privilegios elite completos', 'Insignia Prime 8'] },
+  { level: 1, points: 100, diamonds: 100, privileges: ['Avatar y Banner Iniciante Prime', 'Simbolo Prime 1', 'Estatus Prime inicial'] },
+  { level: 2, points: 1000, diamonds: 1000, privileges: ['Regalos Exclusivos', 'Lista de Bloqueos Ampliada', 'Simbolo Prime 2'] },
+  { level: 3, points: 3000, diamonds: 3000, privileges: ['Pared de Gel - Honor del Prime', 'Espacio Extra para Traje', 'Simbolo Prime 3'] },
+  { level: 4, points: 10000, diamonds: 10000, privileges: ['Emote Habla Mas Fuerte', 'Avatar y Banner Avance del Prime', '+100 Espacios para Amigos', 'Simbolo Prime 4'] },
+  { level: 5, points: 30000, diamonds: 30000, privileges: ['Apodo Colorido', 'Invitacion Prime', 'Simbolo Prime 5'] },
+  { level: 6, points: 60000, diamonds: 60000, privileges: ['Animacion de Perfil Prime', 'Perfil Prime', 'Simbolo Prime 6'] },
+  { level: 7, points: 120000, diamonds: 120000, privileges: ['Acceso Anticipado a Novedades', 'Tienda Prime Exclusiva', 'Avatar y Banner Maximo del Prime', 'Simbolo Prime 7'] },
+  { level: 8, points: 200000, diamonds: 200000, privileges: ['Marco de Avatar Prime', 'Comparticion de Trajes', 'Insignia Prime', 'Simbolo Prime 8'] },
 ]
 
 export const scannerSteps = [
-  'Verificando UID...',
-  'Consultando Pagostore/Garena...',
-  'Autodetectando nombre y region...',
-  'Consultando estado Prime...',
-  'Calculando diamantes...',
-  'Generando analisis IA...',
+  'Verificando formato UID...',
+  'Buscando perfil publico...',
+  'Extrayendo nickname y region...',
+  'Leyendo fecha, nivel y actividad...',
+  'Organizando datos publicos...',
+  'Preparando analisis DaniVex...',
 ]
 
 const statuses = ['Activa', 'Activa - Prime verificado', 'Activa - sin sanciones visibles', 'Activa - revision limpia']
@@ -44,18 +44,63 @@ export function formatNumber(value) {
 }
 
 export function getPrimeLevelByPoints(points) {
-  return primeLevels.reduce((current, level) => (points >= level.points ? level : current), primeLevels[0])
+  const safePoints = Number(points || 0)
+
+  if (safePoints < primeLevels[0].points) {
+    return {
+      level: 0,
+      points: 0,
+      diamonds: 0,
+      privileges: ['Sin Prime confirmado'],
+    }
+  }
+
+  return primeLevels.reduce((current, level) => (safePoints >= level.points ? level : current), primeLevels[0])
 }
 
 export function getNextPrimeLevel(level) {
-  return primeLevels.find((item) => item.level === level + 1) || null
+  return primeLevels.find((item) => item.level === Number(level || 0) + 1) || null
+}
+
+export function getPrimeProgress(diamonds) {
+  const safeDiamonds = Math.max(0, Number(diamonds || 0))
+  const current = getPrimeLevelByPoints(safeDiamonds)
+  const next = getNextPrimeLevel(current.level)
+
+  if (!next) {
+    return {
+      current,
+      next: null,
+      diamonds: safeDiamonds,
+      missing: 0,
+      percent: current.level >= 8 ? 100 : 0,
+      isMax: current.level >= 8,
+    }
+  }
+
+  const currentFloor = current.diamonds || 0
+  const nextFloor = next.diamonds
+  const range = Math.max(1, nextFloor - currentFloor)
+  const progress = Math.max(0, safeDiamonds - currentFloor)
+
+  return {
+    current,
+    next,
+    diamonds: safeDiamonds,
+    missing: Math.max(0, nextFloor - safeDiamonds),
+    percent: Math.min(100, Math.round((progress / range) * 100)),
+    isMax: false,
+  }
 }
 
 export function getSpendingProfile(level) {
-  if (level <= 2) return 'Casual Prime'
-  if (level <= 5) return 'Advanced Prime'
-  return 'Legendary Prime'
+  if (level <= 0) return 'No confirmado'
+  if (level <= 2) return 'Prime inicial'
+  if (level <= 5) return 'Prime avanzado'
+  if (level <= 7) return 'Prime elite'
+  return 'Prime maximo'
 }
+
 
 export function detectRegionFromUid(uid, selectedRegion = 'auto') {
   const cleanUid = normalizeUid(uid)
@@ -96,20 +141,34 @@ export function detectRegionFromUid(uid, selectedRegion = 'auto') {
 }
 
 export function generateAIAnalysis(playerData) {
-  const investment = playerData.prime.level >= 6 ? 'alta' : playerData.prime.level >= 3 ? 'media' : 'ligera'
-  const rarityRead = playerData.rarity >= 80 ? 'muy superior al promedio' : playerData.rarity >= 55 ? 'competitiva' : 'en crecimiento'
-  const ogRead = playerData.ogLevel >= 7 ? 'con perfil OG fuerte' : playerData.ogLevel >= 4 ? 'con senales OG moderadas' : 'todavia joven dentro del ecosistema'
-  const nameRead = playerData.nameSource === 'garena-topup'
-    ? `El nombre detectado por la modalidad de recarga es "${playerData.username}", respetando el texto devuelto por el proveedor.`
-    : 'La consulta real no devolvio nickname; el sistema evita inventar otro nombre para no confundir cuentas.'
+  if (playerData.lookupStatus !== 'real') {
+    return 'No se encontro un perfil publico para este UID. DaniVex no inventa nickname, region, diamantes ni nivel Prime.'
+  }
 
-  return [
-    nameRead,
-    `Esta cuenta aparece como Prime activo con inversion ${investment} dentro de Free Fire.`,
-    `Su Prime Level ${playerData.prime.level} y sus ${formatNumber(playerData.prime.points)} Prime Points indican una cuenta ${rarityRead}.`,
-    `La region ${playerData.region} fue marcada como ${playerData.regionSource.toLowerCase()} con ${playerData.regionConfidence}% de confianza mock.`,
-    `Por antiguedad estimada y estado ${playerData.status.toLowerCase()}, el sistema la clasifica ${ogRead}.`,
-  ].join(' ')
+  const details = [
+    `Perfil publico detectado para ${playerData.username}.`,
+    `UID ${playerData.uid} con region ${playerData.region}.`,
+  ]
+
+  if (playerData.creationDate) details.push(`La cuenta registra fecha de creacion: ${playerData.creationDate}.`)
+  if (playerData.lastLogin) details.push(`Ultimo inicio de sesion publicado: ${playerData.lastLogin}.`)
+  if (playerData.level) details.push(`Nivel publicado: ${playerData.level}${playerData.exp ? ` con EXP ${playerData.exp}` : ''}.`)
+  if (playerData.likes) details.push(`Tiene ${formatNumber(playerData.likes)} me gusta.`)
+
+  if (playerData.prime.diamonds > 0) {
+    const nextRead = playerData.prime.next
+      ? `Le faltan ${formatNumber(playerData.prime.missing)} diamantes para Prime ${playerData.prime.next.level}.`
+      : 'Ya esta en Prime 8, que es el nivel maximo.'
+
+    details.push(`Prime calculado con tabla FreeFireJornal: Prime ${playerData.prime.level} con ${formatNumber(playerData.prime.diamonds)} diamantes confirmados. ${nextRead}`)
+  } else {
+    details.push('La fuente publica no confirma diamantes comprados; por eso DaniVex no calcula Prime inventado.')
+  }
+
+  details.push(`Fuente usada: ${playerData.lookupProvider}.`)
+  details.push('Los datos no publicados por la fuente aparecen como no disponibles.')
+
+  return details.join(' ')
 }
 
 export function generateMockPlayer(uid, selectedRegion, accountName = '') {
@@ -166,43 +225,113 @@ export function generateMockPlayer(uid, selectedRegion, accountName = '') {
 
 export function generatePlayerFromLookup(uid, lookup) {
   const cleanUid = normalizeUid(uid)
-  const seed = hashString(`${cleanUid}:${lookup.nickname || 'lookup'}`)
-  const prime = buildPrime(seed)
-  const creationDate = buildCreationDate(seed)
-  const ageMonths = getAccountAgeInMonths(creationDate)
-  const rarity = Math.min(99, 35 + prime.level * 7 + Math.floor(ageMonths / 8) + (seed % 7))
-  const ogLevel = Math.min(10, Math.max(1, Math.round((ageMonths / 12) + prime.level / 2)))
+
+  const hasRealData =
+    lookup &&
+    lookup.ok &&
+    lookup.nickname
+
+  const confirmedDiamonds = Number(lookup?.diamonds || lookup?.rechargedDiamonds || 0)
+  const primeProgress = getPrimeProgress(confirmedDiamonds)
 
   const player = {
     uid: cleanUid,
-    username: lookup.nickname || `UID ${cleanUid}`,
-    nameSource: lookup.nickname ? 'garena-topup' : 'pending-api',
-    lookupStatus: lookup.ok ? 'real' : 'unverified',
-    lookupMessage: lookup.message || '',
-    lookupProvider: lookup.provider || lookup.source || 'Garena Top-Up / Pagostore',
-    avatarUrl: lookup.avatar || '',
-    avatarSeed: seed,
-    region: lookup.region || detectRegionFromUid(cleanUid, 'auto').label,
-    regionCode: lookup.regionCode || detectRegionFromUid(cleanUid, 'auto').code,
-    regionCountry: lookup.regionCountry || '',
-    regionSource: lookup.ok ? 'Garena Top-Up / Pagostore' : 'Pendiente de API real',
-    regionConfidence: lookup.regionConfidence || (lookup.ok ? 100 : 0),
-    status: lookup.ok ? 'Activa - UID validado' : 'UID sin validar',
-    creationDate: creationDate.toISOString(),
-    accountAge: formatAccountAge(ageMonths),
-    rarity,
-    rarityLabel: rarityLabels[Math.min(rarityLabels.length - 1, Math.floor(rarity / 22))],
-    ogLevel,
-    spendingProfile: getSpendingProfile(prime.level),
-    prime,
+
+    username: hasRealData
+      ? lookup.nickname
+      : 'Cuenta no verificada',
+
+    nameSource: hasRealData
+      ? lookup.provider || 'public-profile'
+      : 'not-verified',
+
+    lookupStatus: hasRealData
+      ? 'real'
+      : 'not_verified',
+
+    lookupMessage: hasRealData
+      ? ''
+      : lookup?.message || 'No se encontro perfil publico para este UID.',
+
+    lookupProvider:
+      lookup?.provider ||
+      'Perfil publico',
+
+    sourceUrl: lookup?.sourceUrl || '',
+    sourcesFound: lookup?.sourcesFound || [],
+    sourceCount: lookup?.sourceCount || 0,
+    fieldSources: lookup?.fieldSources || {},
+    cacheHit: Boolean(lookup?.cacheHit),
+    savedToPrivateDb: Boolean(lookup?.savedToPrivateDb),
+
+    avatarUrl: hasRealData
+      ? (lookup.avatar || '')
+      : '',
+
+    bannerUrl: hasRealData
+      ? (lookup.banner || '')
+      : '',
+
+    avatarSeed: 0,
+
+    region: hasRealData
+      ? (lookup.region || 'No disponible')
+      : 'Desconocida',
+
+    regionCode: lookup?.regionCode || 'unknown',
+
+    regionCountry: lookup?.regionCountry || '',
+
+    regionSource: hasRealData
+      ? lookup.provider || 'Fuente publica'
+      : 'NO_VERIFIED',
+
+    regionConfidence: hasRealData && lookup.region
+      ? 100
+      : 0,
+
+    status: hasRealData
+      ? 'Perfil publico encontrado'
+      : 'UID sin perfil publico',
+
+    creationDate: lookup?.creationDate || null,
+    lastLogin: lookup?.lastLogin || null,
+    accountAge: lookup?.accountAge || 'No disponible',
+    level: lookup?.level || '',
+    exp: lookup?.exp || '',
+    likes: lookup?.likes || 0,
+    gameVersion: lookup?.gameVersion || '',
+    pass: lookup?.pass || '',
+    clan: lookup?.clan || '',
+    bio: lookup?.bio || '',
+    skinStatus: lookup?.skinStatus || '',
+    skinError: lookup?.skinError || '',
+
+    rarity: 0,
+    rarityLabel: 'Datos publicos',
+    ogLevel: 0,
+    spendingProfile: getSpendingProfile(primeProgress.current.level),
+
+    prime: {
+      level: primeProgress.current.level,
+      points: confirmedDiamonds,
+      diamonds: confirmedDiamonds,
+      currentFloor: primeProgress.current.diamonds,
+      next: primeProgress.next,
+      missing: primeProgress.missing,
+      percent: primeProgress.percent,
+      isMax: primeProgress.isMax,
+      source: confirmedDiamonds > 0 ? 'FreeFireJornal / fuente publica' : 'No confirmado',
+    },
   }
 
   return {
     ...player,
-    aiAnalysis: generateAIAnalysis(player),
+    aiAnalysis: hasRealData
+      ? generateAIAnalysis(player)
+      : 'No hay datos publicos suficientes para generar un analisis confiable.',
   }
 }
-
 export function normalizeUid(value) {
   return String(value || '').replace(/[^\d]/g, '').slice(0, 14)
 }

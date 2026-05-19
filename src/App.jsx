@@ -640,7 +640,11 @@ function HomePage() {
 
 function App() {
   const normalizedPath = window.location.pathname.replace(/\/$/, '')
-  if (normalizedPath === '/free-fire-prime-scanner') return <FreeFirePrimeScanner />
+  const isPrimeScanner = normalizedPath === '/free-fire-prime-scanner'
+  const isAccountProfile = /^\/cuenta\/\d+\.html$/.test(normalizedPath)
+
+  if (isPrimeScanner || isAccountProfile) return <FreeFirePrimeScanner />
+
   return <HomePage />
 }
 

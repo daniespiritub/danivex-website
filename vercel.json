@@ -8,5 +8,10 @@
       "source": "/free-fire-prime-scanner/",
       "destination": "/"
     }
-  ]
+  ],
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 30
+    }
+  }
 }
