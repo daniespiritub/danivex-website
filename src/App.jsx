@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { FaDiscord, FaEye, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa'
 import logo from './assets/logo.png'
 import fondo from './assets/fondo-gamer.png'
-import { devices, tierLabels as fallbackTierLabels } from './data/devices'
+import { createManualDevice, devices, manualTierOptions, tierLabels as fallbackTierLabels } from './data/devices'
 import { calculateSensitivity } from './utils/sensitivity'
 import FreeFirePrimeScanner from './pages/FreeFirePrimeScanner'
 import './App.css'
@@ -50,6 +50,8 @@ const copy = {
     searchModel: 'Buscar modelo',
     searchPlaceholder: 'Ej: iPhone 17, Galaxy A56, RedMagic 11 Pro',
     noModel: 'No encontre ese modelo. Prueba con marca o serie.',
+    manualDevice: 'No encuentro mi dispositivo',
+    manualTier: 'Elegir gama manualmente',
     mobile: 'Movil',
     tablet: 'Tablet',
     defaultDpi: 'DPI base',
@@ -124,6 +126,8 @@ const copy = {
     searchModel: 'Buscar modelo',
     searchPlaceholder: 'Ex: iPhone 17, Galaxy A56, RedMagic 11 Pro',
     noModel: 'Nao encontrei esse modelo. Tente marca ou serie.',
+    manualDevice: 'Nao encontro meu aparelho',
+    manualTier: 'Escolher categoria manualmente',
     mobile: 'Celular',
     tablet: 'Tablet',
     defaultDpi: 'DPI base',
@@ -207,6 +211,8 @@ const copy = {
     searchModel: 'Search model',
     searchPlaceholder: 'Ex: iPhone 17, Galaxy A56, RedMagic 11 Pro',
     noModel: 'I could not find that model. Try a brand or series.',
+    manualDevice: 'I cannot find my device',
+    manualTier: 'Choose tier manually',
     mobile: 'Phone',
     tablet: 'Tablet',
     defaultDpi: 'Base DPI',
@@ -311,6 +317,7 @@ function HomePage() {
   const [language] = useState(getPreferredLanguage)
   const [search, setSearch] = useState(defaultDevice.name)
   const [selectedDevice, setSelectedDevice] = useState(defaultDevice)
+  const [manualTier, setManualTier] = useState('mid')
   const [profile, setProfile] = useState(defaultProfile)
   const [copied, setCopied] = useState(false)
   const [visitCount] = useState(getLocalVisitCount)
@@ -358,6 +365,18 @@ function HomePage() {
       ...current,
       dpi: device.defaultDpi,
       rootState: device.os === 'Android' ? (current.rootState === 'ios' ? 'no-root' : current.rootState) : 'ios',
+    }))
+  }
+
+  function selectManualDevice(value = manualTier) {
+    const manualDevice = createManualDevice(value)
+    setManualTier(value)
+    setSelectedDevice(manualDevice)
+    setSearch('')
+    setProfile((current) => ({
+      ...current,
+      dpi: manualDevice.defaultDpi,
+      rootState: manualDevice.os === 'Android' ? (current.rootState === 'ios' ? 'no-root' : current.rootState) : 'ios',
     }))
   }
 
@@ -468,7 +487,37 @@ function HomePage() {
               ) : (
                 <div className="empty-state">{text.noModel}</div>
               )}
+
+              <button
+                className={`suggestion manual-suggestion ${selectedDevice.isManual ? 'active' : ''}`}
+                type="button"
+                onClick={() => selectManualDevice()}
+              >
+                <span>
+                  <strong>{text.manualDevice}</strong>
+                  <small>{text.manualTier}</small>
+                </span>
+                <em>Manual</em>
+              </button>
             </div>
+
+            {selectedDevice.isManual && (
+              <div className="manual-device">
+                <span>{text.manualTier}</span>
+                <div>
+                  {manualTierOptions.map((option) => (
+                    <button
+                      className={manualTier === option.value ? 'active' : ''}
+                      key={option.value}
+                      type="button"
+                      onClick={() => selectManualDevice(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="selected-device">
               <h4>{selectedDevice.name}</h4>

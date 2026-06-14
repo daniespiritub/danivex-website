@@ -374,6 +374,51 @@ select {
   text-align: center;
 }
 
+.manual-suggestion {
+  border-style: dashed;
+}
+
+.manual-device {
+  margin-top: 14px;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 8px;
+  background: rgba(14, 116, 144, 0.13);
+  padding: 12px;
+}
+
+.manual-device > span {
+  color: #a5f3fc;
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 900;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.manual-device div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.manual-device button {
+  min-height: 34px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  background: rgba(2, 6, 23, 0.44);
+  color: #cbd5e1;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 0 10px;
+}
+
+.manual-device button.active {
+  border-color: rgba(34, 211, 238, 0.7);
+  background: rgba(14, 116, 144, 0.28);
+  color: #f8fafc;
+}
+
 .selected-device {
   margin-top: 16px;
   border: 1px solid rgba(148, 163, 184, 0.18);

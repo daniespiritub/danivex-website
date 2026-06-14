@@ -1,3 +1,5 @@
+import { androidDeviceBrands, androidDeviceCatalogMeta, androidDeviceRows } from './androidDevices.generated.js'
+
 export const tierLabels = {
   entry: 'Entrada',
   budget: 'Media baja',
@@ -34,6 +36,7 @@ function device(name, brand, os, type, tier, hz, screen, aliases = []) {
 
   return {
     name,
+    model: name,
     brand,
     os,
     type,
@@ -41,9 +44,71 @@ function device(name, brand, os, type, tier, hz, screen, aliases = []) {
     hz,
     screen,
     defaultDpi,
+    estimatedDpi: defaultDpi,
     aliases,
     search: [name, brand, os, type, tier, defaultDpi, ...aliases].join(' ').toLowerCase(),
   }
+}
+
+function generatedAndroidDevice(row) {
+  const [brandIndex, model, tierCode, typeCode] = row
+  const brand = androidDeviceBrands[brandIndex] || 'Android'
+  const type = typeCode === 1 ? 'tablet' : 'phone'
+  const tier = ['entry', 'budget', 'mid', 'upper', 'flagship', 'gaming', 'tablet'][tierCode] || 'mid'
+  const estimatedDpi = generatedEstimatedDpi(tier, type)
+  const hz = estimateHz(tier, type)
+  const screen = estimateScreen(type)
+
+  return {
+    name: model,
+    model,
+    brand,
+    os: 'Android',
+    type,
+    tier,
+    hz,
+    screen,
+    defaultDpi: estimatedDpi,
+    estimatedDpi,
+    aliases: [],
+    source: androidDeviceCatalogMeta.source,
+    search: [brand, model, 'Android', type, tier, estimatedDpi].join(' ').toLowerCase(),
+  }
+}
+
+function generatedEstimatedDpi(tier, type) {
+  if (type === 'tablet') return 360
+  const dpiByTier = {
+    entry: 320,
+    budget: 360,
+    mid: 400,
+    upper: 420,
+    flagship: 480,
+    gaming: 480,
+  }
+  return dpiByTier[tier] || 400
+}
+
+function estimateHz(tier, type) {
+  if (tier === 'gaming') return 144
+  if (tier === 'flagship' || tier === 'upper') return 120
+  if (tier === 'mid' || tier === 'budget' || type === 'tablet') return 90
+  return 60
+}
+
+function estimateScreen(type) {
+  return type === 'tablet' ? '11' : '6.5'
+}
+
+function dedupeDevices(list) {
+  const seen = new Set()
+
+  return list.filter((item) => {
+    const key = `${item.brand}|${item.model}`.toLowerCase()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 function samsungGalaxyS() {
@@ -197,10 +262,51 @@ function gamingPhones() {
   })
 }
 
-export const devices = [
+const curatedDevices = [
   ...iphoneModels(),
   ...samsungGalaxyA(),
   ...samsungGalaxyS(),
   ...tabletModels(),
   ...gamingPhones(),
-].sort((a, b) => a.name.localeCompare(b.name))
+]
+
+export const manualTierOptions = [
+  { value: 'entry', label: 'Gama baja', brand: 'Manual', model: 'Android gama baja', os: 'Android', type: 'phone', tier: 'entry', hz: 60, screen: '6.3', estimatedDpi: 320 },
+  { value: 'mid', label: 'Gama media', brand: 'Manual', model: 'Android gama media', os: 'Android', type: 'phone', tier: 'mid', hz: 90, screen: '6.5', estimatedDpi: 400 },
+  { value: 'upper', label: 'Gama media-alta', brand: 'Manual', model: 'Android gama media-alta', os: 'Android', type: 'phone', tier: 'upper', hz: 120, screen: '6.7', estimatedDpi: 420 },
+  { value: 'flagship', label: 'Gama alta', brand: 'Manual', model: 'Android gama alta', os: 'Android', type: 'phone', tier: 'flagship', hz: 120, screen: '6.8', estimatedDpi: 480 },
+  { value: 'gaming', label: 'Gaming', brand: 'Manual', model: 'Android gaming', os: 'Android', type: 'phone', tier: 'gaming', hz: 144, screen: '6.8', estimatedDpi: 480 },
+  { value: 'iphone', label: 'iPhone', brand: 'Apple', model: 'iPhone manual', os: 'iOS', type: 'phone', tier: 'flagship', hz: 120, screen: '6.7', estimatedDpi: 460 },
+]
+
+export function createManualDevice(value = 'mid') {
+  const option = manualTierOptions.find((item) => item.value === value) || manualTierOptions[1]
+
+  return {
+    name: option.model,
+    model: option.model,
+    brand: option.brand,
+    os: option.os,
+    type: option.type,
+    tier: option.tier,
+    hz: option.hz,
+    screen: option.screen,
+    defaultDpi: option.estimatedDpi,
+    estimatedDpi: option.estimatedDpi,
+    aliases: [option.label],
+    isManual: true,
+    manualTierValue: option.value,
+    search: [option.brand, option.model, option.os, option.type, option.tier, option.label, option.estimatedDpi].join(' ').toLowerCase(),
+  }
+}
+
+export const deviceCatalogMeta = {
+  curatedRows: curatedDevices.length,
+  generatedAndroidRows: androidDeviceCatalogMeta.generatedRows,
+  source: androidDeviceCatalogMeta,
+}
+
+export const devices = dedupeDevices([
+  ...curatedDevices,
+  ...androidDeviceRows.map(generatedAndroidDevice),
+]).sort((a, b) => a.name.localeCompare(b.name))
