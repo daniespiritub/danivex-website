@@ -28,6 +28,7 @@ export function calculateSensitivity(device, profile, tierLabels) {
   const age = effectiveAge(device, profile.ageTier)
   const tiers = tierLabels.tiers || tierLabels
   const reasonText = tierLabels.reasons || {}
+  const rankMode = profile.rankMode || profile.style || 'de-ranked'
 
   if (device.hz >= 165) base += 8
   else if (device.hz >= 144) base += 6
@@ -48,10 +49,12 @@ export function calculateSensitivity(device, profile, tierLabels) {
 
   base += Math.min(10, profile.years * 1.15)
 
-  if (profile.dpi >= 650) base += 7
-  else if (profile.dpi >= 520) base += 5
-  else if (profile.dpi >= 430) base += 2
-  else if (profile.dpi > 0 && profile.dpi < 360) base -= 4
+  if (device.os !== 'iOS' && device.os !== 'iPadOS') {
+    if (profile.dpi >= 650) base += 7
+    else if (profile.dpi >= 520) base += 5
+    else if (profile.dpi >= 430) base += 2
+    else if (profile.dpi > 0 && profile.dpi < 360) base -= 4
+  }
 
   if (profile.fireButton < 42) base += 4
   else if (profile.fireButton > 150) base -= 12
@@ -59,25 +62,29 @@ export function calculateSensitivity(device, profile, tierLabels) {
   else if (profile.fireButton > 62) base -= 5
   else base += 1
 
-  if (profile.fpsTarget !== 'auto') {
+  if (device.os !== 'iOS' && device.os !== 'iPadOS' && profile.fpsTarget !== 'auto') {
     const fps = Number(profile.fpsTarget)
     if (fps >= 144) base += 4
     else if (fps >= 120) base += 3
     else if (fps <= 60 && device.hz >= 120) base -= 2
   }
 
-  if (profile.style === 'aggressive') base += 8
-  if (profile.style === 'precise') base -= 8
+  if (rankMode === 'de-ranked' || rankMode === 'aggressive') base += 6
+  if (rankMode === 'br-ranked' || rankMode === 'precise') base -= 4
 
   reasons.push(reasonText.device?.(device.name, tiers[device.tier] || device.tier) || `${device.name} se trata como ${tiers[device.tier] || device.tier}.`)
-  reasons.push(reasonText.hz?.(device.hz) || `${device.hz}Hz ajusta la base por respuesta tactil.`)
+  reasons.push(reasonText.hz?.(device.hz) || `${device.hz}Hz ajusta la base por respuesta táctil.`)
   if (age === 'old') reasons.push(reasonText.old || 'El modo antiguo baja sensibilidad para evitar saltos.')
-  if (device.tier === 'gaming') reasons.push(reasonText.gaming || 'La categoria gaming permite valores mas agresivos.')
+  if (device.tier === 'gaming') reasons.push(reasonText.gaming || 'La categoría gaming permite valores más agresivos.')
   if (profile.rootState === 'root' && device.os === 'Android') {
     reasons.push(reasonText.root || 'Root suma margen por menor latencia configurable.')
   }
-  if (profile.style === 'precise') reasons.push(reasonText.precise || 'El estilo preciso reduce la levantada para ganar control.')
-  if (profile.style === 'aggressive') reasons.push(reasonText.aggressive || 'El estilo agresivo sube la levantada.')
+  if (rankMode === 'de-ranked' || rankMode === 'aggressive') {
+    reasons.push(reasonText.deRank || reasonText.aggressive || 'DE Clasificatoria sube un poco la respuesta para duelos rápidos en mapa pequeño.')
+  }
+  if (rankMode === 'br-ranked' || rankMode === 'precise') {
+    reasons.push(reasonText.brRank || reasonText.precise || 'BR Clasificatoria baja un poco la base para sostener control en mapa grande.')
+  }
 
   const general = clamp(base)
   const values = {

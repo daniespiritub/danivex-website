@@ -1,5 +1,3 @@
-import { androidDeviceBrands, androidDeviceCatalogMeta, androidDeviceRows } from './androidDevices.generated.js'
-
 export const tierLabels = {
   entry: 'Entrada',
   budget: 'Media baja',
@@ -50,7 +48,7 @@ function device(name, brand, os, type, tier, hz, screen, aliases = []) {
   }
 }
 
-function generatedAndroidDevice(row) {
+function generatedAndroidDevice(row, androidDeviceBrands, androidDeviceCatalogMeta) {
   const [brandIndex, model, tierCode, typeCode] = row
   const brand = androidDeviceBrands[brandIndex] || 'Android'
   const type = typeCode === 1 ? 'tablet' : 'phone'
@@ -271,16 +269,34 @@ const curatedDevices = [
 ]
 
 export const manualTierOptions = [
-  { value: 'entry', label: 'Gama baja', brand: 'Manual', model: 'Android gama baja', os: 'Android', type: 'phone', tier: 'entry', hz: 60, screen: '6.3', estimatedDpi: 320 },
-  { value: 'mid', label: 'Gama media', brand: 'Manual', model: 'Android gama media', os: 'Android', type: 'phone', tier: 'mid', hz: 90, screen: '6.5', estimatedDpi: 400 },
-  { value: 'upper', label: 'Gama media-alta', brand: 'Manual', model: 'Android gama media-alta', os: 'Android', type: 'phone', tier: 'upper', hz: 120, screen: '6.7', estimatedDpi: 420 },
-  { value: 'flagship', label: 'Gama alta', brand: 'Manual', model: 'Android gama alta', os: 'Android', type: 'phone', tier: 'flagship', hz: 120, screen: '6.8', estimatedDpi: 480 },
-  { value: 'gaming', label: 'Gaming', brand: 'Manual', model: 'Android gaming', os: 'Android', type: 'phone', tier: 'gaming', hz: 144, screen: '6.8', estimatedDpi: 480 },
-  { value: 'iphone', label: 'iPhone', brand: 'Apple', model: 'iPhone manual', os: 'iOS', type: 'phone', tier: 'flagship', hz: 120, screen: '6.7', estimatedDpi: 460 },
+  { value: 'entry', platform: 'android', label: 'Gama baja', brand: 'Manual', model: 'Android gama baja', os: 'Android', type: 'phone', tier: 'entry', hz: 60, screen: '6.3', estimatedDpi: 320 },
+  { value: 'mid', platform: 'android', label: 'Gama media', brand: 'Manual', model: 'Android gama media', os: 'Android', type: 'phone', tier: 'mid', hz: 90, screen: '6.5', estimatedDpi: 400 },
+  { value: 'upper', platform: 'android', label: 'Gama media-alta', brand: 'Manual', model: 'Android gama media-alta', os: 'Android', type: 'phone', tier: 'upper', hz: 120, screen: '6.7', estimatedDpi: 420 },
+  { value: 'flagship', platform: 'android', label: 'Gama alta', brand: 'Manual', model: 'Android gama alta', os: 'Android', type: 'phone', tier: 'flagship', hz: 120, screen: '6.8', estimatedDpi: 480 },
+  { value: 'gaming', platform: 'android', label: 'Gaming', brand: 'Manual', model: 'Android gaming', os: 'Android', type: 'phone', tier: 'gaming', hz: 144, screen: '6.8', estimatedDpi: 480 },
+  { value: 'iphone', platform: 'ios', label: 'iPhone', brand: 'Apple', model: 'iPhone manual', os: 'iOS', type: 'phone', tier: 'flagship', hz: 120, screen: '6.7', estimatedDpi: 460 },
+  { value: 'tablet-android', platform: 'tablet', label: 'Tablet Android', brand: 'Manual', model: 'Tablet Android manual', os: 'Android', type: 'tablet', tier: 'tablet', hz: 90, screen: '11', estimatedDpi: 360 },
+  { value: 'ipad', platform: 'tablet', label: 'iPad', brand: 'Apple', model: 'iPad manual', os: 'iPadOS', type: 'tablet', tier: 'ipad', hz: 120, screen: '11', estimatedDpi: 264 },
 ]
 
-export function createManualDevice(value = 'mid') {
-  const option = manualTierOptions.find((item) => item.value === value) || manualTierOptions[1]
+export function getManualTierOptions(platform = 'android') {
+  return manualTierOptions.filter((item) => item.platform === platform)
+}
+
+export function getDevicePlatform(device) {
+  if (device.type === 'tablet') return 'tablet'
+  if (device.os === 'iOS' || device.os === 'iPadOS') return 'ios'
+  return 'android'
+}
+
+export function filterDevicesByPlatform(list, platform) {
+  return list.filter((item) => getDevicePlatform(item) === platform)
+}
+
+export function createManualDevice(value = 'mid', platform = 'android') {
+  const availableOptions = getManualTierOptions(platform)
+  const fallbackOption = availableOptions[0] || manualTierOptions[1]
+  const option = availableOptions.find((item) => item.value === value) || fallbackOption
 
   return {
     name: option.model,
@@ -302,11 +318,30 @@ export function createManualDevice(value = 'mid') {
 
 export const deviceCatalogMeta = {
   curatedRows: curatedDevices.length,
-  generatedAndroidRows: androidDeviceCatalogMeta.generatedRows,
-  source: androidDeviceCatalogMeta,
+  generatedAndroidRows: 38538,
+  source: {
+    name: 'Android device catalog generated from public Android model datasets',
+    lazyLoaded: true,
+  },
 }
 
-export const devices = dedupeDevices([
-  ...curatedDevices,
-  ...androidDeviceRows.map(generatedAndroidDevice),
-]).sort((a, b) => a.name.localeCompare(b.name))
+export const devices = dedupeDevices(curatedDevices).sort((a, b) => a.name.localeCompare(b.name))
+
+let massiveDeviceCatalogPromise
+
+export async function loadMassiveDeviceCatalog() {
+  if (!massiveDeviceCatalogPromise) {
+    massiveDeviceCatalogPromise = import('./androidDevices.generated.js').then((module) => {
+      const generatedDevices = module.androidDeviceRows.map((row) => (
+        generatedAndroidDevice(row, module.androidDeviceBrands, module.androidDeviceCatalogMeta)
+      ))
+
+      return dedupeDevices([
+        ...curatedDevices,
+        ...generatedDevices,
+      ]).sort((a, b) => a.name.localeCompare(b.name))
+    })
+  }
+
+  return massiveDeviceCatalogPromise
+}

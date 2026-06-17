@@ -301,6 +301,31 @@ select {
   font-weight: 900;
 }
 
+.device-type-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.device-type-tabs button {
+  min-height: 40px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 7px;
+  background: rgba(2, 6, 23, 0.58);
+  color: #cbd5e1;
+  cursor: pointer;
+  font-weight: 900;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.device-type-tabs button:hover,
+.device-type-tabs button.active {
+  border-color: rgba(34, 211, 238, 0.72);
+  background: rgba(14, 116, 144, 0.22);
+  color: #f8fafc;
+}
+
 .field input,
 .field select {
   width: 100%;

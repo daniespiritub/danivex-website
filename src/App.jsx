@@ -2,7 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { FaDiscord, FaEye, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa'
 import logo from './assets/logo.png'
 import fondo from './assets/fondo-gamer.png'
-import { createManualDevice, devices, manualTierOptions, tierLabels as fallbackTierLabels } from './data/devices'
+import {
+  createManualDevice,
+  devices,
+  filterDevicesByPlatform,
+  getDevicePlatform,
+  getManualTierOptions,
+  loadMassiveDeviceCatalog,
+  tierLabels as fallbackTierLabels,
+} from './data/devices'
 import { calculateSensitivity } from './utils/sensitivity'
 import FreeFirePrimeScanner from './pages/FreeFirePrimeScanner'
 import './App.css'
@@ -14,11 +22,23 @@ const defaultDevice = devices.find((device) => device.name === 'RedMagic 11 Pro'
 const defaultProfile = {
   gameVersion: 'ff',
   rootState: defaultDevice.os === 'Android' ? 'no-root' : 'ios',
-  style: 'balanced',
+  rankMode: 'de-ranked',
   years: Math.min(2, MAX_EXPERIENCE_YEARS),
   dpi: defaultDevice.defaultDpi,
   fireButton: 52,
   fpsTarget: 'auto',
+}
+
+const platformDefaults = {
+  android: 'RedMagic 11 Pro',
+  ios: 'iPhone 17 Pro Max',
+  tablet: 'Xiaomi Pad 7',
+}
+
+const platformFallbackManualTier = {
+  android: 'mid',
+  ios: 'iphone',
+  tablet: 'tablet-android',
 }
 
 const resultKeys = ['general', 'redDot', 'scope2x', 'scope4x', 'sniper', 'camera360']
@@ -34,13 +54,13 @@ const copy = {
   es: {
     lang: 'es',
     nav: ['Inicio', 'Sensibilidad', 'Optimizaciones', 'Descargas', 'Comunidad', 'Contacto'],
-    heroText: 'Recursos gamer, optimizaciones legales, guias y herramientas para mejorar tu experiencia de juego.',
+    heroText: 'Recursos gamer, optimizaciones legales, guías y herramientas para mejorar tu experiencia de juego.',
     primaryCta: 'Calcular sensibilidad',
     community: 'Comunidad',
     primeScanner: 'Prime Scanner',
     toolBadge: 'Herramienta principal',
     toolTitle: 'Sensibilidad FF',
-    toolText: 'Elige tu dispositivo y deja que DaniVex arme una base lista para levantar mira con mas control.',
+    toolText: 'Elige tu dispositivo y deja que DaniVex arme una base lista para levantar mira con más control.',
     step1: 'Paso 1',
     step2: 'Paso 2',
     result: 'Resultado',
@@ -48,26 +68,29 @@ const copy = {
     profile: 'Perfil',
     models: 'modelos',
     searchModel: 'Buscar modelo',
+    deviceType: 'Tipo de dispositivo',
+    android: 'Android',
+    ios: 'iOS',
     searchPlaceholder: 'Ej: iPhone 17, Galaxy A56, RedMagic 11 Pro',
-    noModel: 'No encontre ese modelo. Prueba con marca o serie.',
+    noModel: 'No encontré ese modelo. Prueba con marca o serie.',
     manualDevice: 'No encuentro mi dispositivo',
     manualTier: 'Elegir gama manualmente',
-    mobile: 'Movil',
+    loadingDevices: 'Cargando catálogo...',
+    mobile: 'Móvil',
     tablet: 'Tablet',
     defaultDpi: 'DPI base',
-    version: 'Version',
+    version: 'Versión',
     androidState: 'Estado Android',
     noRoot: 'No root',
     root: 'Root',
-    style: 'Estilo',
-    balanced: 'Balanceado',
-    aggressive: 'Levantada agresiva',
-    precise: 'Precision estable',
-    years: 'Anos jugando',
+    rankMode: 'Clasificatoria',
+    deRanked: 'DE Clasificatoria',
+    brRanked: 'BR Clasificatoria',
+    years: 'AÑOS JUGANDO',
     dpi: 'DPI del dispositivo',
-    fireButton: 'Boton de disparo',
+    fireButton: 'Botón de disparo',
     fpsTarget: 'FPS objetivo',
-    auto: 'Automatico',
+    auto: 'Automático',
     recommended: 'Sensibilidad recomendada',
     copy: 'Copiar',
     copied: 'Copiado',
@@ -75,10 +98,10 @@ const copy = {
     coachStart: 'Lectura DaniVex:',
     coachEnd: 'Prueba 3 partidas, ajusta de 3 en 3 y guarda el mejor resultado.',
     optimizationsTitle: 'Optimizaciones',
-    optimizationsText: 'Guias para mejorar rendimiento, estabilidad, FPS y configuracion de dispositivos.',
+    optimizationsText: 'Guías para mejorar rendimiento, estabilidad, FPS y configuración de dispositivos.',
     downloadsTitle: 'Descargas legales',
     downloadsText: 'Archivos, plantillas, overlays y recursos seguros para jugadores y creadores.',
-    communityText: 'Unete a la comunidad Danivex y comparte setups, configuraciones y resultados.',
+    communityText: 'Únete a la comunidad Danivex y comparte setups, configuraciones y resultados.',
     discord: 'Entrar al Discord',
     whatsapp: 'Comunidad DaniVex',
     contactText: 'Conecta con DaniVex por Discord y redes sociales oficiales.',
@@ -94,17 +117,17 @@ const copy = {
       scope2x: 'Mira 2x',
       scope4x: 'Mira 4x',
       sniper: 'Mira Francotirador',
-      camera360: 'Boton de Camara 360',
+      camera360: 'Botón de Cámara 360',
     },
     tiers: fallbackTierLabels,
     reasons: {
       device: (name, tier) => `${name} se trata como ${tier}.`,
-      hz: (hz) => `${hz}Hz ajusta la base por respuesta tactil.`,
+      hz: (hz) => `${hz}Hz ajusta la base por respuesta táctil.`,
       old: 'El modelo se detecta como antiguo y baja sensibilidad para evitar saltos.',
-      gaming: 'La categoria gaming permite valores mas agresivos.',
+      gaming: 'La categoría gaming permite valores más agresivos.',
       root: 'Root suma margen por menor latencia configurable.',
-      precise: 'El estilo preciso reduce la levantada para ganar control.',
-      aggressive: 'El estilo agresivo sube la levantada.',
+      deRank: 'DE Clasificatoria prioriza reacción rápida para duelos 4 vs 4 en mapa pequeño.',
+      brRank: 'BR Clasificatoria prioriza control estable para mapa grande y combates largos.',
     },
   },
   pt: {
@@ -135,10 +158,13 @@ const copy = {
     androidState: 'Estado Android',
     noRoot: 'Sem root',
     root: 'Root',
-    style: 'Estilo',
-    balanced: 'Balanceado',
-    aggressive: 'Puxada agressiva',
-    precise: 'Precisao estavel',
+    deviceType: 'Tipo de aparelho',
+    android: 'Android',
+    ios: 'iOS',
+    loadingDevices: 'Carregando catalogo...',
+    rankMode: 'Classificatoria',
+    deRanked: 'DE Classificatoria',
+    brRanked: 'BR Classificatoria',
     years: 'Anos jogando',
     dpi: 'DPI do aparelho',
     fireButton: 'Botao de tiro',
@@ -188,8 +214,8 @@ const copy = {
       old: 'O modelo foi detectado como antigo e reduz sensibilidade para evitar pulos.',
       gaming: 'A categoria gaming permite valores mais agressivos.',
       root: 'Root soma margem por menor latencia configuravel.',
-      precise: 'O estilo preciso reduz a puxada para ganhar controle.',
-      aggressive: 'O estilo agressivo aumenta a puxada.',
+      deRank: 'DE Classificatoria prioriza reacao rapida para duelos 4 vs 4 em mapa pequeno.',
+      brRank: 'BR Classificatoria prioriza controle estavel para mapa grande e combates longos.',
     },
   },
   en: {
@@ -220,10 +246,13 @@ const copy = {
     androidState: 'Android state',
     noRoot: 'No root',
     root: 'Root',
-    style: 'Style',
-    balanced: 'Balanced',
-    aggressive: 'Aggressive drag',
-    precise: 'Stable precision',
+    deviceType: 'Device type',
+    android: 'Android',
+    ios: 'iOS',
+    loadingDevices: 'Loading catalog...',
+    rankMode: 'Ranked mode',
+    deRanked: 'CS Ranked',
+    brRanked: 'BR Ranked',
     years: 'Years playing',
     dpi: 'Device DPI',
     fireButton: 'Fire button',
@@ -273,8 +302,8 @@ const copy = {
       old: 'The model is detected as older and lowers sensitivity to avoid jumps.',
       gaming: 'Gaming class devices allow more aggressive values.',
       root: 'Root adds room through configurable lower latency.',
-      precise: 'Precision style lowers drag for control.',
-      aggressive: 'Aggressive style raises drag.',
+      deRank: 'CS Ranked favors fast response for 4v4 fights on small maps.',
+      brRank: 'BR Ranked favors steadier control for large maps and longer fights.',
     },
   },
 }
@@ -296,17 +325,65 @@ function getPreferredLanguage() {
   return 'es'
 }
 
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : ''
+}
+
+function setCookie(name, value, maxAgeSeconds) {
+  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${maxAgeSeconds}; Path=/; SameSite=Lax`
+}
+
+function stableNumberSeed(text) {
+  return [...text].reduce((hash, char) => ((hash * 31) + char.charCodeAt(0)) >>> 0, 2166136261)
+}
+
 function getLocalVisitCount() {
-  const storageKey = 'danivex-visit-count'
-  const sessionKey = 'danivex-visit-counted'
+  const stateKey = 'danivex-counter-state'
+  const realVisitKey = 'danivex-real-visit'
+  const now = new Date()
+  const todayKey = now.toISOString().slice(0, 10)
+  const secondsToday = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds()
+  const secondsPerDay = 86400
+  const dailyTarget = 32 + (stableNumberSeed(`${todayKey}:danivex`) % 11)
+  const bucket = Math.floor(secondsToday / 1800)
+  const controlledNoise = (stableNumberSeed(`${todayKey}:${bucket}:views`) % 3) - 1
 
   try {
-    const currentCount = Number(localStorage.getItem(storageKey) || '0')
-    if (sessionStorage.getItem(sessionKey)) return Math.max(1, currentCount)
+    const storedState = JSON.parse(getCookie(stateKey) || '{}')
+    const legacyCount = Number(localStorage.getItem('danivex-visit-count') || '0')
+    const hasRealVisit = Boolean(getCookie(realVisitKey))
+    const baseCount = Math.max(1, Number(storedState.base || 0), legacyCount)
+    let state = {
+      day: storedState.day || todayKey,
+      base: baseCount,
+      realVisits: Number(storedState.realVisits || 0),
+      lastValue: Math.max(baseCount, Number(storedState.lastValue || 0)),
+    }
 
-    const nextCount = currentCount + 1
-    localStorage.setItem(storageKey, String(nextCount))
-    sessionStorage.setItem(sessionKey, 'true')
+    if (state.day !== todayKey) {
+      const previousTarget = 32 + (stableNumberSeed(`${state.day}:danivex`) % 11)
+      state = {
+        day: todayKey,
+        base: Math.max(state.lastValue, state.base + previousTarget + state.realVisits),
+        realVisits: 0,
+        lastValue: Math.max(state.lastValue, state.base + previousTarget + state.realVisits),
+      }
+    }
+
+    if (!hasRealVisit) {
+      state.realVisits += 1
+      setCookie(realVisitKey, '1', 60 * 30)
+    }
+
+    const organicProgress = Math.max(0, Math.min(dailyTarget, Math.floor((dailyTarget * secondsToday) / secondsPerDay) + controlledNoise))
+    const nextCount = Math.max(state.lastValue, state.base + organicProgress + state.realVisits)
+    const nextState = {
+      ...state,
+      lastValue: nextCount,
+    }
+
+    setCookie(stateKey, JSON.stringify(nextState), 60 * 60 * 24 * 400)
     return nextCount
   } catch {
     return 1
@@ -315,29 +392,60 @@ function getLocalVisitCount() {
 
 function HomePage() {
   const [language] = useState(getPreferredLanguage)
+  const [devicePlatform, setDevicePlatform] = useState('android')
+  const [catalogDevices, setCatalogDevices] = useState(devices)
+  const [isCatalogLoading, setIsCatalogLoading] = useState(false)
   const [search, setSearch] = useState(defaultDevice.name)
   const [selectedDevice, setSelectedDevice] = useState(defaultDevice)
   const [manualTier, setManualTier] = useState('mid')
   const [profile, setProfile] = useState(defaultProfile)
   const [copied, setCopied] = useState(false)
-  const [visitCount] = useState(getLocalVisitCount)
+  const [visitCount, setVisitCount] = useState(getLocalVisitCount)
   const text = copy[language]
   const isApplePlatform = selectedDevice.os === 'iOS' || selectedDevice.os === 'iPadOS'
+  const showAndroidTuning = !isApplePlatform
   const experienceOptions = Array.from({ length: MAX_EXPERIENCE_YEARS + 1 }, (_, year) => year)
+  const platformOptions = [
+    { value: 'android', label: text.android },
+    { value: 'ios', label: text.ios },
+    { value: 'tablet', label: text.tablet },
+  ]
 
   useEffect(() => {
     document.documentElement.lang = text.lang
   }, [text.lang])
 
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setVisitCount(getLocalVisitCount())
+    }, 60 * 1000)
+
+    return () => window.clearInterval(intervalId)
+  }, [])
+
+  const platformDevices = useMemo(
+    () => filterDevicesByPlatform(catalogDevices, devicePlatform),
+    [catalogDevices, devicePlatform],
+  )
+
+  const manualOptions = useMemo(
+    () => getManualTierOptions(devicePlatform),
+    [devicePlatform],
+  )
+
   const filteredDevices = useMemo(() => {
     const query = search.trim().toLowerCase()
-    const defaultNames = ['RedMagic 11 Pro', 'Galaxy A56 5G', 'Galaxy S26 Ultra', 'iPhone 17 Pro Max', 'Xiaomi Pad 7']
+    const defaultNames = {
+      android: ['RedMagic 11 Pro', 'Galaxy A56 5G', 'Galaxy S26 Ultra'],
+      ios: ['iPhone 17 Pro Max', 'iPhone 16 Pro Max', 'iPhone 15 Pro Max'],
+      tablet: ['Xiaomi Pad 7', 'iPad Pro 11 M4', 'RedMagic Nova Tablet'],
+    }
     const pool = query
-      ? devices.filter((device) => device.search.includes(query))
-      : devices.filter((device) => defaultNames.includes(device.name))
+      ? platformDevices.filter((device) => device.search.includes(query))
+      : platformDevices.filter((device) => defaultNames[devicePlatform].includes(device.name))
 
     return pool.slice(0, 14)
-  }, [search])
+  }, [devicePlatform, platformDevices, search])
 
   const result = useMemo(
     () => calculateSensitivity(selectedDevice, profile, text),
@@ -358,26 +466,48 @@ function HomePage() {
     })
   }
 
-  function selectDevice(device) {
-    setSelectedDevice(device)
-    setSearch(device.name)
+  async function ensureMassiveCatalog(platform = devicePlatform) {
+    if (platform === 'ios' || catalogDevices.length > devices.length || isCatalogLoading) return
+
+    setIsCatalogLoading(true)
+    try {
+      const loadedDevices = await loadMassiveDeviceCatalog()
+      setCatalogDevices(loadedDevices)
+    } finally {
+      setIsCatalogLoading(false)
+    }
+  }
+
+  function updateSelectedDevice(nextDevice) {
+    setSelectedDevice(nextDevice)
+    setSearch(nextDevice.isManual ? '' : nextDevice.name)
     setProfile((current) => ({
       ...current,
-      dpi: device.defaultDpi,
-      rootState: device.os === 'Android' ? (current.rootState === 'ios' ? 'no-root' : current.rootState) : 'ios',
+      dpi: nextDevice.defaultDpi,
+      rootState: nextDevice.os === 'Android' ? (current.rootState === 'ios' ? 'no-root' : current.rootState) : 'ios',
     }))
   }
 
+  function selectDevicePlatform(platform) {
+    const defaultName = platformDefaults[platform]
+    const nextDevices = filterDevicesByPlatform(catalogDevices, platform)
+    const nextDevice = nextDevices.find((device) => device.name === defaultName) || nextDevices[0] || createManualDevice(platformFallbackManualTier[platform], platform)
+    const nextManualTier = platformFallbackManualTier[platform]
+
+    setDevicePlatform(platform)
+    setManualTier(nextManualTier)
+    updateSelectedDevice(nextDevice)
+  }
+
+  function selectDevice(device) {
+    setDevicePlatform(getDevicePlatform(device))
+    updateSelectedDevice(device)
+  }
+
   function selectManualDevice(value = manualTier) {
-    const manualDevice = createManualDevice(value)
-    setManualTier(value)
-    setSelectedDevice(manualDevice)
-    setSearch('')
-    setProfile((current) => ({
-      ...current,
-      dpi: manualDevice.defaultDpi,
-      rootState: manualDevice.os === 'Android' ? (current.rootState === 'ios' ? 'no-root' : current.rootState) : 'ios',
-    }))
+    const manualDevice = createManualDevice(value, devicePlatform)
+    setManualTier(manualDevice.manualTierValue)
+    updateSelectedDevice(manualDevice)
   }
 
   async function copyPreset() {
@@ -420,7 +550,7 @@ function HomePage() {
         </div>
       </nav>
 
-      <div className="visitor-counter" aria-label={`${text.visits}: ${visitCount}`}>
+      <div className="visitor-counter" aria-label={String(visitCount)}>
         <FaEye aria-hidden="true" />
         <strong>{visitCount}</strong>
       </div>
@@ -453,7 +583,21 @@ function HomePage() {
                 <span>{text.step1}</span>
                 <h3>{text.device}</h3>
               </div>
-              <strong>{devices.length} {text.models}</strong>
+              <strong>{platformDevices.length} {text.models}</strong>
+            </div>
+
+            <div className="device-type-tabs" aria-label={text.deviceType}>
+              {platformOptions.map((option) => (
+                <button
+                  aria-pressed={devicePlatform === option.value}
+                  className={devicePlatform === option.value ? 'active' : ''}
+                  key={option.value}
+                  type="button"
+                  onClick={() => selectDevicePlatform(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
 
             <label className="field full">
@@ -461,17 +605,25 @@ function HomePage() {
               <input
                 type="search"
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onFocus={() => ensureMassiveCatalog(devicePlatform)}
+                onChange={(event) => {
+                  setSearch(event.target.value)
+                  ensureMassiveCatalog(devicePlatform)
+                }}
                 placeholder={text.searchPlaceholder}
               />
             </label>
 
             <div className="suggestions" role="listbox" aria-label={text.searchModel}>
+              {isCatalogLoading && (
+                <div className="empty-state">{text.loadingDevices}</div>
+              )}
+
               {filteredDevices.length > 0 ? (
                 filteredDevices.map((device) => (
                   <button
-                    className={`suggestion ${selectedDevice.name === device.name ? 'active' : ''}`}
-                    key={device.name}
+                    className={`suggestion ${selectedDevice.brand === device.brand && selectedDevice.name === device.name ? 'active' : ''}`}
+                    key={`${device.brand}-${device.name}-${device.os}-${device.type}`}
                     type="button"
                     onClick={() => selectDevice(device)}
                   >
@@ -484,7 +636,7 @@ function HomePage() {
                     <em>{text.tiers[device.tier]}</em>
                   </button>
                 ))
-              ) : (
+              ) : !isCatalogLoading && (
                 <div className="empty-state">{text.noModel}</div>
               )}
 
@@ -505,7 +657,7 @@ function HomePage() {
               <div className="manual-device">
                 <span>{text.manualTier}</span>
                 <div>
-                  {manualTierOptions.map((option) => (
+                  {manualOptions.map((option) => (
                     <button
                       className={manualTier === option.value ? 'active' : ''}
                       key={option.value}
@@ -525,9 +677,9 @@ function HomePage() {
                 <span>{selectedDevice.brand}</span>
                 <span>{selectedDevice.os}</span>
                 <span>{selectedDevice.type === 'tablet' ? text.tablet : text.mobile}</span>
-                <span>{selectedDevice.hz}Hz</span>
+                {showAndroidTuning && <span>{selectedDevice.hz}Hz</span>}
                 <span>{selectedDevice.screen}"</span>
-                <span>{text.defaultDpi}: {selectedDevice.defaultDpi}</span>
+                {showAndroidTuning && <span>{text.defaultDpi}: {selectedDevice.defaultDpi}</span>}
                 <span>{text.tiers[selectedDevice.tier]}</span>
               </div>
             </div>
@@ -550,7 +702,7 @@ function HomePage() {
                 </select>
               </label>
 
-              {!isApplePlatform && (
+              {showAndroidTuning && (
                 <label className="field">
                   <span>{text.androidState}</span>
                   <select value={profile.rootState} onChange={(event) => updateProfile('rootState', event.target.value)}>
@@ -561,11 +713,10 @@ function HomePage() {
               )}
 
               <label className="field">
-                <span>{text.style}</span>
-                <select value={profile.style} onChange={(event) => updateProfile('style', event.target.value)}>
-                  <option value="balanced">{text.balanced}</option>
-                  <option value="aggressive">{text.aggressive}</option>
-                  <option value="precise">{text.precise}</option>
+                <span>{text.rankMode}</span>
+                <select value={profile.rankMode} onChange={(event) => updateProfile('rankMode', event.target.value)}>
+                  <option value="de-ranked">{text.deRanked}</option>
+                  <option value="br-ranked">{text.brRanked}</option>
                 </select>
               </label>
 
@@ -578,26 +729,30 @@ function HomePage() {
                 </select>
               </label>
 
-              <label className="field">
-                <span>{text.dpi}</span>
-                <input type="number" min="0" max="1200" value={profile.dpi} onChange={(event) => updateProfile('dpi', event.target.value)} />
-              </label>
+              {showAndroidTuning && (
+                <label className="field">
+                  <span>{text.dpi}</span>
+                  <input type="number" min="0" max="1200" value={profile.dpi} onChange={(event) => updateProfile('dpi', event.target.value)} />
+                </label>
+              )}
 
               <label className="field">
                 <span>{text.fireButton}</span>
                 <input type="number" min="0" max="200" value={profile.fireButton} onChange={(event) => updateProfile('fireButton', event.target.value)} />
               </label>
 
-              <label className="field">
-                <span>{text.fpsTarget}</span>
-                <select value={profile.fpsTarget} onChange={(event) => updateProfile('fpsTarget', event.target.value)}>
-                  <option value="auto">{text.auto}</option>
-                  <option value="60">60 FPS</option>
-                  <option value="90">90 FPS</option>
-                  <option value="120">120 FPS</option>
-                  <option value="144">144 FPS+</option>
-                </select>
-              </label>
+              {showAndroidTuning && (
+                <label className="field">
+                  <span>{text.fpsTarget}</span>
+                  <select value={profile.fpsTarget} onChange={(event) => updateProfile('fpsTarget', event.target.value)}>
+                    <option value="auto">{text.auto}</option>
+                    <option value="60">60 FPS</option>
+                    <option value="90">90 FPS</option>
+                    <option value="120">120 FPS</option>
+                    <option value="144">144 FPS+</option>
+                  </select>
+                </label>
+              )}
             </div>
           </div>
 
