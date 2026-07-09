@@ -3,6 +3,7 @@ import { FaDiscord, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa'
 import { PiChartBarBold, PiDeviceMobileBold, PiEyeBold, PiSlidersHorizontalBold } from 'react-icons/pi'
 import logo from './assets/logo.png'
 import fondo from './assets/fondo-gamer.png'
+import mobiladorLogo from './assets/mobilador-logo.png'
 import {
   createManualDevice,
   devices,
@@ -49,6 +50,7 @@ const links = {
   instagram: 'https://www.instagram.com/dani.bpe/',
   tiktokMain: 'https://www.tiktok.com/@.mashesp',
   tiktokSecond: 'https://www.tiktok.com/@.danibpe',
+  mobiladorDownload: 'https://github.com/daniespiritub/danivex-mobilador/releases/download/v0.0.0.1/DaniVex-Mobilador-Setup.exe',
 }
 
 const copy = {
@@ -101,6 +103,10 @@ const copy = {
     optimizationsText: 'Guías para mejorar rendimiento, estabilidad, FPS y configuración de dispositivos.',
     downloadsTitle: 'Descargas legales',
     downloadsText: 'Archivos, plantillas, overlays y recursos seguros para jugadores y creadores.',
+    mobiladorTitle: 'DaniVex Mobilador',
+    mobiladorText: 'Controla y refleja tu Android en PC con baja latencia: modos de rendimiento, HUD en tiempo real y perfiles listos para jugar.',
+    mobiladorButton: 'Descargar DaniVex Mobilador',
+    mobiladorNote: 'Windows 7, 8, 8.1, 10 y 11 · 64 bits',
     communityText: 'Únete a la comunidad Danivex y comparte setups, configuraciones y resultados.',
     discord: 'Entrar al Discord',
     whatsapp: 'Comunidad DaniVex',
@@ -179,6 +185,10 @@ const copy = {
     optimizationsText: 'Guias para melhorar desempenho, estabilidade, FPS e configuracao de aparelhos.',
     downloadsTitle: 'Downloads legais',
     downloadsText: 'Arquivos, modelos, overlays e recursos seguros para jogadores e criadores.',
+    mobiladorTitle: 'DaniVex Mobilador',
+    mobiladorText: 'Controle e espelhe seu Android no PC com baixa latencia: modos de desempenho, HUD em tempo real e perfis prontos para jogar.',
+    mobiladorButton: 'Baixar DaniVex Mobilador',
+    mobiladorNote: 'Windows 7, 8, 8.1, 10 e 11 - 64 bits',
     communityText: 'Entre na comunidade DaniVex e compartilhe setups, configuracoes e resultados.',
     discord: 'Entrar no Discord',
     whatsapp: 'Comunidade DaniVex',
@@ -266,6 +276,10 @@ const copy = {
     optimizationsText: 'Guides to improve performance, stability, FPS and device configuration.',
     downloadsTitle: 'Legal downloads',
     downloadsText: 'Files, templates, overlays and safe resources for players and creators.',
+    mobiladorTitle: 'DaniVex Mobilador',
+    mobiladorText: 'Control and mirror your Android on PC with low latency: performance modes, real-time HUD and ready-to-play profiles.',
+    mobiladorButton: 'Download DaniVex Mobilador',
+    mobiladorNote: 'Windows 7, 8, 8.1, 10 and 11 - 64-bit',
     communityText: 'Join the DaniVex community and share setups, configurations and results.',
     discord: 'Join Discord',
     whatsapp: 'DaniVex Community',
@@ -816,9 +830,23 @@ function HomePage() {
         <p>{text.optimizationsText}</p>
       </section>
 
-      <section id="descargas" className="section">
+      <section id="descargas" className="section section-wide">
         <h2>{text.downloadsTitle}</h2>
         <p>{text.downloadsText}</p>
+
+        <div className="download-card">
+          <div className="download-media">
+            <img src={mobiladorLogo} alt="DaniVex Mobilador" loading="lazy" />
+          </div>
+          <div className="download-info">
+            <h3>{text.mobiladorTitle}</h3>
+            <p>{text.mobiladorText}</p>
+            <a className="btn primary download-btn" href={links.mobiladorDownload} download>
+              {text.mobiladorButton}
+            </a>
+            <span className="download-note">{text.mobiladorNote}</span>
+          </div>
+        </div>
       </section>
 
       <section id="comunidad" className="section">

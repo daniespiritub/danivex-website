@@ -689,6 +689,82 @@ select {
   line-height: 1.8;
 }
 
+.section-wide {
+  width: min(1100px, 100%);
+}
+
+.download-card {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.9fr) 1.1fr;
+  align-items: center;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
+  text-align: left;
+}
+
+.download-media {
+  position: relative;
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background:
+    radial-gradient(70% 70% at 50% 45%, var(--accent-soft-strong), transparent 72%),
+    var(--surface-sunken);
+}
+
+.download-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 55%, var(--surface) 100%);
+  pointer-events: none;
+}
+
+.download-media img {
+  width: min(280px, 70%);
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.5));
+  -webkit-mask-image: radial-gradient(closest-side, #000 78%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 78%, transparent 100%);
+}
+
+.download-info {
+  padding: 40px 44px;
+}
+
+.download-info h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  margin-bottom: 10px;
+}
+
+.download-info p {
+  color: var(--text-muted);
+  font-size: 0.98rem;
+  line-height: 1.7;
+  margin-bottom: 22px;
+}
+
+.download-btn {
+  min-height: 52px;
+  padding: 0 30px;
+  font-size: 0.98rem;
+}
+
+.download-note {
+  display: block;
+  margin-top: 14px;
+  color: var(--text-faint);
+  font-size: 0.82rem;
+}
+
 .social-actions {
   display: flex;
   flex-wrap: wrap;
@@ -765,8 +841,26 @@ select {
 
   .senselab,
   .form-grid,
-  .result-grid {
+  .result-grid,
+  .download-card {
     grid-template-columns: 1fr;
+  }
+
+  .download-media {
+    min-height: 200px;
+  }
+
+  .download-media::after {
+    background: linear-gradient(180deg, transparent 55%, var(--surface) 100%);
+  }
+
+  .download-info {
+    padding: 32px 26px 40px;
+    text-align: center;
+  }
+
+  .download-btn {
+    width: 100%;
   }
 
   .result-card:first-child {
