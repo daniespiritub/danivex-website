@@ -1,27 +1,46 @@
-DANIVEX - INDEX COMPLETO CORREGIDO
+DaniVex - danivex.com
 
-REEMPLAZA ESTOS ARCHIVOS:
+Sitio oficial de DaniVex: recursos, calculadora de sensibilidad, optimizaciones,
+descargas y una herramienta de consulta de nivel Prime para Free Fire.
 
-1) index.html
-2) public/mouse.png
-3) public/preview.png
+Stack:
+- React 19 + Vite
+- Vercel (hosting y funciones serverless)
+- ESLint
 
-IMPORTANTE:
-- Este index.html NO rompe la web.
-- Mantiene:
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
+Estructura:
+- src/            Componentes, paginas y estilos del sitio.
+- src/pages/       Free Fire Prime Scanner (consulta de UID y nivel Prime).
+- src/data/        Catalogo de dispositivos y logica de sensibilidad.
+- api/             Funciones serverless (Vercel) para el Prime Scanner.
+- public/          Assets estaticos (favicon, preview de enlaces, etc).
+- scripts/         Utilidades de build (generacion de imagen OG/preview).
 
-CAMBIOS:
-- El favicon gris cambia por mouse.
-- El titulo queda limpio sin emoji en el texto.
-- Agrega vista previa al compartir link:
-  Discord, WhatsApp, Telegram, Facebook, X/Twitter.
-- Agrega preview.png.
+Requisitos:
+- Node.js 18+
 
-DESPUES:
-vercel --prod
+Desarrollo local:
+  npm install
+  npm run dev
 
-LUEGO:
-Abre danivex.com/free-fire-prime-scanner
-Presiona CTRL + F5
+Build de produccion:
+  npm run build
+
+Lint:
+  npm run lint
+
+Despliegue:
+  vercel --prod
+
+Variables de entorno opcionales (Prime Scanner - banco de datos privado):
+  KV_REST_API_URL
+  KV_REST_API_TOKEN
+  o alternativamente:
+  UPSTASH_REDIS_REST_URL
+  UPSTASH_REDIS_REST_TOKEN
+
+Notas:
+- El Prime Scanner solo usa datos reales de las fuentes publicas disponibles;
+  si una fuente no publica diamantes, no se inventa un nivel Prime.
+- Regenerar la imagen de preview (OG/Twitter) para el link de danivex.com:
+  node scripts/generate-og-preview.mjs
