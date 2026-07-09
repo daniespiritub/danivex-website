@@ -804,6 +804,21 @@ select {
   font-size: 0.82rem;
 }
 
+.screenshot-gallery {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.screenshot-gallery img {
+  width: 100%;
+  display: block;
+  border-radius: var(--radius-panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-panel);
+}
+
 .social-actions {
   display: flex;
   flex-wrap: wrap;
@@ -900,6 +915,10 @@ select {
 
   .download-btn {
     width: 100%;
+  }
+
+  .screenshot-gallery {
+    grid-template-columns: 1fr;
   }
 
   .result-card:first-child {

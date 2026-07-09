@@ -4,6 +4,9 @@ import { PiChartBarBold, PiDeviceMobileBold, PiEyeBold, PiSlidersHorizontalBold 
 import logo from './assets/logo.png'
 import fondo from './assets/fondo-gamer.png'
 import mobiladorLogo from './assets/mobilador-logo.png'
+import mobiladorScreenInicio from './assets/mobilador-screens/inicio.png'
+import mobiladorScreenPerfiles from './assets/mobilador-screens/perfiles.png'
+import mobiladorScreenAcercaDe from './assets/mobilador-screens/acerca-de.png'
 import {
   createManualDevice,
   devices,
@@ -110,6 +113,9 @@ const copy = {
     mobiladorText: 'Controla y refleja tu Android en PC con baja latencia: modos de rendimiento, HUD en tiempo real y perfiles listos para jugar.',
     mobiladorButton: 'Descargar DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 y 11 · 64 bits',
+    mobiladorShotHome: 'Pantalla de inicio de DaniVex Mobilador',
+    mobiladorShotProfiles: 'Gestion de perfiles en DaniVex Mobilador',
+    mobiladorShotAbout: 'Pantalla Acerca de DaniVex Mobilador',
     communityText: 'Únete a la comunidad Danivex y comparte setups, configuraciones y resultados.',
     discord: 'Entrar al Discord',
     whatsapp: 'Comunidad DaniVex',
@@ -195,6 +201,9 @@ const copy = {
     mobiladorText: 'Controle e espelhe seu Android no PC com baixa latencia: modos de desempenho, HUD em tempo real e perfis prontos para jogar.',
     mobiladorButton: 'Baixar DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 e 11 - 64 bits',
+    mobiladorShotHome: 'Tela inicial do DaniVex Mobilador',
+    mobiladorShotProfiles: 'Gestao de perfis no DaniVex Mobilador',
+    mobiladorShotAbout: 'Tela Sobre do DaniVex Mobilador',
     communityText: 'Entre na comunidade DaniVex e compartilhe setups, configuracoes e resultados.',
     discord: 'Entrar no Discord',
     whatsapp: 'Comunidade DaniVex',
@@ -289,6 +298,9 @@ const copy = {
     mobiladorText: 'Control and mirror your Android on PC with low latency: performance modes, real-time HUD and ready-to-play profiles.',
     mobiladorButton: 'Download DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 and 11 - 64-bit',
+    mobiladorShotHome: 'DaniVex Mobilador home screen',
+    mobiladorShotProfiles: 'Profile management in DaniVex Mobilador',
+    mobiladorShotAbout: 'DaniVex Mobilador About screen',
     communityText: 'Join the DaniVex community and share setups, configurations and results.',
     discord: 'Join Discord',
     whatsapp: 'DaniVex Community',
@@ -839,6 +851,12 @@ function HomePage() {
             </a>
             <span className="download-note">{text.mobiladorNote}</span>
           </div>
+        </div>
+
+        <div className="screenshot-gallery">
+          <img src={mobiladorScreenInicio} alt={text.mobiladorShotHome} loading="lazy" />
+          <img src={mobiladorScreenPerfiles} alt={text.mobiladorShotProfiles} loading="lazy" />
+          <img src={mobiladorScreenAcercaDe} alt={text.mobiladorShotAbout} loading="lazy" />
         </div>
       </section>
 
