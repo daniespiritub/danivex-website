@@ -105,12 +105,9 @@ const copy = {
     mobiladorSectionTitle: 'DaniVex Mobilador',
     mobiladorSectionText: 'La app de Windows para reflejar y controlar tu Android en PC: perfiles listos para jugar, HUD en tiempo real y baja latencia.',
     mobiladorProfiles: ['Jugar Competitivo', 'Stream OBS / TikTok', 'Control sin video', 'WiFi Guiado', 'Perfil Personalizado'],
-    mobiladorShotPending: 'Captura pendiente',
     mobiladorShowcaseCta: 'Ir a la descarga',
     downloadsTitle: 'Descargas legales',
     downloadsText: 'Archivos, plantillas, overlays y recursos seguros para jugadores y creadores.',
-    mobiladorTitle: 'DaniVex Mobilador',
-    mobiladorText: 'Controla y refleja tu Android en PC con baja latencia: modos de rendimiento, HUD en tiempo real y perfiles listos para jugar.',
     mobiladorButton: 'Descargar DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 y 11 · 64 bits',
     mobiladorShotHome: 'Pantalla de inicio de DaniVex Mobilador',
@@ -193,12 +190,9 @@ const copy = {
     mobiladorSectionTitle: 'DaniVex Mobilador',
     mobiladorSectionText: 'O app de Windows para espelhar e controlar seu Android no PC: perfis prontos para jogar, HUD em tempo real e baixa latencia.',
     mobiladorProfiles: ['Jogar Competitivo', 'Stream OBS / TikTok', 'Controle sem video', 'WiFi Guiado', 'Perfil Personalizado'],
-    mobiladorShotPending: 'Captura pendente',
     mobiladorShowcaseCta: 'Ir para o download',
     downloadsTitle: 'Downloads legais',
     downloadsText: 'Arquivos, modelos, overlays e recursos seguros para jogadores e criadores.',
-    mobiladorTitle: 'DaniVex Mobilador',
-    mobiladorText: 'Controle e espelhe seu Android no PC com baixa latencia: modos de desempenho, HUD em tempo real e perfis prontos para jogar.',
     mobiladorButton: 'Baixar DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 e 11 - 64 bits',
     mobiladorShotHome: 'Tela inicial do DaniVex Mobilador',
@@ -290,12 +284,9 @@ const copy = {
     mobiladorSectionTitle: 'DaniVex Mobilador',
     mobiladorSectionText: 'The Windows app to mirror and control your Android on PC: ready-to-play profiles, real-time HUD and low latency.',
     mobiladorProfiles: ['Competitive play', 'Stream OBS / TikTok', 'No-video control', 'Guided WiFi', 'Custom profile'],
-    mobiladorShotPending: 'Screenshot pending',
     mobiladorShowcaseCta: 'Go to download',
     downloadsTitle: 'Legal downloads',
     downloadsText: 'Files, templates, overlays and safe resources for players and creators.',
-    mobiladorTitle: 'DaniVex Mobilador',
-    mobiladorText: 'Control and mirror your Android on PC with low latency: performance modes, real-time HUD and ready-to-play profiles.',
     mobiladorButton: 'Download DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 and 11 - 64-bit',
     mobiladorShotHome: 'DaniVex Mobilador home screen',
@@ -824,12 +815,10 @@ function HomePage() {
           ))}
         </ul>
 
-        <div className="mobilador-gallery">
-          {[0, 1, 2].map((slot) => (
-            <div className="mobilador-shot" key={slot}>
-              <span>{text.mobiladorShotPending}</span>
-            </div>
-          ))}
+        <div className="screenshot-gallery">
+          <img src={mobiladorScreenInicio} alt={text.mobiladorShotHome} loading="lazy" />
+          <img src={mobiladorScreenPerfiles} alt={text.mobiladorShotProfiles} loading="lazy" />
+          <img src={mobiladorScreenAcercaDe} alt={text.mobiladorShotAbout} loading="lazy" />
         </div>
 
         <a className="btn primary" href="#descargas">{text.mobiladorShowcaseCta}</a>
@@ -844,19 +833,11 @@ function HomePage() {
             <img src={mobiladorLogo} alt="DaniVex Mobilador" loading="lazy" />
           </div>
           <div className="download-info">
-            <h3>{text.mobiladorTitle}</h3>
-            <p>{text.mobiladorText}</p>
             <a className="btn primary download-btn" href={links.mobiladorDownload} download>
               {text.mobiladorButton}
             </a>
             <span className="download-note">{text.mobiladorNote}</span>
           </div>
-        </div>
-
-        <div className="screenshot-gallery">
-          <img src={mobiladorScreenInicio} alt={text.mobiladorShotHome} loading="lazy" />
-          <img src={mobiladorScreenPerfiles} alt={text.mobiladorShotProfiles} loading="lazy" />
-          <img src={mobiladorScreenAcercaDe} alt={text.mobiladorShotAbout} loading="lazy" />
         </div>
       </section>
 
