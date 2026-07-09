@@ -1,4 +1,4 @@
-import { FaGem } from 'react-icons/fa'
+import { PiDiamondBold } from 'react-icons/pi'
 import { formatNumber, primeLevels } from '../../data/primeScanner'
 
 function PrimePrivileges({ level }) {
@@ -6,7 +6,6 @@ function PrimePrivileges({ level }) {
     <article className="prime-privileges scanner-panel">
       <div className="scanner-panel-head">
         <div>
-          <span className="scanner-kicker">Sistema Prime</span>
           <h3>Niveles, recompensas y privilegios</h3>
         </div>
       </div>
@@ -24,7 +23,7 @@ function PrimePrivileges({ level }) {
       <ul className="privilege-list">
         {primeLevels.find((item) => item.level === level)?.privileges.map((item) => (
           <li key={item}>
-            <FaGem aria-hidden="true" />
+            <PiDiamondBold aria-hidden="true" />
             <span>{item}</span>
           </li>
         ))}

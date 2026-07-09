@@ -146,7 +146,7 @@ function extractPrimeFromStaticText(text, uid) {
   }
 
   const primeMatch = block.match(/(?:nivel|nível)\s*([0-9]+)/i)
-  const diamondsMatch = block.match(/([0-9\.\,]+)\s*diamantes/i)
+  const diamondsMatch = block.match(/([0-9.,]+)\s*diamantes/i)
 
   return {
     primeLevelNumber: Number(primeMatch?.[1] || 0),

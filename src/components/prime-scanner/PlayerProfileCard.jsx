@@ -1,4 +1,4 @@
-import { FaCheckCircle, FaMapMarkerAlt, FaUserShield } from 'react-icons/fa'
+import { PiCheckCircleBold, PiMapPinBold, PiShieldCheckBold } from 'react-icons/pi'
 
 function PlayerProfileCard({ player }) {
   return (
@@ -18,9 +18,9 @@ function PlayerProfileCard({ player }) {
           {player.nameSource === 'garena-topup' ? 'Nombre detectado por UID' : 'Nombre pendiente de API real'}
         </p>
         <div className="player-tags">
-          <span><FaUserShield aria-hidden="true" /> UID {player.uid}</span>
-          <span><FaMapMarkerAlt aria-hidden="true" /> {player.region} - {player.regionSource}</span>
-          <span><FaCheckCircle aria-hidden="true" /> {player.status}</span>
+          <span><PiShieldCheckBold aria-hidden="true" /> UID {player.uid}</span>
+          <span><PiMapPinBold aria-hidden="true" /> {player.region} - {player.regionSource}</span>
+          <span><PiCheckCircleBold aria-hidden="true" /> {player.status}</span>
         </div>
       </div>
     </article>

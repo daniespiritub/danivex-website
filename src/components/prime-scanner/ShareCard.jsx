@@ -26,11 +26,10 @@ function ShareCard({ player }) {
           maxWidth: 680,
           borderRadius: 18,
           padding: 18,
-          border: '1px solid rgba(255, 204, 0, 0.55)',
-          background:
-            'linear-gradient(135deg, rgba(9, 15, 40, 0.98), rgba(65, 10, 28, 0.95))',
+          border: '1px solid var(--accent2-line)',
+          background: 'var(--surface)',
           boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
-          color: '#fff',
+          color: 'var(--text)',
         }}
       >
         {/* HEADER SIN BANNER - ESTILO PERFIL SUPERIOR */}
@@ -39,10 +38,8 @@ function ShareCard({ player }) {
             padding: 20,
             borderRadius: 18,
             marginBottom: 18,
-            background:
-              'linear-gradient(135deg, rgba(10,20,60,0.92), rgba(30,0,50,0.9))',
-            border: '1px solid rgba(255,215,0,0.28)',
-            boxShadow: 'inset 0 0 30px rgba(255, 215, 0, 0.04)',
+            background: 'var(--surface-sunken)',
+            border: '1px solid var(--border-strong)',
           }}
         >
           <div
@@ -58,14 +55,12 @@ function ShareCard({ player }) {
                 height: 96,
                 borderRadius: '50%',
                 overflow: 'hidden',
-                border: '3px solid #ffd700',
-                background:
-                  'linear-gradient(135deg, rgba(255, 75, 43, 0.95), rgba(245, 180, 0, 0.95))',
-                boxShadow: '0 0 25px rgba(255,215,0,0.35)',
+                border: '3px solid var(--accent2)',
+                background: 'linear-gradient(135deg, var(--accent2-strong), var(--accent2))',
                 flexShrink: 0,
                 display: 'grid',
                 placeItems: 'center',
-                color: '#fff',
+                color: 'var(--accent2-text)',
                 fontWeight: 900,
                 fontSize: 28,
               }}
@@ -92,7 +87,7 @@ function ShareCard({ player }) {
               <span
                 style={{
                   display: 'block',
-                  color: '#ffdf38',
+                  color: 'var(--accent2)',
                   fontWeight: 900,
                   fontSize: 14,
                   letterSpacing: 0.5,
@@ -100,7 +95,7 @@ function ShareCard({ player }) {
                   marginBottom: 4,
                 }}
               >
-                ⚡ DANIVEX FREE FIRE PROFILE
+                DaniVex Free Fire Profile
               </span>
 
               <h3
@@ -108,7 +103,7 @@ function ShareCard({ player }) {
                   margin: 0,
                   fontSize: 36,
                   lineHeight: 1,
-                  color: '#fff',
+                  color: 'var(--text)',
                   wordBreak: 'break-word',
                 }}
               >
@@ -118,36 +113,36 @@ function ShareCard({ player }) {
               <p
                 style={{
                   margin: '8px 0 0',
-                  color: 'rgba(255,255,255,0.78)',
+                  color: 'var(--text-muted)',
                   fontSize: 16,
                   fontWeight: 700,
                 }}
               >
-                UID {player?.uid || 'N/A'} • {player?.region || 'SAC'}
+                UID {player?.uid || 'N/A'} - {player?.region || 'SAC'}
               </p>
 
               <p
                 style={{
                   margin: '10px 0 0',
-                  color: '#fff',
+                  color: 'var(--text)',
                   fontSize: 15,
                   fontWeight: 800,
                 }}
               >
-                ❤️ {likesText} Likes • 🏷️ Nivel {player?.level || 'No disponible'}
+                {likesText} likes - Nivel {player?.level || 'No disponible'}
               </p>
             </div>
           </div>
         </div>
 
-        <SectionTitle title="👑 Prime Scan" />
+        <SectionTitle title="Prime scan" />
 
-        <ShareRow icon="👑" label={primeText} value={primePoints} highlight />
-        <ShareRow icon="💎" label="Rareza" value={`${rarityPercent}%`} />
-        <ShareRow icon="❤️" label="Likes" value={likesText} />
-        <ShareRow icon="🏷️" label="Nivel de cuenta" value={formatValue(player?.level)} />
+        <ShareRow label={primeText} value={primePoints} highlight />
+        <ShareRow label="Rareza" value={`${rarityPercent}%`} />
+        <ShareRow label="Likes" value={likesText} />
+        <ShareRow label="Nivel de cuenta" value={formatValue(player?.level)} />
 
-        <SectionTitle title="📋 Perfil FreeFireMania" />
+        <SectionTitle title="Perfil publico" />
 
         <div
           style={{
@@ -156,19 +151,19 @@ function ShareCard({ player }) {
             gap: 10,
           }}
         >
-          <MiniBox label="👤 Nombre" value={player?.username} />
-          <MiniBox label="🆔 UID" value={player?.uid} />
-          <MiniBox label="🌎 Región" value={player?.region} />
-          <MiniBox label="📅 Cuenta creada" value={player?.creationDate} />
-          <MiniBox label="🕒 Último login" value={player?.lastLogin} />
-          <MiniBox label="🎮 Versión" value={player?.gameVersion} />
-          <MiniBox label="📊 EXP" value={player?.exp} />
-          <MiniBox label="🎟️ Pase Booyah" value={player?.pass} />
-          <MiniBox label="🛡️ Clan" value={player?.clan} />
-          <MiniBox label="🧬 Clan ID" value={player?.clanId} />
-          <MiniBox label="🏰 Clan Level" value={player?.clanLevel} />
-          <MiniBox label="👥 Miembros" value={player?.clanMembers} />
-          <MiniBox label="🎭 Skin" value={player?.skinStatus} />
+          <MiniBox label="Nombre" value={player?.username} />
+          <MiniBox label="UID" value={player?.uid} />
+          <MiniBox label="Region" value={player?.region} />
+          <MiniBox label="Cuenta creada" value={player?.creationDate} />
+          <MiniBox label="Ultimo login" value={player?.lastLogin} />
+          <MiniBox label="Version" value={player?.gameVersion} />
+          <MiniBox label="EXP" value={player?.exp} />
+          <MiniBox label="Pase Booyah" value={player?.pass} />
+          <MiniBox label="Clan" value={player?.clan} />
+          <MiniBox label="Clan ID" value={player?.clanId} />
+          <MiniBox label="Clan level" value={player?.clanLevel} />
+          <MiniBox label="Miembros" value={player?.clanMembers} />
+          <MiniBox label="Skin" value={player?.skinStatus} />
         </div>
 
         <div
@@ -176,8 +171,8 @@ function ShareCard({ player }) {
             marginTop: 12,
             padding: '12px 14px',
             borderRadius: 10,
-            background: 'rgba(6, 10, 30, 0.42)',
-            border: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--surface-sunken)',
+            border: '1px solid var(--border)',
           }}
         >
           <span
@@ -185,23 +180,23 @@ function ShareCard({ player }) {
               display: 'block',
               marginBottom: 6,
               fontWeight: 900,
-              color: '#9fd0ff',
+              color: 'var(--text-muted)',
               textTransform: 'uppercase',
               fontSize: 12,
             }}
           >
-            📝 Biografía
+            Biografia
           </span>
 
           <strong
             style={{
               lineHeight: 1.4,
               fontSize: 15,
-              color: '#fff',
+              color: 'var(--text)',
               wordBreak: 'break-word',
             }}
           >
-            {player?.bio || 'Sin biografía pública'}
+            {player?.bio || 'Sin biografia publica'}
           </strong>
         </div>
 
@@ -209,16 +204,16 @@ function ShareCard({ player }) {
           style={{
             marginTop: 14,
             paddingTop: 10,
-            borderTop: '1px solid rgba(255,255,255,0.08)',
+            borderTop: '1px solid var(--border)',
             display: 'flex',
             justifyContent: 'space-between',
             gap: 10,
-            color: 'rgba(255,255,255,0.68)',
+            color: 'var(--text-faint)',
             fontSize: 12,
             fontWeight: 800,
           }}
         >
-          <span>⚡ DaniVex AI Scanner</span>
+          <span>DaniVex AI Scanner</span>
           <span>{player?.lookupProvider || 'FreeFireMania'}</span>
         </div>
       </div>
@@ -231,7 +226,7 @@ function SectionTitle({ title }) {
     <h4
       style={{
         margin: '14px 0 10px',
-        color: '#ffdf38',
+        color: 'var(--accent2)',
         fontSize: 15,
         letterSpacing: 0.4,
         textTransform: 'uppercase',
@@ -242,7 +237,7 @@ function SectionTitle({ title }) {
   )
 }
 
-function ShareRow({ icon, label, value, highlight = false }) {
+function ShareRow({ label, value, highlight = false }) {
   return (
     <div
       style={{
@@ -253,27 +248,23 @@ function ShareRow({ icon, label, value, highlight = false }) {
         padding: '12px 14px',
         marginBottom: 10,
         borderRadius: 10,
-        border: highlight
-          ? '1px solid rgba(255, 204, 0, 0.55)'
-          : '1px solid rgba(255,255,255,0.06)',
-        background: highlight
-          ? 'rgba(255, 183, 0, 0.16)'
-          : 'rgba(6, 10, 30, 0.42)',
+        border: highlight ? '1px solid var(--accent2-line)' : '1px solid var(--border)',
+        background: highlight ? 'var(--accent2-soft)' : 'var(--surface-sunken)',
       }}
     >
       <span
         style={{
           fontWeight: 900,
-          color: highlight ? '#ffdf38' : 'rgba(255,255,255,0.88)',
+          color: highlight ? 'var(--accent2)' : 'var(--text-muted)',
         }}
       >
-        {icon} {label}
+        {label}
       </span>
 
       <strong
         style={{
           fontSize: 16,
-          color: '#fff',
+          color: 'var(--text)',
           textAlign: 'right',
         }}
       >
@@ -289,15 +280,15 @@ function MiniBox({ label, value }) {
       style={{
         padding: '10px 12px',
         borderRadius: 10,
-        background: 'rgba(6, 10, 30, 0.42)',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--surface-sunken)',
+        border: '1px solid var(--border)',
         minHeight: 62,
       }}
     >
       <span
         style={{
           display: 'block',
-          color: '#9fd0ff',
+          color: 'var(--text-muted)',
           fontSize: 12,
           fontWeight: 900,
           marginBottom: 5,
@@ -309,7 +300,7 @@ function MiniBox({ label, value }) {
 
       <strong
         style={{
-          color: '#fff',
+          color: 'var(--text)',
           fontSize: 14,
           lineHeight: 1.25,
           wordBreak: 'break-word',

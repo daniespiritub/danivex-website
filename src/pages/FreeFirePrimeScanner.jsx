@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { FaBalanceScale, FaBolt, FaRedo, FaShareAlt, FaShieldAlt } from 'react-icons/fa'
+import { PiArrowClockwiseBold, PiLightningBold, PiScalesBold, PiShareNetworkBold, PiShieldBold } from 'react-icons/pi'
 import AIAnalysisCard from '../components/prime-scanner/AIAnalysisCard'
 import LoadingScanner from '../components/prime-scanner/LoadingScanner'
 import PlayerProfileCard from '../components/prime-scanner/PlayerProfileCard'
@@ -33,17 +33,6 @@ function FreeFirePrimeScanner() {
     document.title = seoTitle
     const meta = ensureMetaDescription()
     meta.setAttribute('content', seoDescription)
-  }, [])
-
-  useEffect(() => {
-    const match = window.location.pathname.match(/^\/cuenta\/(\d+)\.html$/)
-    if (!match) return
-
-    const routeUid = match[1]
-    setUid(routeUid)
-    setPrimeUid(routeUid)
-    scanUidValue(routeUid)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function handleSubmit(event) {
@@ -83,7 +72,7 @@ function FreeFirePrimeScanner() {
     setPlayer(cleanPlayer)
     setIsLoading(false)
 
-    setActionMessage('✅ Perfil analizado. El Prime se consulta aparte en el buscador 💎 UID / Player ID Prime.')
+    setActionMessage('Perfil analizado. El Prime se consulta aparte, en el buscador de UID / Player ID Prime.')
     window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
   }
 
@@ -94,7 +83,7 @@ function FreeFirePrimeScanner() {
     setPrimeUid(cleanUid)
     setIsPrimeLoading(true)
     setPrimeResult(null)
-    setActionMessage('💎 Consultando nivel Prime en FreeFireJornal...')
+    setActionMessage('Consultando nivel Prime en FreeFireJornal...')
 
     const primeLookup = await lookupFreeFirePrime(cleanUid)
 
@@ -102,12 +91,12 @@ function FreeFirePrimeScanner() {
     setIsPrimeLoading(false)
 
     if (!primeLookup.ok || !primeLookup.primeConfirmed) {
-      setActionMessage(primeLookup.message || '⚠️ No se pudo confirmar Prime para este UID / Player ID.')
+      setActionMessage(primeLookup.message || 'No se pudo confirmar Prime para este UID / Player ID.')
       return
     }
 
     setActionMessage(
-      `✅ Prime confirmado: ${primeLookup.primeLevel} · ${formatNumber(primeLookup.diamonds)} diamantes · ${primeLookup.nextPrimeLevel === 'MAX' ? 'nivel maximo' : `${formatNumber(primeLookup.missingForNextPrime)} para ${primeLookup.nextPrimeLevel}`}`,
+      `Prime confirmado: ${primeLookup.primeLevel}, ${formatNumber(primeLookup.diamonds)} diamantes, ${primeLookup.nextPrimeLevel === 'MAX' ? 'nivel maximo' : `${formatNumber(primeLookup.missingForNextPrime)} para ${primeLookup.nextPrimeLevel}`}`,
     )
 
     setPlayer((currentPlayer) => {
@@ -115,6 +104,12 @@ function FreeFirePrimeScanner() {
       return applyPrimeToPlayer(currentPlayer, primeLookup)
     })
   }
+
+  useEffect(() => {
+    const match = window.location.pathname.match(/^\/cuenta\/(\d+)\.html$/)
+    if (!match) return
+    scanUidValue(match[1])
+  }, [])
 
   function resetScanner() {
     setUid('')
@@ -127,7 +122,7 @@ function FreeFirePrimeScanner() {
   }
 
   function verifySanctions() {
-    setActionMessage('🛡️ Verificacion de sanciones no disponible: las fuentes publicas usadas no confirman sanciones de forma fiable.')
+    setActionMessage('Verificacion de sanciones no disponible: las fuentes publicas usadas no confirman sanciones de forma fiable.')
   }
 
   function compareOgAccount() {
@@ -135,20 +130,20 @@ function FreeFirePrimeScanner() {
     const read = player.ogLevel >= 7
       ? 'tiene lectura OG fuerte y rareza superior para una cuenta de Free Fire.'
       : 'todavia puede subir su lectura OG con mas antiguedad, coleccion y actividad.'
-    setActionMessage(`⚖️ Comparacion OG: ${player.username} ${read}`)
+    setActionMessage(`Comparacion OG: ${player.username} ${read}`)
   }
 
   function showShare() {
     setShowShareCard(true)
-    setActionMessage('📤 Tarjeta lista para screenshot con los datos publicos detectados.')
+    setActionMessage('Tarjeta lista para screenshot con los datos publicos detectados.')
     window.setTimeout(() => document.querySelector('.share-card-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120)
   }
 
   function roastPlayer() {
     if (!player) return
     const roast = player.prime.level >= 6
-      ? '⚡ AI Gamer Roast: esa cuenta tiene tantos Prime Points que el lobby se queda mirando antes de empezar la partida.'
-      : '⚡ AI Gamer Roast: la cuenta va bien, pero ese Prime todavia necesita mas brillo para presumir en sala.'
+      ? 'AI Gamer Roast: esa cuenta tiene tantos Prime Points que el lobby se queda mirando antes de empezar la partida.'
+      : 'AI Gamer Roast: la cuenta va bien, pero ese Prime todavia necesita mas brillo para presumir en sala.'
     setActionMessage(roast)
   }
 
@@ -164,8 +159,8 @@ function FreeFirePrimeScanner() {
 
       <section className="scanner-hero">
         <div className="scanner-hero-copy">
-          <span className="scanner-kicker">🔎 Perfil + 💎 Prime separados</span>
-          <h1>🔥 Free Fire Prime AI Scanner</h1>
+          <span className="scanner-kicker">Perfil y Prime por separado</span>
+          <h1>Free Fire Prime AI Scanner</h1>
           <p>
             Usa el primer buscador para el perfil publico. Usa el segundo buscador para consultar el nivel Prime por UID / Player ID.
           </p>
@@ -192,28 +187,28 @@ function FreeFirePrimeScanner() {
 
       {primeResult && (
         <section className="scanner-results" style={{ marginTop: 24 }}>
-          <h2 style={{ marginBottom: 12 }}>💎 Resultado Prime</h2>
+          <h2 style={{ marginBottom: 12 }}>Resultado Prime</h2>
 
           <div className="metrics-grid">
-            <Metric label="🆔 UID / Player ID" value={primeResult.uid || primeUid} />
-            <Metric label="👤 Jugador" value={primeResult.nickname || 'No disponible'} />
-            <Metric label="👑 Nivel Prime" value={primeResult.primeConfirmed ? primeResult.primeLevel : 'No confirmado'} />
-            <Metric label="💎 Diamantes recargados" value={primeResult.diamondsConfirmed ? `${formatNumber(primeResult.diamonds)}+` : 'No confirmado'} />
-            <Metric label="🚀 Siguiente Prime" value={primeResult.nextPrimeLevel || 'No confirmado'} />
-            <Metric label="📉 Falta para siguiente" value={primeResult.primeConfirmed ? formatNumber(primeResult.missingForNextPrime || 0) : 'No confirmado'} />
-            <Metric label="📈 Progreso Prime" value={primeResult.primeConfirmed ? `${primeResult.primeProgressPercent || 0}%` : 'No confirmado'} />
-            <Metric label="🔗 Fuente" value="FreeFireJornal Prime" />
+            <Metric label="UID / Player ID" value={primeResult.uid || primeUid} />
+            <Metric label="Jugador" value={primeResult.nickname || 'No disponible'} />
+            <Metric label="Nivel Prime" value={primeResult.primeConfirmed ? primeResult.primeLevel : 'No confirmado'} />
+            <Metric label="Diamantes recargados" value={primeResult.diamondsConfirmed ? `${formatNumber(primeResult.diamonds)}+` : 'No confirmado'} />
+            <Metric label="Siguiente Prime" value={primeResult.nextPrimeLevel || 'No confirmado'} />
+            <Metric label="Falta para siguiente" value={primeResult.primeConfirmed ? formatNumber(primeResult.missingForNextPrime || 0) : 'No confirmado'} />
+            <Metric label="Progreso Prime" value={primeResult.primeConfirmed ? `${primeResult.primeProgressPercent || 0}%` : 'No confirmado'} />
+            <Metric label="Fuente" value="FreeFireJornal Prime" />
           </div>
 
           {primeResult.rawResult && (
             <div className="action-message">
-              <strong>📌 Resultado detectado:</strong> {primeResult.rawResult}
+              <strong>Resultado detectado:</strong> {primeResult.rawResult}
             </div>
           )}
 
           {!primeResult.primeConfirmed && (
             <div className="action-message warning">
-              ⚠️ FreeFireJornal no devolvio Prime confirmado para este UID. Puedes probar de nuevo o verificar manualmente en su pagina.
+              FreeFireJornal no devolvio Prime confirmado para este UID. Puedes probar de nuevo o verificar manualmente en su pagina.
             </div>
           )}
         </section>
@@ -230,32 +225,40 @@ function FreeFirePrimeScanner() {
             </div>
           )}
 
-          <div className="metrics-grid">
-            <Metric label="👤 Nombre de cuenta" value={player.username} />
-            <Metric label="🆔 UID" value={player.uid} />
-            <Metric label="🌎 Region" value={`${player.region} (${player.regionConfidence}% ${player.regionSource})`} />
-            <Metric label="📅 Cuenta creada" value={formatDate(player.creationDate)} />
-            <Metric label="🕒 Ultimo login" value={formatDate(player.lastLogin)} />
-            <Metric label="🎮 Version del juego" value={player.gameVersion || 'No disponible'} />
-            <Metric label="🏷️ Nivel" value={player.level || 'No disponible'} />
-            <Metric label="📊 Experiencia" value={player.exp || 'No disponible'} />
-            <Metric label="❤️ Me gusta" value={formatNumber(player.likes || 0)} />
-            <Metric label="🎟️ Pase Booyah" value={player.pass || 'No disponible'} />
-            <Metric label="🛡️ Clan" value={player.clan || 'No disponible'} />
-            <Metric label="🧬 Clan ID" value={player.clanId || 'No disponible'} />
-            <Metric label="🏰 Nivel clan" value={player.clanLevel || 'No disponible'} />
-            <Metric label="👥 Miembros clan" value={player.clanMembers || 'No disponible'} />
-            <Metric label="🎭 Skin" value={player.skinStatus || 'No disponible'} />
-            <Metric label="👑 Prime" value={player.prime.diamonds > 0 ? `Prime ${player.prime.level}` : 'Consultar arriba en 💎 Prime'} />
-            <Metric label="🧠 Fuente perfil" value={player.lookupProvider} />
-            <Metric label="🗃️ Cache DaniVex" value={player.cacheHit ? 'Guardado / privado' : 'Nuevo o no guardado'} />
-          </div>
+          <MetricGroup title="Cuenta">
+            <Metric label="Nombre de cuenta" value={player.username} />
+            <Metric label="UID" value={player.uid} />
+            <Metric label="Region" value={`${player.region} (${player.regionConfidence}% ${player.regionSource})`} />
+            <Metric label="Cuenta creada" value={formatDate(player.creationDate)} />
+            <Metric label="Ultimo login" value={formatDate(player.lastLogin)} />
+            <Metric label="Version del juego" value={player.gameVersion || 'No disponible'} />
+          </MetricGroup>
+
+          <MetricGroup title="Actividad y progreso">
+            <Metric label="Nivel" value={player.level || 'No disponible'} />
+            <Metric label="Experiencia" value={player.exp || 'No disponible'} />
+            <Metric label="Me gusta" value={formatNumber(player.likes || 0)} />
+            <Metric label="Pase Booyah" value={player.pass || 'No disponible'} />
+            <Metric label="Prime" value={player.prime.diamonds > 0 ? `Prime ${player.prime.level}` : 'Consultar arriba en Prime'} />
+          </MetricGroup>
+
+          <MetricGroup title="Clan">
+            <Metric label="Clan" value={player.clan || 'No disponible'} />
+            <Metric label="Clan ID" value={player.clanId || 'No disponible'} />
+            <Metric label="Nivel clan" value={player.clanLevel || 'No disponible'} />
+            <Metric label="Miembros clan" value={player.clanMembers || 'No disponible'} />
+            <Metric label="Skin" value={player.skinStatus || 'No disponible'} />
+          </MetricGroup>
 
           {player.bio && (
             <div className="action-message">
-              <strong>📝 Biografia:</strong> {player.bio}
+              <strong>Biografia:</strong> {player.bio}
             </div>
           )}
+
+          <p className="source-note">
+            Fuente del perfil: {player.lookupProvider}. {player.cacheHit ? 'Datos guardados en cache privada de DaniVex.' : 'Consulta nueva, no estaba guardada.'}
+          </p>
 
           {player.prime.diamonds > 0 && (
             <div className="scanner-grid two">
@@ -265,11 +268,11 @@ function FreeFirePrimeScanner() {
           )}
 
           <div className="scanner-actions" aria-label="Acciones del resultado">
-            <button type="button" onClick={resetScanner}><FaRedo aria-hidden="true" /> 🔄 Analizar otra cuenta</button>
-            <button type="button" onClick={verifySanctions}><FaShieldAlt aria-hidden="true" /> 🛡️ Verificar sanciones</button>
-            <button type="button" onClick={compareOgAccount}><FaBalanceScale aria-hidden="true" /> ⚖️ Comparar OG</button>
-            <button type="button" onClick={showShare}><FaShareAlt aria-hidden="true" /> 📤 Compartir</button>
-            <button type="button" onClick={roastPlayer}><FaBolt aria-hidden="true" /> ⚡ AI Roast</button>
+            <button type="button" onClick={resetScanner}><PiArrowClockwiseBold aria-hidden="true" /> Analizar otra cuenta</button>
+            <button type="button" onClick={verifySanctions}><PiShieldBold aria-hidden="true" /> Verificar sanciones</button>
+            <button type="button" onClick={compareOgAccount}><PiScalesBold aria-hidden="true" /> Comparar OG</button>
+            <button type="button" onClick={showShare}><PiShareNetworkBold aria-hidden="true" /> Compartir</button>
+            <button type="button" onClick={roastPlayer}><PiLightningBold aria-hidden="true" /> AI Roast</button>
           </div>
 
           {player.lookupStatus !== 'real' && (
@@ -291,7 +294,7 @@ function FreeFirePrimeScanner() {
 function PrimeSearchForm({ uid, isLoading, onUidChange, onSubmit }) {
   return (
     <form className="uid-form" onSubmit={onSubmit} style={{ marginTop: 16 }}>
-      <label htmlFor="prime-uid-input">💎 UID / Player ID para Nivel Prime</label>
+      <label htmlFor="prime-uid-input">UID / Player ID para nivel Prime</label>
       <div className="uid-input-wrap">
         <input
           id="prime-uid-input"
@@ -302,7 +305,7 @@ function PrimeSearchForm({ uid, isLoading, onUidChange, onSubmit }) {
           onChange={(event) => onUidChange(event.target.value.replace(/[^\d]/g, '').slice(0, 14))}
         />
         <button type="submit" disabled={isLoading || !uid}>
-          {isLoading ? 'Verificando...' : '💎 Ver Nivel Prime'}
+          {isLoading ? 'Verificando...' : 'Ver nivel Prime'}
         </button>
       </div>
       <p className="uid-helper">
@@ -392,7 +395,7 @@ function applyPrimeToPlayer(player, primeLookup) {
       isMax: level >= 8,
       source: primeLookup.sourceUrl || 'FreeFireJornal Prime',
     },
-    aiAnalysis: `💎 Prime confirmado desde FreeFireJornal: ${primeLookup.primeLevel}. Diamantes detectados: ${formatNumber(diamonds)}.`,
+    aiAnalysis: `Prime confirmado desde FreeFireJornal: ${primeLookup.primeLevel}. Diamantes detectados: ${formatNumber(diamonds)}.`,
   }
 }
 
@@ -401,6 +404,17 @@ function Metric({ label, value }) {
     <div className="metric-card">
       <span>{label}</span>
       <strong>{value}</strong>
+    </div>
+  )
+}
+
+function MetricGroup({ title, children }) {
+  return (
+    <div className="metrics-group">
+      <h4>{title}</h4>
+      <div className="metrics-grid">
+        {children}
+      </div>
     </div>
   )
 }

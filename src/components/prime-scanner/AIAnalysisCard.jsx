@@ -1,14 +1,13 @@
-import { FaRobot } from 'react-icons/fa'
+import { PiRobotBold } from 'react-icons/pi'
 
 function AIAnalysisCard({ analysis }) {
   return (
     <article className="ai-card scanner-panel">
       <div className="scanner-panel-head">
         <div>
-          <span className="scanner-kicker">Analisis IA</span>
-          <h3>Lectura de cuenta</h3>
+          <h3>Analisis IA de la cuenta</h3>
         </div>
-        <FaRobot aria-hidden="true" />
+        <PiRobotBold aria-hidden="true" />
       </div>
       <p>{analysis}</p>
     </article>

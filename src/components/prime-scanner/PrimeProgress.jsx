@@ -10,8 +10,7 @@ function PrimeProgress({ prime }) {
     <article className="prime-progress scanner-panel">
       <div className="scanner-panel-head">
         <div>
-          <span className="scanner-kicker">Progreso Prime</span>
-          <h3>Prime {prime.level}</h3>
+          <h3>Progreso Prime {prime.level}</h3>
         </div>
         <strong>{Math.round(progress)}%</strong>
       </div>

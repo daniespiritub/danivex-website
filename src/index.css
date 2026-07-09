@@ -1,16 +1,87 @@
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("/fonts/space-grotesk-variable.woff2") format("woff2-variations"),
+       url("/fonts/space-grotesk-variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("/fonts/manrope-variable.woff2") format("woff2-variations"),
+       url("/fonts/manrope-variable.woff2") format("woff2");
+}
+
 :root {
-  color: #f8fafc;
-  background: #050816;
+  color-scheme: dark;
+
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Manrope", "Segoe UI", system-ui, sans-serif;
+
+  --bg: #0b0d10;
+  --surface: #14171d;
+  --surface-hover: #1a1e25;
+  --surface-sunken: #0f1115;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text: #f2f4f7;
+  --text-muted: #98a2b0;
+  --text-faint: #5c6672;
+
+  --accent: #e5342f;
+  --accent-strong: #ff5c53;
+  --accent-soft: rgba(229, 52, 47, 0.14);
+  --accent-soft-strong: rgba(229, 52, 47, 0.28);
+  --accent-line: rgba(229, 52, 47, 0.4);
+  --accent-text: #ffffff;
+
+  --accent2: #2f6fed;
+  --accent2-strong: #5b8fff;
+  --accent2-soft: rgba(47, 111, 237, 0.14);
+  --accent2-soft-strong: rgba(47, 111, 237, 0.28);
+  --accent2-line: rgba(47, 111, 237, 0.4);
+  --accent2-text: #ffffff;
+
+  --positive: #4fae8a;
+
+  --radius-panel: 18px;
+  --radius-control: 10px;
+  --radius-pill: 999px;
+
+  --shadow-panel: 0 24px 48px -24px rgba(0, 0, 0, 0.55);
+
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  font-family: var(--font-body);
 }
 
 #root {
   min-height: 100vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

@@ -1,4 +1,4 @@
-import { FaSearch } from 'react-icons/fa'
+import { PiMagnifyingGlassBold } from 'react-icons/pi'
 import { normalizeUid } from '../../data/primeScanner'
 
 function UIDSearchForm({
@@ -23,7 +23,7 @@ function UIDSearchForm({
       </label>
 
       <button className="scanner-submit" disabled={isLoading} type="submit">
-        <FaSearch aria-hidden="true" />
+        <PiMagnifyingGlassBold aria-hidden="true" />
         <span>{isLoading ? 'Analizando...' : 'Analizar Cuenta'}</span>
       </button>
     </form>

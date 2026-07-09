@@ -343,31 +343,6 @@ function hashString(value) {
   }, 5381)
 }
 
-function buildPrime(seed) {
-  const baseLevelIndex = seed % primeLevels.length
-  const baseLevel = primeLevels[baseLevelIndex]
-  const nextLevel = getNextPrimeLevel(baseLevel.level)
-  const levelCap = nextLevel?.points || 260000
-  const room = Math.max(900, levelCap - baseLevel.points)
-  const points = Math.min(levelCap - 1, baseLevel.points + (seed % room))
-  const primeLevel = getPrimeLevelByPoints(points)
-
-  return {
-    level: primeLevel.level,
-    points,
-    diamonds: points,
-    currentFloor: primeLevel.points,
-    next: getNextPrimeLevel(primeLevel.level),
-  }
-}
-
-function buildCreationDate(seed) {
-  const creationYear = 2018 + (seed % 7)
-  const creationMonth = seed % 12
-  const creationDay = 1 + (seed % 27)
-  return new Date(Date.UTC(creationYear, creationMonth, creationDay))
-}
-
 function getAccountAgeInMonths(date) {
   const now = new Date()
   return Math.max(1, (now.getFullYear() - date.getUTCFullYear()) * 12 + now.getMonth() - date.getUTCMonth())

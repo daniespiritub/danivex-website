@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { FaDiscord, FaEye, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa'
+import { FaDiscord, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa'
+import { PiChartBarBold, PiDeviceMobileBold, PiEyeBold, PiSlidersHorizontalBold } from 'react-icons/pi'
 import logo from './assets/logo.png'
 import fondo from './assets/fondo-gamer.png'
 import {
@@ -94,7 +95,6 @@ const copy = {
     recommended: 'Sensibilidad recomendada',
     copy: 'Copiar',
     copied: 'Copiado',
-    scale: 'Escala 0-200',
     coachStart: 'Lectura DaniVex:',
     coachEnd: 'Prueba 3 partidas, ajusta de 3 en 3 y guarda el mejor resultado.',
     optimizationsTitle: 'Optimizaciones',
@@ -173,7 +173,6 @@ const copy = {
     recommended: 'Sensibilidade recomendada',
     copy: 'Copiar',
     copied: 'Copiado',
-    scale: 'Escala 0-200',
     coachStart: 'Leitura DaniVex:',
     coachEnd: 'Teste 3 partidas, ajuste de 3 em 3 e salve o melhor resultado.',
     optimizationsTitle: 'Otimizacoes',
@@ -261,7 +260,6 @@ const copy = {
     recommended: 'Recommended sensitivity',
     copy: 'Copy',
     copied: 'Copied',
-    scale: '0-200 scale',
     coachStart: 'DaniVex read:',
     coachEnd: 'Try 3 matches, adjust by 3 and keep the best result.',
     optimizationsTitle: 'Optimizations',
@@ -401,6 +399,7 @@ function HomePage() {
   const [profile, setProfile] = useState(defaultProfile)
   const [copied, setCopied] = useState(false)
   const [visitCount, setVisitCount] = useState(getLocalVisitCount)
+  const [activeSection, setActiveSection] = useState('inicio')
   const text = copy[language]
   const isApplePlatform = selectedDevice.os === 'iOS' || selectedDevice.os === 'iPadOS'
   const showAndroidTuning = !isApplePlatform
@@ -414,6 +413,24 @@ function HomePage() {
   useEffect(() => {
     document.documentElement.lang = text.lang
   }, [text.lang])
+
+  useEffect(() => {
+    const sections = Array.from(document.querySelectorAll('section[id]'))
+    if (!sections.length) return undefined
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        if (visible) setActiveSection(visible.target.id)
+      },
+      { rootMargin: '-45% 0px -50% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] },
+    )
+
+    sections.forEach((section) => observer.observe(section))
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -540,18 +557,18 @@ function HomePage() {
         </div>
 
         <div className="menu">
-          <a href="#inicio">{text.nav[0]}</a>
-          <a href="#sensibilidad">{text.nav[1]}</a>
+          <a href="#inicio" className={activeSection === 'inicio' ? 'active' : ''}>{text.nav[0]}</a>
+          <a href="#sensibilidad" className={activeSection === 'sensibilidad' ? 'active' : ''}>{text.nav[1]}</a>
           <a href="/free-fire-prime-scanner">{text.primeScanner}</a>
-          <a href="#optimizaciones">{text.nav[2]}</a>
-          <a href="#descargas">{text.nav[3]}</a>
-          <a href="#comunidad">{text.nav[4]}</a>
-          <a href="#contacto">{text.nav[5]}</a>
+          <a href="#optimizaciones" className={activeSection === 'optimizaciones' ? 'active' : ''}>{text.nav[2]}</a>
+          <a href="#descargas" className={activeSection === 'descargas' ? 'active' : ''}>{text.nav[3]}</a>
+          <a href="#comunidad" className={activeSection === 'comunidad' ? 'active' : ''}>{text.nav[4]}</a>
+          <a href="#contacto" className={activeSection === 'contacto' ? 'active' : ''}>{text.nav[5]}</a>
         </div>
       </nav>
 
       <div className="visitor-counter" aria-label={String(visitCount)}>
-        <FaEye aria-hidden="true" />
+        <PiEyeBold aria-hidden="true" />
         <strong>{visitCount}</strong>
       </div>
 
@@ -579,8 +596,8 @@ function HomePage() {
         <div className="senselab">
           <div className="tool-panel device-panel">
             <div className="panel-head">
-              <div>
-                <span>{text.step1}</span>
+              <div className="panel-head-title">
+                <span className="step-badge"><PiDeviceMobileBold aria-hidden="true" /></span>
                 <h3>{text.device}</h3>
               </div>
               <strong>{platformDevices.length} {text.models}</strong>
@@ -687,8 +704,8 @@ function HomePage() {
 
           <div className="tool-panel profile-panel">
             <div className="panel-head">
-              <div>
-                <span>{text.step2}</span>
+              <div className="panel-head-title">
+                <span className="step-badge"><PiSlidersHorizontalBold aria-hidden="true" /></span>
                 <h3>{text.profile}</h3>
               </div>
             </div>
@@ -758,8 +775,8 @@ function HomePage() {
 
           <div className="tool-panel result-panel">
             <div className="panel-head">
-              <div>
-                <span>{text.result}</span>
+              <div className="panel-head-title">
+                <span className="step-badge"><PiChartBarBold aria-hidden="true" /></span>
                 <h3>{text.recommended}</h3>
               </div>
               <button type="button" className="copy-btn" onClick={copyPreset}>
@@ -772,7 +789,6 @@ function HomePage() {
                 <div className="result-card" key={key}>
                   <span>{text.resultLabels[key]}</span>
                   <strong>{result.values[key]}</strong>
-                  <small>{text.scale}</small>
                 </div>
               ))}
             </div>

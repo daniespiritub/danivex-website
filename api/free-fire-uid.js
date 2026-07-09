@@ -226,17 +226,17 @@ function parseFreeFireManiaProfile(text, html) {
 
   const exp =
     pick(text, [
-      /Exp:\s*([0-9\.\,]+)/i,
-      /Experiencia:\s*([0-9\.\,]+)/i,
-      /Experi[eê]ncia:\s*([0-9\.\,]+)/i,
+      /Exp:\s*([0-9.,]+)/i,
+      /Experiencia:\s*([0-9.,]+)/i,
+      /Experi[eê]ncia:\s*([0-9.,]+)/i,
     ])
 
   const likes =
     parseNumber(
       pick(text, [
-        /Me gusta:\s*([0-9\.\,]+)/i,
-        /Curtidas:\s*([0-9\.\,]+)/i,
-        /Likes:\s*([0-9\.\,]+)/i,
+        /Me gusta:\s*([0-9.,]+)/i,
+        /Curtidas:\s*([0-9.,]+)/i,
+        /Likes:\s*([0-9.,]+)/i,
       ]),
     )
 
