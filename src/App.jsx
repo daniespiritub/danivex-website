@@ -56,7 +56,7 @@ const links = {
 const copy = {
   es: {
     lang: 'es',
-    nav: ['Inicio', 'Sensibilidad', 'Optimizaciones', 'Descargas', 'Comunidad', 'Contacto'],
+    nav: ['Inicio', 'Sensibilidad', 'Mobilador', 'Descargas', 'Comunidad', 'Contacto'],
     heroText: 'Recursos gamer, optimizaciones legales, guías y herramientas para mejorar tu experiencia de juego.',
     primaryCta: 'Calcular sensibilidad',
     community: 'Comunidad',
@@ -99,8 +99,11 @@ const copy = {
     copied: 'Copiado',
     coachStart: 'Lectura DaniVex:',
     coachEnd: 'Prueba 3 partidas, ajusta de 3 en 3 y guarda el mejor resultado.',
-    optimizationsTitle: 'Optimizaciones',
-    optimizationsText: 'Guías para mejorar rendimiento, estabilidad, FPS y configuración de dispositivos.',
+    mobiladorSectionTitle: 'DaniVex Mobilador',
+    mobiladorSectionText: 'La app de Windows para reflejar y controlar tu Android en PC: perfiles listos para jugar, HUD en tiempo real y baja latencia.',
+    mobiladorProfiles: ['Jugar Competitivo', 'Stream OBS / TikTok', 'Control sin video', 'WiFi Guiado', 'Perfil Personalizado'],
+    mobiladorShotPending: 'Captura pendiente',
+    mobiladorShowcaseCta: 'Ir a la descarga',
     downloadsTitle: 'Descargas legales',
     downloadsText: 'Archivos, plantillas, overlays y recursos seguros para jugadores y creadores.',
     mobiladorTitle: 'DaniVex Mobilador',
@@ -138,7 +141,7 @@ const copy = {
   },
   pt: {
     lang: 'pt-BR',
-    nav: ['Inicio', 'Sensibilidade', 'Otimizacoes', 'Downloads', 'Comunidade', 'Contato'],
+    nav: ['Inicio', 'Sensibilidade', 'Mobilador', 'Downloads', 'Comunidade', 'Contato'],
     heroText: 'Recursos gamer, otimizacoes legais, guias e ferramentas para melhorar sua experiencia de jogo.',
     primaryCta: 'Calcular sensibilidade',
     community: 'Comunidade',
@@ -181,8 +184,11 @@ const copy = {
     copied: 'Copiado',
     coachStart: 'Leitura DaniVex:',
     coachEnd: 'Teste 3 partidas, ajuste de 3 em 3 e salve o melhor resultado.',
-    optimizationsTitle: 'Otimizacoes',
-    optimizationsText: 'Guias para melhorar desempenho, estabilidade, FPS e configuracao de aparelhos.',
+    mobiladorSectionTitle: 'DaniVex Mobilador',
+    mobiladorSectionText: 'O app de Windows para espelhar e controlar seu Android no PC: perfis prontos para jogar, HUD em tempo real e baixa latencia.',
+    mobiladorProfiles: ['Jogar Competitivo', 'Stream OBS / TikTok', 'Controle sem video', 'WiFi Guiado', 'Perfil Personalizado'],
+    mobiladorShotPending: 'Captura pendente',
+    mobiladorShowcaseCta: 'Ir para o download',
     downloadsTitle: 'Downloads legais',
     downloadsText: 'Arquivos, modelos, overlays e recursos seguros para jogadores e criadores.',
     mobiladorTitle: 'DaniVex Mobilador',
@@ -229,7 +235,7 @@ const copy = {
   },
   en: {
     lang: 'en',
-    nav: ['Home', 'Sensitivity', 'Optimizations', 'Downloads', 'Community', 'Contact'],
+    nav: ['Home', 'Sensitivity', 'Mobilador', 'Downloads', 'Community', 'Contact'],
     heroText: 'Gaming resources, safe optimizations, guides and tools to improve your play.',
     primaryCta: 'Calculate sensitivity',
     community: 'Community',
@@ -272,8 +278,11 @@ const copy = {
     copied: 'Copied',
     coachStart: 'DaniVex read:',
     coachEnd: 'Try 3 matches, adjust by 3 and keep the best result.',
-    optimizationsTitle: 'Optimizations',
-    optimizationsText: 'Guides to improve performance, stability, FPS and device configuration.',
+    mobiladorSectionTitle: 'DaniVex Mobilador',
+    mobiladorSectionText: 'The Windows app to mirror and control your Android on PC: ready-to-play profiles, real-time HUD and low latency.',
+    mobiladorProfiles: ['Competitive play', 'Stream OBS / TikTok', 'No-video control', 'Guided WiFi', 'Custom profile'],
+    mobiladorShotPending: 'Screenshot pending',
+    mobiladorShowcaseCta: 'Go to download',
     downloadsTitle: 'Legal downloads',
     downloadsText: 'Files, templates, overlays and safe resources for players and creators.',
     mobiladorTitle: 'DaniVex Mobilador',
@@ -337,66 +346,34 @@ function getPreferredLanguage() {
   return 'es'
 }
 
-function getCookie(name) {
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
-  return match ? decodeURIComponent(match[1]) : ''
-}
-
-function setCookie(name, value, maxAgeSeconds) {
-  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${maxAgeSeconds}; Path=/; SameSite=Lax`
-}
-
 function stableNumberSeed(text) {
   return [...text].reduce((hash, char) => ((hash * 31) + char.charCodeAt(0)) >>> 0, 2166136261)
 }
 
 function getLocalVisitCount() {
-  const stateKey = 'danivex-counter-state'
-  const realVisitKey = 'danivex-real-visit'
-  const now = new Date()
-  const todayKey = now.toISOString().slice(0, 10)
-  const secondsToday = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds()
-  const secondsPerDay = 86400
-  const dailyTarget = 32 + (stableNumberSeed(`${todayKey}:danivex`) % 11)
-  const bucket = Math.floor(secondsToday / 1800)
-  const controlledNoise = (stableNumberSeed(`${todayKey}:${bucket}:views`) % 3) - 1
+  const countKey = 'danivex-visit-count'
+  const tickKey = 'danivex-visit-tick'
+  const sessionKey = 'danivex-visit-session'
 
   try {
-    const storedState = JSON.parse(getCookie(stateKey) || '{}')
-    const legacyCount = Number(localStorage.getItem('danivex-visit-count') || '0')
-    const hasRealVisit = Boolean(getCookie(realVisitKey))
-    const baseCount = Math.max(1, Number(storedState.base || 0), legacyCount)
-    let state = {
-      day: storedState.day || todayKey,
-      base: baseCount,
-      realVisits: Number(storedState.realVisits || 0),
-      lastValue: Math.max(baseCount, Number(storedState.lastValue || 0)),
+    const storedCount = Number(localStorage.getItem(countKey) || '0')
+    let count = storedCount > 0 ? storedCount : 31 + (stableNumberSeed('danivex-seed') % 11)
+
+    const hasSession = Boolean(sessionStorage.getItem(sessionKey))
+    if (!hasSession) {
+      count += 1
+      sessionStorage.setItem(sessionKey, '1')
     }
 
-    if (state.day !== todayKey) {
-      const previousTarget = 32 + (stableNumberSeed(`${state.day}:danivex`) % 11)
-      state = {
-        day: todayKey,
-        base: Math.max(state.lastValue, state.base + previousTarget + state.realVisits),
-        realVisits: 0,
-        lastValue: Math.max(state.lastValue, state.base + previousTarget + state.realVisits),
-      }
+    const now = Date.now()
+    const lastTick = Number(localStorage.getItem(tickKey) || '0')
+    if (now - lastTick > 45000) {
+      count += stableNumberSeed(`${now}`) % 2
+      localStorage.setItem(tickKey, String(now))
     }
 
-    if (!hasRealVisit) {
-      state.realVisits += 1
-      setCookie(realVisitKey, '1', 60 * 30)
-    }
-
-    const organicProgress = Math.max(0, Math.min(dailyTarget, Math.floor((dailyTarget * secondsToday) / secondsPerDay) + controlledNoise))
-    const nextCount = Math.max(state.lastValue, state.base + organicProgress + state.realVisits)
-    const nextState = {
-      ...state,
-      lastValue: nextCount,
-    }
-
-    setCookie(stateKey, JSON.stringify(nextState), 60 * 60 * 24 * 400)
-    return nextCount
+    localStorage.setItem(countKey, String(count))
+    return count
   } catch {
     return 1
   }
@@ -574,7 +551,7 @@ function HomePage() {
           <a href="#inicio" className={activeSection === 'inicio' ? 'active' : ''}>{text.nav[0]}</a>
           <a href="#sensibilidad" className={activeSection === 'sensibilidad' ? 'active' : ''}>{text.nav[1]}</a>
           <a href="/free-fire-prime-scanner">{text.primeScanner}</a>
-          <a href="#optimizaciones" className={activeSection === 'optimizaciones' ? 'active' : ''}>{text.nav[2]}</a>
+          <a href="#mobilador" className={activeSection === 'mobilador' ? 'active' : ''}>{text.nav[2]}</a>
           <a href="#descargas" className={activeSection === 'descargas' ? 'active' : ''}>{text.nav[3]}</a>
           <a href="#comunidad" className={activeSection === 'comunidad' ? 'active' : ''}>{text.nav[4]}</a>
           <a href="#contacto" className={activeSection === 'contacto' ? 'active' : ''}>{text.nav[5]}</a>
@@ -825,9 +802,25 @@ function HomePage() {
         </div>
       </section>
 
-      <section id="optimizaciones" className="section">
-        <h2>{text.optimizationsTitle}</h2>
-        <p>{text.optimizationsText}</p>
+      <section id="mobilador" className="section section-wide">
+        <h2>{text.mobiladorSectionTitle}</h2>
+        <p>{text.mobiladorSectionText}</p>
+
+        <ul className="mobilador-profiles">
+          {text.mobiladorProfiles.map((profile) => (
+            <li key={profile}>{profile}</li>
+          ))}
+        </ul>
+
+        <div className="mobilador-gallery">
+          {[0, 1, 2].map((slot) => (
+            <div className="mobilador-shot" key={slot}>
+              <span>{text.mobiladorShotPending}</span>
+            </div>
+          ))}
+        </div>
+
+        <a className="btn primary" href="#descargas">{text.mobiladorShowcaseCta}</a>
       </section>
 
       <section id="descargas" className="section section-wide">
