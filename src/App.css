@@ -47,13 +47,38 @@ select {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20px;
   position: fixed;
   top: 0;
   left: 0;
   z-index: 100;
-  backdrop-filter: blur(14px);
-  background: rgba(11, 13, 16, 0.78);
+  backdrop-filter: blur(20px);
+  background: rgba(11, 13, 16, 0.86);
   border-bottom: 1px solid var(--border);
+}
+
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  min-height: 36px;
+  padding: 0 18px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: var(--radius-control);
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.nav-cta:hover {
+  background: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+.nav-cta:active {
+  transform: translateY(0);
 }
 
 .brand {
@@ -71,7 +96,7 @@ select {
   font-family: var(--font-display);
   font-size: 1.05rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.12em;
 }
 
 .menu {
@@ -145,7 +170,7 @@ select {
 .hero h1 {
   font-family: var(--font-display);
   font-size: clamp(2.4rem, 6vw, 3.6rem);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
   margin-bottom: 16px;
   color: var(--text);
 }
@@ -245,14 +270,15 @@ select {
   margin-bottom: 26px;
 }
 
-.section-heading span {
+.section-heading span,
+.eyebrow {
   color: var(--accent);
   display: inline-block;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  margin-bottom: 7px;
+  margin-bottom: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.18em;
 }
 
 .section-heading h2,
@@ -260,7 +286,8 @@ select {
   font-family: var(--font-display);
   color: var(--text);
   font-size: clamp(1.9rem, 3.6vw, 2.9rem);
-  line-height: 1.1;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   margin-bottom: 14px;
 }
 
@@ -688,6 +715,8 @@ select {
   color: var(--text-muted);
   font-size: 1.02rem;
   line-height: 1.8;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 .section-wide {

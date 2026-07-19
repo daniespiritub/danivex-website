@@ -102,20 +102,25 @@ const copy = {
     copied: 'Copiado',
     coachStart: 'Lectura DaniVex:',
     coachEnd: 'Prueba 3 partidas, ajusta de 3 en 3 y guarda el mejor resultado.',
+    mobiladorEyebrow: 'App de escritorio',
     mobiladorSectionTitle: 'DaniVex Mobilador',
     mobiladorSectionText: 'La app de Windows para reflejar y controlar tu Android en PC: perfiles listos para jugar, HUD en tiempo real y baja latencia.',
     mobiladorProfiles: ['Jugar Competitivo', 'Stream OBS / TikTok', 'Control sin video', 'WiFi Guiado', 'Perfil Personalizado'],
     mobiladorShowcaseCta: 'Ir a la descarga',
+    downloadsEyebrow: 'Descarga gratuita',
     downloadsTitle: 'Descargas legales',
     downloadsText: 'Archivos, plantillas, overlays y recursos seguros para jugadores y creadores.',
+    navDownloadCta: 'Descargar',
     mobiladorButton: 'Descargar DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 y 11 · 64 bits',
     mobiladorShotHome: 'Pantalla de inicio de DaniVex Mobilador',
     mobiladorShotProfiles: 'Gestion de perfiles en DaniVex Mobilador',
     mobiladorShotAbout: 'Pantalla Acerca de DaniVex Mobilador',
+    communityEyebrow: 'Únete',
     communityText: 'Únete a la comunidad Danivex y comparte setups, configuraciones y resultados.',
     discord: 'Entrar al Discord',
     whatsapp: 'Comunidad DaniVex',
+    contactEyebrow: 'Hablemos',
     contactText: 'Conecta con DaniVex por Discord y redes sociales oficiales.',
     discordServer: 'Discord',
     socialNetworks: 'Redes sociales',
@@ -187,20 +192,25 @@ const copy = {
     copied: 'Copiado',
     coachStart: 'Leitura DaniVex:',
     coachEnd: 'Teste 3 partidas, ajuste de 3 em 3 e salve o melhor resultado.',
+    mobiladorEyebrow: 'App de desktop',
     mobiladorSectionTitle: 'DaniVex Mobilador',
     mobiladorSectionText: 'O app de Windows para espelhar e controlar seu Android no PC: perfis prontos para jogar, HUD em tempo real e baixa latencia.',
     mobiladorProfiles: ['Jogar Competitivo', 'Stream OBS / TikTok', 'Controle sem video', 'WiFi Guiado', 'Perfil Personalizado'],
     mobiladorShowcaseCta: 'Ir para o download',
+    downloadsEyebrow: 'Download gratuito',
     downloadsTitle: 'Downloads legais',
     downloadsText: 'Arquivos, modelos, overlays e recursos seguros para jogadores e criadores.',
+    navDownloadCta: 'Baixar',
     mobiladorButton: 'Baixar DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 e 11 - 64 bits',
     mobiladorShotHome: 'Tela inicial do DaniVex Mobilador',
     mobiladorShotProfiles: 'Gestao de perfis no DaniVex Mobilador',
     mobiladorShotAbout: 'Tela Sobre do DaniVex Mobilador',
+    communityEyebrow: 'Junte-se',
     communityText: 'Entre na comunidade DaniVex e compartilhe setups, configuracoes e resultados.',
     discord: 'Entrar no Discord',
     whatsapp: 'Comunidade DaniVex',
+    contactEyebrow: 'Vamos falar',
     contactText: 'Conecte-se com DaniVex pelo Discord e redes sociais oficiais.',
     discordServer: 'Discord',
     socialNetworks: 'Redes sociais',
@@ -281,20 +291,25 @@ const copy = {
     copied: 'Copied',
     coachStart: 'DaniVex read:',
     coachEnd: 'Try 3 matches, adjust by 3 and keep the best result.',
+    mobiladorEyebrow: 'Desktop app',
     mobiladorSectionTitle: 'DaniVex Mobilador',
     mobiladorSectionText: 'The Windows app to mirror and control your Android on PC: ready-to-play profiles, real-time HUD and low latency.',
     mobiladorProfiles: ['Competitive play', 'Stream OBS / TikTok', 'No-video control', 'Guided WiFi', 'Custom profile'],
     mobiladorShowcaseCta: 'Go to download',
+    downloadsEyebrow: 'Free download',
     downloadsTitle: 'Legal downloads',
     downloadsText: 'Files, templates, overlays and safe resources for players and creators.',
+    navDownloadCta: 'Download',
     mobiladorButton: 'Download DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 and 11 - 64-bit',
     mobiladorShotHome: 'DaniVex Mobilador home screen',
     mobiladorShotProfiles: 'Profile management in DaniVex Mobilador',
     mobiladorShotAbout: 'DaniVex Mobilador About screen',
+    communityEyebrow: 'Join in',
     communityText: 'Join the DaniVex community and share setups, configurations and results.',
     discord: 'Join Discord',
     whatsapp: 'DaniVex Community',
+    contactEyebrow: "Let's talk",
     contactText: 'Connect with DaniVex through Discord and official socials.',
     discordServer: 'Discord',
     socialNetworks: 'Social networks',
@@ -559,6 +574,8 @@ function HomePage() {
           <a href="#comunidad" className={activeSection === 'comunidad' ? 'active' : ''}>{text.nav[4]}</a>
           <a href="#contacto" className={activeSection === 'contacto' ? 'active' : ''}>{text.nav[5]}</a>
         </div>
+
+        <a className="nav-cta" href={links.mobiladorDownload} download>{text.navDownloadCta}</a>
       </nav>
 
       <div className="visitor-counter" aria-label={String(visitCount)}>
@@ -806,6 +823,7 @@ function HomePage() {
       </section>
 
       <section id="mobilador" className="section section-wide">
+        <span className="eyebrow">{text.mobiladorEyebrow}</span>
         <h2>{text.mobiladorSectionTitle}</h2>
         <p>{text.mobiladorSectionText}</p>
 
@@ -825,6 +843,7 @@ function HomePage() {
       </section>
 
       <section id="descargas" className="section section-wide">
+        <span className="eyebrow">{text.downloadsEyebrow}</span>
         <h2>{text.downloadsTitle}</h2>
         <p>{text.downloadsText}</p>
 
@@ -842,6 +861,7 @@ function HomePage() {
       </section>
 
       <section id="comunidad" className="section">
+        <span className="eyebrow">{text.communityEyebrow}</span>
         <h2>{text.nav[4]}</h2>
         <p>{text.communityText}</p>
         <div className="social-actions">
@@ -857,6 +877,7 @@ function HomePage() {
       </section>
 
       <section id="contacto" className="section">
+        <span className="eyebrow">{text.contactEyebrow}</span>
         <h2>{text.nav[5]}</h2>
         <p>{text.contactText}</p>
         <div className="social-actions contact-actions">
