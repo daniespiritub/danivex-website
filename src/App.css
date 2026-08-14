@@ -297,6 +297,45 @@ select {
   font-size: 1rem;
 }
 
+.sensi-how {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  padding: 20px 24px;
+  margin-bottom: 18px;
+}
+
+.sensi-how h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.sensi-how-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 24px;
+}
+
+.sensi-how-item {
+  display: grid;
+  gap: 4px;
+}
+
+.sensi-how-item strong {
+  color: var(--accent);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.sensi-how-item span {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
 .senselab {
   display: grid;
   grid-template-columns: minmax(300px, 0.92fr) minmax(320px, 1fr) minmax(360px, 1.14fr);

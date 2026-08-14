@@ -67,6 +67,15 @@ const copy = {
     toolBadge: 'Herramienta principal',
     toolTitle: 'Sensibilidad FF',
     toolText: 'Elige tu dispositivo y deja que DaniVex arme una base lista para levantar mira con más control.',
+    sensiHowTitle: 'Cómo calcula DaniVex tu sensibilidad',
+    sensiFactors: [
+      { label: 'Gama del dispositivo', text: 'La base sale de la categoría real (entrada, gama media, flagship, gaming, tablet), no todos parten del mismo número.' },
+      { label: 'Tasa de refresco', text: 'Más Hz permite una base más alta sin perder control de la mira.' },
+      { label: 'Root y versión', text: 'El estado de Android y si jugás Free Fire o MAX ajustan la sensibilidad final.' },
+      { label: 'DPI y botón de disparo', text: 'El DPI de tu pantalla y el tamaño del botón mueven la base para compensar tu gesto real.' },
+      { label: 'Antigüedad y experiencia', text: 'Dispositivos antiguos bajan un poco para evitar saltos; más años jugando suman margen.' },
+      { label: 'Modo clasificatorio', text: 'DE Clasificatoria prioriza reacción rápida en mapa chico; BR prioriza control en mapa grande.' },
+    ],
     step1: 'Paso 1',
     step2: 'Paso 2',
     result: 'Resultado',
@@ -157,6 +166,15 @@ const copy = {
     toolBadge: 'Ferramenta principal',
     toolTitle: 'Sensibilidade FF',
     toolText: 'Escolha seu aparelho e deixe a DaniVex montar uma base pronta para subir capa com mais controle.',
+    sensiHowTitle: 'Como a DaniVex calcula sua sensibilidade',
+    sensiFactors: [
+      { label: 'Categoria do aparelho', text: 'A base sai da categoria real (entrada, intermediário, flagship, gaming, tablet), nem todos partem do mesmo número.' },
+      { label: 'Taxa de atualização', text: 'Mais Hz permite uma base mais alta sem perder controle da mira.' },
+      { label: 'Root e versão', text: 'O estado do Android e se você joga Free Fire ou MAX ajustam a sensibilidade final.' },
+      { label: 'DPI e botão de tiro', text: 'O DPI da sua tela e o tamanho do botão movem a base para compensar seu gesto real.' },
+      { label: 'Antiguidade e experiência', text: 'Aparelhos antigos baixam um pouco para evitar pulos; mais anos jogando somam margem.' },
+      { label: 'Modo classificatória', text: 'DE Classificatória prioriza reação rápida em mapa pequeno; BR prioriza controle em mapa grande.' },
+    ],
     step1: 'Passo 1',
     step2: 'Passo 2',
     result: 'Resultado',
@@ -256,6 +274,15 @@ const copy = {
     toolBadge: 'Main tool',
     toolTitle: 'FF Sensitivity',
     toolText: 'Pick your device and let DaniVex build a ready base for cleaner drag and better control.',
+    sensiHowTitle: 'How DaniVex calculates your sensitivity',
+    sensiFactors: [
+      { label: 'Device tier', text: 'The base comes from the real tier (entry, mid-range, flagship, gaming, tablet), not everyone starts from the same number.' },
+      { label: 'Refresh rate', text: 'More Hz allows a higher base without losing aim control.' },
+      { label: 'Root and version', text: 'Android root state and whether you play Free Fire or MAX adjust the final sensitivity.' },
+      { label: 'DPI and fire button', text: 'Your screen DPI and button size shift the base to match your real gesture.' },
+      { label: 'Age and experience', text: 'Older devices get lowered a bit to avoid jumps; more years playing add margin.' },
+      { label: 'Ranked mode', text: 'CS Ranked favors fast reaction on small maps; BR Ranked favors control on large maps.' },
+    ],
     step1: 'Step 1',
     step2: 'Step 2',
     result: 'Result',
@@ -602,6 +629,18 @@ function HomePage() {
           <span>{text.toolBadge}</span>
           <h2>{text.toolTitle}</h2>
           <p>{text.toolText}</p>
+        </div>
+
+        <div className="sensi-how">
+          <h3>{text.sensiHowTitle}</h3>
+          <div className="sensi-how-grid">
+            {text.sensiFactors.map((factor) => (
+              <div className="sensi-how-item" key={factor.label}>
+                <strong>{factor.label}</strong>
+                <span>{factor.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="senselab">
