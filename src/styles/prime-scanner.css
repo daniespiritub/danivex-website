@@ -115,6 +115,53 @@
   max-width: 600px;
 }
 
+.scanner-preview {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+  margin: 0 auto 26px;
+  max-width: 1120px;
+  padding: 22px 24px;
+}
+
+.scanner-preview h2 {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+
+.scanner-preview-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+.scanner-preview-item {
+  display: grid;
+  gap: 4px;
+}
+
+.scanner-preview-item strong {
+  color: var(--accent2);
+  font-size: 0.86rem;
+}
+
+.scanner-preview-item span {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.scanner-preview-source {
+  border-top: 1px solid var(--border);
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  margin-top: 18px;
+  padding-top: 14px;
+}
+
 .scanner-form,
 .scanner-panel,
 .loading-scanner {
@@ -691,6 +738,14 @@
   .scanner-hero {
     grid-template-columns: 1.1fr 0.9fr;
     padding: 64px 30px 38px;
+  }
+
+  .scanner-preview {
+    padding: 28px 30px;
+  }
+
+  .scanner-preview-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .scanner-form {

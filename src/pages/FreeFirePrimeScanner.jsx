@@ -16,6 +16,15 @@ import '../styles/prime-scanner.css'
 const seoTitle = 'Free Fire Prime AI Scanner - Analiza tu cuenta por UID'
 const seoDescription = 'Consulta perfiles publicos de Free Fire por UID y verifica el nivel Prime por Player ID.'
 
+const scannerPreviewItems = [
+  { title: 'Nick y UID', text: 'El nombre y UID exactos tal como figuran en el perfil público del jugador.' },
+  { title: 'Región y actividad', text: 'Región detectada, nivel, experiencia y cantidad de me gusta.' },
+  { title: 'Fechas de la cuenta', text: 'Fecha de creación y último inicio de sesión, cuando la fuente los publica.' },
+  { title: 'Gremio vinculado', text: 'Nombre del clan, ID, nivel y cantidad de miembros, si tiene uno.' },
+  { title: 'Biografía pública', text: 'La bio configurada en el juego, copiada tal cual.' },
+  { title: 'Nivel Prime aparte', text: 'Nivel Prime y diamantes confirmados, con el segundo buscador de UID / Player ID.' },
+]
+
 function FreeFirePrimeScanner() {
   const [uid, setUid] = useState('')
   const [primeUid, setPrimeUid] = useState('')
@@ -181,6 +190,21 @@ function FreeFirePrimeScanner() {
             onSubmit={handlePrimeSubmit}
           />
         </div>
+      </section>
+
+      <section className="scanner-preview">
+        <h2>Qué vas a ver en tu perfil</h2>
+        <div className="scanner-preview-grid">
+          {scannerPreviewItems.map((item) => (
+            <div className="scanner-preview-item" key={item.title}>
+              <strong>{item.title}</strong>
+              <span>{item.text}</span>
+            </div>
+          ))}
+        </div>
+        <p className="scanner-preview-source">
+          El perfil público se busca vía FreeFireMania. El nivel Prime se confirma aparte con FreeFireJornal, en el segundo buscador.
+        </p>
       </section>
 
       {isLoading && <LoadingScanner activeStep={activeStep} progress={progress} />}
