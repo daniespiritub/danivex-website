@@ -394,36 +394,15 @@ function getPreferredLanguage() {
   return 'es'
 }
 
-function stableNumberSeed(text) {
-  return [...text].reduce((hash, char) => ((hash * 31) + char.charCodeAt(0)) >>> 0, 2166136261)
-}
-
-function getLocalVisitCount() {
-  const countKey = 'danivex-visit-count'
-  const tickKey = 'danivex-visit-tick'
-  const sessionKey = 'danivex-visit-session'
-
+async function fetchVisitCount(method) {
   try {
-    const storedCount = Number(localStorage.getItem(countKey) || '0')
-    let count = storedCount > 0 ? storedCount : 31 + (stableNumberSeed('danivex-seed') % 11)
+    const response = await fetch('/api/visits', { method })
+    if (!response.ok) return null
 
-    const hasSession = Boolean(sessionStorage.getItem(sessionKey))
-    if (!hasSession) {
-      count += 1
-      sessionStorage.setItem(sessionKey, '1')
-    }
-
-    const now = Date.now()
-    const lastTick = Number(localStorage.getItem(tickKey) || '0')
-    if (now - lastTick > 45000) {
-      count += stableNumberSeed(`${now}`) % 2
-      localStorage.setItem(tickKey, String(now))
-    }
-
-    localStorage.setItem(countKey, String(count))
-    return count
+    const data = await response.json()
+    return data.ok ? Number(data.count) : null
   } catch {
-    return 1
+    return null
   }
 }
 
@@ -437,7 +416,7 @@ function HomePage() {
   const [manualTier, setManualTier] = useState('mid')
   const [profile, setProfile] = useState(defaultProfile)
   const [copied, setCopied] = useState(false)
-  const [visitCount, setVisitCount] = useState(getLocalVisitCount)
+  const [visitCount, setVisitCount] = useState(null)
   const [activeSection, setActiveSection] = useState('inicio')
   const text = copy[language]
   const isApplePlatform = selectedDevice.os === 'iOS' || selectedDevice.os === 'iPadOS'
@@ -472,11 +451,25 @@ function HomePage() {
   }, [])
 
   useEffect(() => {
+    let cancelled = false
+    const sessionKey = 'danivex-visit-session'
+    const hasSession = Boolean(sessionStorage.getItem(sessionKey))
+    if (!hasSession) sessionStorage.setItem(sessionKey, '1')
+
+    fetchVisitCount(hasSession ? 'GET' : 'POST').then((count) => {
+      if (!cancelled && count !== null) setVisitCount(count)
+    })
+
     const intervalId = window.setInterval(() => {
-      setVisitCount(getLocalVisitCount())
+      fetchVisitCount('GET').then((count) => {
+        if (!cancelled && count !== null) setVisitCount(count)
+      })
     }, 60 * 1000)
 
-    return () => window.clearInterval(intervalId)
+    return () => {
+      cancelled = true
+      window.clearInterval(intervalId)
+    }
   }, [])
 
   const platformDevices = useMemo(
@@ -608,10 +601,12 @@ function HomePage() {
         <a className="nav-cta" href={links.mobiladorDownload} download>{text.navDownloadCta}</a>
       </nav>
 
-      <div className="visitor-counter" aria-label={String(visitCount)}>
-        <PiEyeBold aria-hidden="true" />
-        <strong>{visitCount}</strong>
-      </div>
+      {visitCount !== null && (
+        <div className="visitor-counter" aria-label={String(visitCount)}>
+          <PiEyeBold aria-hidden="true" />
+          <strong>{visitCount}</strong>
+        </div>
+      )}
 
       <section id="inicio" className="hero">
         <div className="hero-card">
