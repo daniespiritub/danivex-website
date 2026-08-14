@@ -118,8 +118,9 @@ const copy = {
     mobiladorShowcaseCta: 'Ir a la descarga',
     downloadsEyebrow: 'Descarga gratuita',
     downloadsTitle: 'Descargas legales',
-    downloadsText: 'Archivos, plantillas, overlays y recursos seguros para jugadores y creadores.',
+    downloadsText: 'Descarga DaniVex Mobilador, la app de escritorio gratuita para reflejar y controlar tu Android en PC.',
     navDownloadCta: 'Descargar',
+    footerRights: (year) => `© ${year} DaniVex. Herramientas hechas por la comunidad, sin afiliación con Garena ni Free Fire.`,
     mobiladorButton: 'Descargar DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 y 11 · 64 bits',
     mobiladorShotHome: 'Pantalla de inicio de DaniVex Mobilador',
@@ -217,8 +218,9 @@ const copy = {
     mobiladorShowcaseCta: 'Ir para o download',
     downloadsEyebrow: 'Download gratuito',
     downloadsTitle: 'Downloads legais',
-    downloadsText: 'Arquivos, modelos, overlays e recursos seguros para jogadores e criadores.',
+    downloadsText: 'Baixe o DaniVex Mobilador, o app de desktop gratuito para espelhar e controlar seu Android no PC.',
     navDownloadCta: 'Baixar',
+    footerRights: (year) => `© ${year} DaniVex. Ferramentas feitas pela comunidade, sem afiliação com Garena ou Free Fire.`,
     mobiladorButton: 'Baixar DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 e 11 - 64 bits',
     mobiladorShotHome: 'Tela inicial do DaniVex Mobilador',
@@ -325,8 +327,9 @@ const copy = {
     mobiladorShowcaseCta: 'Go to download',
     downloadsEyebrow: 'Free download',
     downloadsTitle: 'Legal downloads',
-    downloadsText: 'Files, templates, overlays and safe resources for players and creators.',
+    downloadsText: 'Download DaniVex Mobilador, the free desktop app to mirror and control your Android on PC.',
     navDownloadCta: 'Download',
+    footerRights: (year) => `© ${year} DaniVex. Community-built tools, not affiliated with Garena or Free Fire.`,
     mobiladorButton: 'Download DaniVex Mobilador',
     mobiladorNote: 'Windows 7, 8, 8.1, 10 and 11 - 64-bit',
     mobiladorShotHome: 'DaniVex Mobilador home screen',
@@ -934,6 +937,20 @@ function HomePage() {
           </a>
         </div>
       </section>
+
+      <footer className="site-footer">
+        <div className="site-footer-brand">
+          <img src={logo} alt="Danivex Logo" />
+          <span>{text.footerRights(new Date().getFullYear())}</span>
+        </div>
+        <nav className="site-footer-links" aria-label={text.nav[0]}>
+          <a href="#inicio">{text.nav[0]}</a>
+          <a href="#sensibilidad">{text.nav[1]}</a>
+          <a href="/free-fire-prime-scanner">{text.primeScanner}</a>
+          <a href="#mobilador">{text.nav[2]}</a>
+          <a href="#comunidad">{text.nav[4]}</a>
+        </nav>
+      </footer>
     </div>
   )
 }

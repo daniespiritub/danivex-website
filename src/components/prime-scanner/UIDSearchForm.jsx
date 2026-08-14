@@ -26,6 +26,10 @@ function UIDSearchForm({
         <PiMagnifyingGlassBold aria-hidden="true" />
         <span>{isLoading ? 'Analizando...' : 'Analizar Cuenta'}</span>
       </button>
+
+      <p className="uid-helper">
+        Tu UID aparece en tu perfil dentro de Free Fire, justo debajo del nick. Tiene entre 6 y 12 dígitos numéricos.
+      </p>
     </form>
   )
 }
