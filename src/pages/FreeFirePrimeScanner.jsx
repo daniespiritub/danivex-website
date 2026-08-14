@@ -254,8 +254,10 @@ function FreeFirePrimeScanner() {
             <Metric label="UID" value={player.uid} />
             <Metric label="Region" value={`${player.region} (${player.regionConfidence}% ${player.regionSource})`} />
             <Metric label="Cuenta creada" value={formatDate(player.creationDate)} />
+            <Metric label="Antiguedad exacta" value={player.accountAge || 'No disponible'} />
             <Metric label="Ultimo login" value={formatDate(player.lastLogin)} />
             <Metric label="Version del juego" value={player.gameVersion || 'No disponible'} />
+            <Metric label="Verificado por la fuente" value={player.verified === null ? 'No disponible' : player.verified ? 'Si' : 'No'} />
           </MetricGroup>
 
           <MetricGroup title="Actividad y progreso">

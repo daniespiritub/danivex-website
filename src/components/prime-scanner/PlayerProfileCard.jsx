@@ -15,7 +15,7 @@ function PlayerProfileCard({ player }) {
         <span className="scanner-kicker">Cuenta escaneada</span>
         <h2>{player.username}</h2>
         <p className="player-name-source">
-          {player.nameSource === 'garena-topup' ? 'Nombre detectado por UID' : 'Nombre pendiente de API real'}
+          {player.lookupStatus === 'real' ? `Nombre real via ${player.nameSource}` : 'Nombre pendiente de API real'}
         </p>
         <div className="player-tags">
           <span><PiShieldCheckBold aria-hidden="true" /> UID {player.uid}</span>

@@ -116,6 +116,7 @@ function buildResponse(uid, profile, cacheHit) {
     creationDate: profile.creationDate || '',
     lastLogin: profile.lastLogin || '',
     accountAge: profile.accountAge || '',
+    verified: profile.verified,
 
     level: profile.level || '',
     exp: profile.exp || '',
@@ -183,7 +184,71 @@ async function getHtmlWithFetch(url) {
   }
 }
 
+function parseApiGrid(html) {
+  const safeHtml = String(html || '')
+  const startIndex = safeHtml.indexOf('<div class="perfil-api-grid">')
+  if (startIndex === -1) return {}
+
+  const block = safeHtml.slice(startIndex, startIndex + 2000)
+  const out = {}
+  const re = /<div><strong>([^<]+)<\/strong><span[^>]*>([\s\S]*?)<\/span><\/div>/g
+  let m
+
+  while ((m = re.exec(block))) {
+    out[m[1].trim()] = clean(m[2].replace(/<[^>]+>/g, ' '))
+  }
+
+  return out
+}
+
+function parseClanPanel(html) {
+  const safeHtml = String(html || '')
+  const startIndex = safeHtml.indexOf('<h2>Clan</h2>')
+  if (startIndex === -1) return {}
+
+  const block = safeHtml.slice(startIndex, startIndex + 600)
+  const nameMatch = block.match(/<a[^>]*>([^<]+)<\/a>/i)
+  const idMatch = block.match(/ID del Clan:\s*(\d+)/i)
+  const levelMembersMatch = block.match(/Nivel:\s*(\d+)\s*\|\s*Miembros:\s*(\d+)/i)
+
+  if (!nameMatch) return {}
+
+  return {
+    clan: clean(nameMatch[1]),
+    clanId: idMatch ? idMatch[1] : '',
+    clanLevel: levelMembersMatch ? levelMembersMatch[1] : '',
+    clanMembers: levelMembersMatch ? levelMembersMatch[2] : '',
+  }
+}
+
+function parseExactAge(html) {
+  const match = String(html || '').match(/y tiene\s+(\d+\s+a[nñ]os?,\s*\d+\s+mes(?:es)?\s+y\s+\d+\s+d[ií]as)/i)
+  return match ? match[1].replace(/\s+/g, ' ').trim() : ''
+}
+
+function parseAccountLevel(html) {
+  const match = String(html || '').match(/class="level">(\d+)<\/div>/i)
+  return match ? match[1] : ''
+}
+
+function parseVerifiedBio(html) {
+  const match = String(html || '').match(/id="bioContent"\s+data-original-bio="([^"]*)"/i)
+  if (!match) return ''
+
+  return match[1]
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&amp;/g, '&')
+    .trim()
+}
+
 function parseFreeFireManiaProfile(text, html) {
+  const apiGrid = parseApiGrid(html)
+  const clanFromPanel = parseClanPanel(html)
+  const exactAge = parseExactAge(html)
+  const bioFromAttr = parseVerifiedBio(html)
+  const accountLevel = parseAccountLevel(html)
+
   const nickname =
     pick(text, [
       /Nick:\s*([^\n]+)/i,
@@ -322,20 +387,22 @@ function parseFreeFireManiaProfile(text, html) {
     )
 
   return {
-    nickname: clean(nickname),
-    region: clean(region) || 'SAC',
-    creationDate: clean(creationDate),
-    lastLogin: clean(lastLogin),
-    gameVersion: clean(gameVersion),
-    level: clean(level),
-    exp: clean(exp),
-    likes,
-    pass: clean(pass),
-    clan: clean(clan),
-    clanId: clean(clanId),
-    clanLevel: clean(clanLevel),
-    clanMembers: clean(clanMembers),
-    bio,
+    nickname: clean(apiGrid['Nick']) || clean(nickname),
+    region: clean(apiGrid['Región']) || clean(region) || 'SAC',
+    creationDate: clean(apiGrid['Cuenta creada el']) || clean(creationDate),
+    lastLogin: clean(apiGrid['Último inicio de sesión']) || clean(lastLogin),
+    gameVersion: clean(apiGrid['Versión del juego']) || clean(gameVersion),
+    level: accountLevel || clean(level),
+    exp: clean(apiGrid['Exp']) || clean(exp),
+    likes: apiGrid['Me gusta'] ? parseNumber(apiGrid['Me gusta']) : likes,
+    pass: clean(apiGrid['Pase Booyah']) || clean(pass),
+    verified: apiGrid['Verificado'] ? /^s[ií]$/i.test(apiGrid['Verificado']) : null,
+    accountAge: exactAge,
+    clan: clanFromPanel.clan || clean(clan),
+    clanId: clanFromPanel.clanId || clean(clanId),
+    clanLevel: clanFromPanel.clanLevel || clean(clanLevel),
+    clanMembers: clanFromPanel.clanMembers || clean(clanMembers),
+    bio: bioFromAttr || bio,
     skinStatus: clean(skinStatus),
     skinError,
     avatar,
