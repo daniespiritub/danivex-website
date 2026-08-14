@@ -994,6 +994,22 @@ select {
     width: 100%;
   }
 
+  .visitor-counter {
+    min-height: 28px;
+    padding: 0 10px;
+    background: rgba(20, 23, 29, 0.72);
+    backdrop-filter: blur(10px);
+  }
+
+  .visitor-counter strong {
+    font-size: 0.8rem;
+  }
+
+  .visitor-counter svg {
+    width: 12px;
+    height: 12px;
+  }
+
   .screenshot-gallery {
     grid-template-columns: 1fr;
   }
