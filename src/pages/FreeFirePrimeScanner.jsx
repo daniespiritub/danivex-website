@@ -203,7 +203,7 @@ function FreeFirePrimeScanner() {
           ))}
         </div>
         <p className="scanner-preview-source">
-          El perfil público se busca vía FreeFireMania. El nivel Prime se confirma aparte con FreeFireJornal, en el segundo buscador.
+          El perfil público se busca vía FreeFireMania, con FreeFireJornal como respaldo si la primera fuente no responde. El nivel Prime se confirma aparte con FreeFireJornal, en el segundo buscador.
         </p>
       </section>
 
@@ -265,8 +265,18 @@ function FreeFirePrimeScanner() {
             <Metric label="Experiencia" value={player.exp || 'No disponible'} />
             <Metric label="Me gusta" value={formatNumber(player.likes || 0)} />
             <Metric label="Pase Booyah" value={player.pass || 'No disponible'} />
+            <Metric label="Pase Elite" value={player.elitePass || 'No disponible'} />
+            <Metric label="Temporada" value={player.season || 'No disponible'} />
+            <Metric label="Emulador" value={player.emulator || 'No disponible'} />
             <Metric label="Prime" value={player.prime.diamonds > 0 ? `Prime ${player.prime.level}` : 'Consultar arriba en Prime'} />
           </MetricGroup>
+
+          {(player.rankBR || player.rankCS) && (
+            <MetricGroup title="Rango">
+              <Metric label="Clasificatoria BR" value={player.rankBR || 'No disponible'} />
+              <Metric label="Duelo de Escuadras" value={player.rankCS || 'No disponible'} />
+            </MetricGroup>
+          )}
 
           <MetricGroup title="Clan">
             <Metric label="Clan" value={player.clan || 'No disponible'} />
