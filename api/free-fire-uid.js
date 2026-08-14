@@ -166,11 +166,20 @@ async function getHtmlWithFetch(url) {
       signal: controller.signal,
       headers: {
         'user-agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
         'accept-language':
           'es-ES,es;q=0.9,pt-BR;q=0.8,pt;q=0.7,en;q=0.6',
         accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'accept-encoding': 'gzip, deflate, br',
+        'cache-control': 'no-cache',
+        pragma: 'no-cache',
+        referer: 'https://www.freefiremania.com.br/',
+        'sec-fetch-dest': 'document',
+        'sec-fetch-mode': 'navigate',
+        'sec-fetch-site': 'same-origin',
+        'sec-fetch-user': '?1',
+        'upgrade-insecure-requests': '1',
       },
     })
 
