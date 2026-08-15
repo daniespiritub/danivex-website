@@ -1,6 +1,9 @@
-import { enforceRateLimit, getClientIp } from './_lib/rate-limit.js'
+import { enforceIpRateLimit, enforceUidRateLimit, getClientIp } from './_lib/rate-limit.js'
 import { classifyFetchError, logEvent } from './_lib/log.js'
-import { saveCachedProfile } from './_lib/private-db.js'
+import { getStoredProfile, saveCachedProfile } from './_lib/private-db.js'
+import { classifyFreshness } from './_lib/cache-policy.js'
+import { resolveProfile } from './_lib/read-through.js'
+import { envNamespace } from './_lib/env-namespace.js'
 
 // Persistencia best-effort. NUNCA lanza: un fallo de DB no debe romper una
 // busqueda que ya tuvo exito (provider success + DB failure = el usuario
@@ -85,93 +88,141 @@ export default async function handler(req, res) {
     })
   }
 
-  const rl = await enforceRateLimit({ ip: getClientIp(req), endpoint: 'free-fire-uid', uid })
-  if (rl.blocked) {
-    logEvent('ff_uid_ratelimited', { uid, scope: rl.scope, retryAfter: rl.retryAfter || 60 })
-    res.setHeader('Retry-After', String(rl.retryAfter || 60))
+  // Rate limit por IP: protege el endpoint, aplica a TODA request (incluidos
+  // cache hits). El limite por UID se consume mas abajo, SOLO si de verdad se va
+  // a refrescar contra un proveedor (un fresh cache hit no gasta ese presupuesto).
+  const ipRl = await enforceIpRateLimit({ ip: getClientIp(req), endpoint: 'free-fire-uid' })
+  if (ipRl.blocked) {
+    logEvent('ff_uid_ratelimited', { uid, scope: 'ip', retryAfter: ipRl.retryAfter || 60 })
+    res.setHeader('Retry-After', String(ipRl.retryAfter || 60))
     return res.status(429).json({
-      ok: false,
-      uid,
-      error: 'rate_limited',
-      scope: rl.scope,
-      retryAfter: rl.retryAfter || 60,
+      ok: false, uid, error: 'rate_limited', scope: 'ip', retryAfter: ipRl.retryAfter || 60,
       message: 'Demasiadas consultas seguidas. Espera unos segundos e intenta de nuevo.',
     })
   }
 
-  const cached = SEED_CACHE[uid]
+  // Seed cache hardcodeado (2 UIDs): respuesta instantanea, sin proveedor.
+  const seed = SEED_CACHE[uid]
+  if (seed) {
+    logEvent('ff_uid_lookup', { uid, outcome: 'success', servedFrom: 'seed_cache', fallback: false })
+    return res.status(200).json(withCache(buildResponse(uid, seed, true), { hit: true, state: 'fresh' }))
+  }
 
-  if (cached) {
-    logEvent('ff_uid_lookup', { uid, outcome: 'success', provider: 'seed_cache', cache: 'hit', fallback: false })
-    return res.status(200).json(buildResponse(uid, cached, true))
+  const testOpts = readTestOverrides(req)
+
+  const stored = await getStoredProfile(uid)
+  const freshness = classifyFreshness(stored?.lastObservedAt, Date.now(), testOpts.freshness)
+  logEvent('ff_uid_cache', { uid, state: stored ? freshness : 'miss' })
+
+  let uidBlocked = null
+  const refresh = async () => {
+    const uidRl = await enforceUidRateLimit({ uid })
+    if (uidRl.blocked) {
+      uidBlocked = uidRl
+      return { ok: false, reason: 'rate_limited' }
+    }
+    return fetchFromProviders(uid, testOpts.forceProviderFail)
+  }
+
+  const result = await resolveProfile({
+    stored,
+    freshness,
+    refresh,
+    persist: (response) => persistProfile(uid, response),
+  })
+
+  if (result.servedFrom === 'cache_fresh') {
+    logEvent('ff_uid_lookup', { uid, outcome: 'success', servedFrom: 'cache_fresh', fallback: false })
+    return res.status(200).json(withCache(buildResponse(uid, stored, true), { hit: true, state: 'fresh' }))
+  }
+
+  if (result.servedFrom === 'provider') {
+    logEvent('ff_uid_lookup', { uid, outcome: 'success', servedFrom: 'provider', provider: result.provider, fallback: Boolean(result.fallback) })
+    return res.status(200).json(withCache(result.profile, { hit: false, state: 'fresh' }))
+  }
+
+  if (result.servedFrom === 'cache_stale') {
+    logEvent('ff_uid_stale_fallback', { uid, lastObservedAt: stored.lastObservedAt })
+    logEvent('ff_uid_lookup', { uid, outcome: 'success', servedFrom: 'cache_stale', fallback: true })
+    return res.status(200).json(withCache(buildResponse(uid, stored, true), {
+      hit: true, state: 'stale', fallback: true, lastObservedAt: stored.lastObservedAt, source: stored.provider || '',
+    }))
+  }
+
+  // servedFrom === 'none': no se pudo servir. Distingue rate-limit de fallo real.
+  if (uidBlocked) {
+    logEvent('ff_uid_ratelimited', { uid, scope: 'uid', retryAfter: uidBlocked.retryAfter || 60 })
+    res.setHeader('Retry-After', String(uidBlocked.retryAfter || 60))
+    return res.status(429).json({
+      ok: false, uid, error: 'rate_limited', scope: 'uid', retryAfter: uidBlocked.retryAfter || 60,
+      message: 'Demasiadas consultas seguidas. Espera unos segundos e intenta de nuevo.',
+    })
+  }
+
+  logEvent('ff_uid_lookup', { uid, outcome: result.refreshReason === 'not_found' ? 'not_found' : 'error', servedFrom: 'none', fallback: true })
+  return res.status(200).json({
+    ok: false,
+    uid,
+    provider: 'FreeFireJornal Perfil',
+    message: result.refreshReason === 'not_found'
+      ? 'No se encontro perfil publico para este UID.'
+      : 'La consulta rapida no respondio. Intenta de nuevo.',
+  })
+}
+
+// Consulta los proveedores (Mania -> Jornal). Devuelve la respuesta ya
+// normalizada por buildResponse, o { ok:false, reason }. Emite ff_uid_provider.
+async function fetchFromProviders(uid, forceFail) {
+  if (forceFail) {
+    logEvent('ff_uid_provider', { uid, provider: 'test', outcome: 'forced_fail' })
+    return { ok: false, reason: 'provider_error' }
   }
 
   const maniaUrl = `https://www.freefiremania.com.br/cuenta/${uid}.html`
   const maniaStart = Date.now()
-
   try {
     const html = await getHtmlWithFetch(maniaUrl)
-    const text = htmlToText(html)
-    const profile = parseFreeFireManiaProfile(text, html)
-
+    const profile = parseFreeFireManiaProfile(htmlToText(html), html)
     if (profile.nickname) {
       logEvent('ff_uid_provider', { uid, provider: 'freefiremania', outcome: 'hit', ms: Date.now() - maniaStart })
-      logEvent('ff_uid_lookup', { uid, outcome: 'success', provider: 'freefiremania', cache: 'miss', fallback: false })
-      const response = buildResponse(uid, {
-        ...profile,
-        provider: 'FreeFireMania Fast',
-        sourceUrl: maniaUrl,
-      }, false)
-      await persistProfile(uid, response)
-      return res.status(200).json(response)
+      return { ok: true, provider: 'freefiremania', fallback: false, response: buildResponse(uid, { ...profile, provider: 'FreeFireMania Fast', sourceUrl: maniaUrl }, false) }
     }
-
     logEvent('ff_uid_provider', { uid, provider: 'freefiremania', outcome: 'empty', ms: Date.now() - maniaStart })
   } catch (error) {
     logEvent('ff_uid_provider', { uid, provider: 'freefiremania', outcome: classifyFetchError(error), ms: Date.now() - maniaStart, error: error.message })
-    // Falls through to the FreeFireJornal fallback below.
   }
 
   const jornalUrl = `https://freefirejornal.com/es/perfil-jogador-freefire/${uid}/`
   const jornalStart = Date.now()
-
   try {
     const html = await getHtmlWithFetch(jornalUrl)
     const profile = parseFreeFireJornalProfile(html)
-
     if (profile.nickname) {
       logEvent('ff_uid_provider', { uid, provider: 'freefirejornal', outcome: 'hit', ms: Date.now() - jornalStart })
-      logEvent('ff_uid_lookup', { uid, outcome: 'success', provider: 'freefirejornal', cache: 'miss', fallback: true })
-      const response = buildResponse(uid, {
-        ...profile,
-        provider: 'FreeFireJornal Perfil',
-        sourceUrl: jornalUrl,
-      }, false)
-      await persistProfile(uid, response)
-      return res.status(200).json(response)
+      return { ok: true, provider: 'freefirejornal', fallback: true, response: buildResponse(uid, { ...profile, provider: 'FreeFireJornal Perfil', sourceUrl: jornalUrl }, false) }
     }
-
     logEvent('ff_uid_provider', { uid, provider: 'freefirejornal', outcome: 'empty', ms: Date.now() - jornalStart })
-    logEvent('ff_uid_lookup', { uid, outcome: 'not_found', provider: 'freefirejornal', cache: 'miss', fallback: true })
-    return res.status(200).json({
-      ok: false,
-      uid,
-      provider: 'FreeFireJornal Perfil',
-      sourceUrl: jornalUrl,
-      message: 'No se encontro perfil publico para este UID.',
-    })
+    return { ok: false, reason: 'not_found' }
   } catch (error) {
     logEvent('ff_uid_provider', { uid, provider: 'freefirejornal', outcome: classifyFetchError(error), ms: Date.now() - jornalStart, error: error.message })
-    logEvent('ff_uid_lookup', { uid, outcome: 'error', provider: 'freefirejornal', cache: 'miss', fallback: true })
-    return res.status(200).json({
-      ok: false,
-      uid,
-      provider: 'FreeFireJornal Perfil',
-      sourceUrl: jornalUrl,
-      error: error.message,
-      message: 'La consulta rapida no respondio. Intenta de nuevo.',
-    })
+    return { ok: false, reason: 'provider_error' }
   }
+}
+
+// Adjunta metadata de cache aditiva sin tocar campos existentes.
+function withCache(response, cache) {
+  return { ...response, cache }
+}
+
+// Overrides de test, activos SOLO fuera de produccion (para ejercitar
+// stale/expired/fallo de proveedor en preview sin manipular datos reales).
+function readTestOverrides(req) {
+  if (envNamespace() === 'prod') return { freshness: {}, forceProviderFail: false }
+  const q = req.query || {}
+  const freshness = {}
+  if (q.__test_fresh_ttl_ms != null) freshness.freshTtlMs = Number(q.__test_fresh_ttl_ms)
+  if (q.__test_stale_max_ms != null) freshness.staleMaxAgeMs = Number(q.__test_stale_max_ms)
+  return { freshness, forceProviderFail: q.__test_force_provider_fail === '1' }
 }
 
 function buildResponse(uid, profile, cacheHit) {

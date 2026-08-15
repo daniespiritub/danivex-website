@@ -79,3 +79,23 @@ export async function enforceRateLimit({ ip, endpoint, uid }) {
 
   return { blocked: false }
 }
+
+/*
+  Variantes separadas para el read-through: el limite por IP protege el endpoint
+  (aplica a TODA request, incluidos cache hits), pero el limite por UID protege a
+  los PROVEEDORES externos y por eso solo debe consumirse cuando de verdad se va a
+  refrescar (no en un fresh cache hit que no genera trafico externo).
+*/
+export async function enforceIpRateLimit({ ip, endpoint }) {
+  const r = await hitWindow(nsKey(`rl:ip:${ip}:${endpoint}`), IP_LIMIT.limit, IP_LIMIT.windowSec)
+  return r.allowed
+    ? { blocked: false }
+    : { blocked: true, scope: 'ip', retryAfter: r.retryAfter, limit: IP_LIMIT.limit }
+}
+
+export async function enforceUidRateLimit({ uid }) {
+  const r = await hitWindow(nsKey(`rl:uid:${uid}`), UID_LIMIT.limit, UID_LIMIT.windowSec)
+  return r.allowed
+    ? { blocked: false }
+    : { blocked: true, scope: 'uid', retryAfter: r.retryAfter, limit: UID_LIMIT.limit }
+}

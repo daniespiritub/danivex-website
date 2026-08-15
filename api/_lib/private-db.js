@@ -98,6 +98,14 @@ const seedCache = {
   },
 }
 
+// Devuelve SOLO el registro persistido en KV (con lastObservedAt, contentHash,
+// observedCount) o null. A diferencia de getCachedProfile, no cae al seedCache:
+// el read-through necesita distinguir una observacion real almacenada de un
+// seed hardcodeado sin frescura.
+export async function getStoredProfile(uid) {
+  return getFromKv(normalizeUid(uid))
+}
+
 export async function getCachedProfile(uid) {
   const cleanUid = normalizeUid(uid)
 
