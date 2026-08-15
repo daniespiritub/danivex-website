@@ -1,5 +1,19 @@
 import { enforceRateLimit, getClientIp } from './_lib/rate-limit.js'
 import { classifyFetchError, logEvent } from './_lib/log.js'
+import { saveCachedProfile } from './_lib/private-db.js'
+
+// Persistencia best-effort. NUNCA lanza: un fallo de DB no debe romper una
+// busqueda que ya tuvo exito (provider success + DB failure = el usuario
+// igual recibe su resultado). El save se hace con await para garantizar la
+// escritura, envuelto para tragar cualquier error.
+async function persistProfile(uid, response) {
+  try {
+    const result = await saveCachedProfile(uid, response)
+    logEvent('ff_uid_persist', { uid, saved: result.saved, reason: result.reason || '' })
+  } catch (error) {
+    logEvent('ff_uid_persist', { uid, saved: false, reason: 'exception', error: error.message })
+  }
+}
 
 const REQUEST_TIMEOUT_MS = 5500
 
@@ -95,11 +109,13 @@ export default async function handler(req, res) {
     if (profile.nickname) {
       logEvent('ff_uid_provider', { uid, provider: 'freefiremania', outcome: 'hit', ms: Date.now() - maniaStart })
       logEvent('ff_uid_lookup', { uid, outcome: 'success', provider: 'freefiremania', cache: 'miss', fallback: false })
-      return res.status(200).json(buildResponse(uid, {
+      const response = buildResponse(uid, {
         ...profile,
         provider: 'FreeFireMania Fast',
         sourceUrl: maniaUrl,
-      }, false))
+      }, false)
+      await persistProfile(uid, response)
+      return res.status(200).json(response)
     }
 
     logEvent('ff_uid_provider', { uid, provider: 'freefiremania', outcome: 'empty', ms: Date.now() - maniaStart })
@@ -118,11 +134,13 @@ export default async function handler(req, res) {
     if (profile.nickname) {
       logEvent('ff_uid_provider', { uid, provider: 'freefirejornal', outcome: 'hit', ms: Date.now() - jornalStart })
       logEvent('ff_uid_lookup', { uid, outcome: 'success', provider: 'freefirejornal', cache: 'miss', fallback: true })
-      return res.status(200).json(buildResponse(uid, {
+      const response = buildResponse(uid, {
         ...profile,
         provider: 'FreeFireJornal Perfil',
         sourceUrl: jornalUrl,
-      }, false))
+      }, false)
+      await persistProfile(uid, response)
+      return res.status(200).json(response)
     }
 
     logEvent('ff_uid_provider', { uid, provider: 'freefirejornal', outcome: 'empty', ms: Date.now() - jornalStart })
