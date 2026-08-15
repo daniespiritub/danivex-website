@@ -1,4 +1,5 @@
 import { Redis } from '@upstash/redis'
+import { enforceRateLimit, getClientIp } from './_lib/rate-limit.js'
 
 const COUNTER_KEY = 'danivex:visits'
 
@@ -18,6 +19,12 @@ export default async function handler(req, res) {
 
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'method_not_allowed' })
+  }
+
+  const rl = await enforceRateLimit({ ip: getClientIp(req), endpoint: 'visits' })
+  if (rl.blocked) {
+    res.setHeader('Retry-After', String(rl.retryAfter || 60))
+    return res.status(429).json({ ok: false, error: 'rate_limited', retryAfter: rl.retryAfter || 60 })
   }
 
   try {

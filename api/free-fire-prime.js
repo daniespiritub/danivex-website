@@ -1,3 +1,5 @@
+import { enforceRateLimit, getClientIp } from './_lib/rate-limit.js'
+
 const REQUEST_TIMEOUT_MS = 3500
 
 const PRIME_REQUIREMENTS = {
@@ -35,6 +37,19 @@ export default async function handler(req, res) {
     return res.status(400).json({
       ok: false,
       error: 'UID requerido',
+    })
+  }
+
+  const rl = await enforceRateLimit({ ip: getClientIp(req), endpoint: 'free-fire-prime', uid })
+  if (rl.blocked) {
+    res.setHeader('Retry-After', String(rl.retryAfter || 60))
+    return res.status(429).json({
+      ok: false,
+      uid,
+      error: 'rate_limited',
+      scope: rl.scope,
+      retryAfter: rl.retryAfter || 60,
+      message: 'Demasiadas consultas seguidas. Espera unos segundos e intenta de nuevo.',
     })
   }
 
