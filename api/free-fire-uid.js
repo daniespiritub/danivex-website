@@ -1,4 +1,5 @@
 import { enforceRateLimit, getClientIp } from './_lib/rate-limit.js'
+import { classifyFetchError, logEvent } from './_lib/log.js'
 
 const REQUEST_TIMEOUT_MS = 5500
 
@@ -79,10 +80,12 @@ export default async function handler(req, res) {
   const cached = SEED_CACHE[uid]
 
   if (cached) {
+    logEvent('ff_uid_lookup', { uid, outcome: 'success', provider: 'seed_cache', cache: 'hit', fallback: false })
     return res.status(200).json(buildResponse(uid, cached, true))
   }
 
   const maniaUrl = `https://www.freefiremania.com.br/cuenta/${uid}.html`
+  const maniaStart = Date.now()
 
   try {
     const html = await getHtmlWithFetch(maniaUrl)
@@ -90,23 +93,31 @@ export default async function handler(req, res) {
     const profile = parseFreeFireManiaProfile(text, html)
 
     if (profile.nickname) {
+      logEvent('ff_uid_provider', { uid, provider: 'freefiremania', outcome: 'hit', ms: Date.now() - maniaStart })
+      logEvent('ff_uid_lookup', { uid, outcome: 'success', provider: 'freefiremania', cache: 'miss', fallback: false })
       return res.status(200).json(buildResponse(uid, {
         ...profile,
         provider: 'FreeFireMania Fast',
         sourceUrl: maniaUrl,
       }, false))
     }
-  } catch {
+
+    logEvent('ff_uid_provider', { uid, provider: 'freefiremania', outcome: 'empty', ms: Date.now() - maniaStart })
+  } catch (error) {
+    logEvent('ff_uid_provider', { uid, provider: 'freefiremania', outcome: classifyFetchError(error), ms: Date.now() - maniaStart, error: error.message })
     // Falls through to the FreeFireJornal fallback below.
   }
 
   const jornalUrl = `https://freefirejornal.com/es/perfil-jogador-freefire/${uid}/`
+  const jornalStart = Date.now()
 
   try {
     const html = await getHtmlWithFetch(jornalUrl)
     const profile = parseFreeFireJornalProfile(html)
 
     if (profile.nickname) {
+      logEvent('ff_uid_provider', { uid, provider: 'freefirejornal', outcome: 'hit', ms: Date.now() - jornalStart })
+      logEvent('ff_uid_lookup', { uid, outcome: 'success', provider: 'freefirejornal', cache: 'miss', fallback: true })
       return res.status(200).json(buildResponse(uid, {
         ...profile,
         provider: 'FreeFireJornal Perfil',
@@ -114,6 +125,8 @@ export default async function handler(req, res) {
       }, false))
     }
 
+    logEvent('ff_uid_provider', { uid, provider: 'freefirejornal', outcome: 'empty', ms: Date.now() - jornalStart })
+    logEvent('ff_uid_lookup', { uid, outcome: 'not_found', provider: 'freefirejornal', cache: 'miss', fallback: true })
     return res.status(200).json({
       ok: false,
       uid,
@@ -122,6 +135,8 @@ export default async function handler(req, res) {
       message: 'No se encontro perfil publico para este UID.',
     })
   } catch (error) {
+    logEvent('ff_uid_provider', { uid, provider: 'freefirejornal', outcome: classifyFetchError(error), ms: Date.now() - jornalStart, error: error.message })
+    logEvent('ff_uid_lookup', { uid, outcome: 'error', provider: 'freefirejornal', cache: 'miss', fallback: true })
     return res.status(200).json({
       ok: false,
       uid,

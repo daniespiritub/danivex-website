@@ -1,4 +1,5 @@
 import { enforceRateLimit, getClientIp } from './_lib/rate-limit.js'
+import { classifyFetchError, logEvent } from './_lib/log.js'
 
 const REQUEST_TIMEOUT_MS = 3500
 
@@ -56,8 +57,11 @@ export default async function handler(req, res) {
   const cached = KNOWN_PRIME_CACHE[uid]
 
   if (cached) {
+    logEvent('ff_prime_lookup', { uid, outcome: 'confirmed', provider: 'known_prime_cache', cache: 'hit' })
     return res.status(200).json(buildPrimeResponse(uid, cached))
   }
+
+  const start = Date.now()
 
   try {
     const sourceUrl =
@@ -69,6 +73,7 @@ export default async function handler(req, res) {
     const result = extractPrimeFromStaticText(text, uid)
 
     if (!result.primeLevelNumber) {
+      logEvent('ff_prime_lookup', { uid, outcome: 'not_found', provider: 'freefirejornal_static', cache: 'miss', ms: Date.now() - start })
       return res.status(200).json({
         ok: false,
         uid,
@@ -79,11 +84,13 @@ export default async function handler(req, res) {
       })
     }
 
+    logEvent('ff_prime_lookup', { uid, outcome: 'confirmed', provider: 'freefirejornal_static', cache: 'miss', ms: Date.now() - start, primeLevel: result.primeLevelNumber })
     return res.status(200).json(buildPrimeResponse(uid, {
       ...result,
       sourceUrl,
     }))
   } catch (error) {
+    logEvent('ff_prime_lookup', { uid, outcome: classifyFetchError(error), provider: 'freefirejornal_static', cache: 'miss', ms: Date.now() - start, error: error.message })
     return res.status(200).json({
       ok: false,
       uid,
