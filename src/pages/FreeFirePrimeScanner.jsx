@@ -359,7 +359,7 @@ function FreeFirePrimeScanner() {
           )}
 
           {actionMessage && <p className="action-message">{actionMessage}</p>}
-          {showShareCard && <ShareCard player={player} />}
+          {showShareCard && <ShareCard player={player} events={timeline} />}
         </section>
       )}
 
