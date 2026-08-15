@@ -11,6 +11,7 @@
 */
 
 import { Redis } from '@upstash/redis'
+import { nsKey } from './env-namespace.js'
 
 let cachedRedis
 let redisResolved = false
@@ -64,13 +65,13 @@ const UID_LIMIT = { limit: 10, windowSec: 60 }
   Devuelve el primer bloqueo encontrado, o { blocked: false }.
 */
 export async function enforceRateLimit({ ip, endpoint, uid }) {
-  const ipResult = await hitWindow(`rl:ip:${ip}:${endpoint}`, IP_LIMIT.limit, IP_LIMIT.windowSec)
+  const ipResult = await hitWindow(nsKey(`rl:ip:${ip}:${endpoint}`), IP_LIMIT.limit, IP_LIMIT.windowSec)
   if (!ipResult.allowed) {
     return { blocked: true, scope: 'ip', retryAfter: ipResult.retryAfter, limit: IP_LIMIT.limit }
   }
 
   if (uid) {
-    const uidResult = await hitWindow(`rl:uid:${uid}`, UID_LIMIT.limit, UID_LIMIT.windowSec)
+    const uidResult = await hitWindow(nsKey(`rl:uid:${uid}`), UID_LIMIT.limit, UID_LIMIT.windowSec)
     if (!uidResult.allowed) {
       return { blocked: true, scope: 'uid', retryAfter: uidResult.retryAfter, limit: UID_LIMIT.limit }
     }

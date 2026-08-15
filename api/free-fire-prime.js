@@ -43,6 +43,7 @@ export default async function handler(req, res) {
 
   const rl = await enforceRateLimit({ ip: getClientIp(req), endpoint: 'free-fire-prime', uid })
   if (rl.blocked) {
+    logEvent('ff_prime_ratelimited', { uid, scope: rl.scope, retryAfter: rl.retryAfter || 60 })
     res.setHeader('Retry-After', String(rl.retryAfter || 60))
     return res.status(429).json({
       ok: false,

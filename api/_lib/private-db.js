@@ -12,6 +12,7 @@
 */
 
 import { createHash } from 'node:crypto'
+import { nsKey } from './env-namespace.js'
 
 const KEY_PREFIX = 'danivex:ffuid:'
 
@@ -202,7 +203,7 @@ async function getFromKv(uid) {
   if (!config) return null
 
   try {
-    const response = await fetch(`${config.url}/get/${encodeURIComponent(KEY_PREFIX + uid)}`, {
+    const response = await fetch(`${config.url}/get/${encodeURIComponent(nsKey(KEY_PREFIX + uid))}`, {
       headers: {
         Authorization: `Bearer ${config.token}`,
       },
@@ -233,7 +234,7 @@ async function saveToKv(uid, profile) {
 
   try {
     const value = JSON.stringify(profile)
-    const response = await fetch(`${config.url}/set/${encodeURIComponent(KEY_PREFIX + uid)}`, {
+    const response = await fetch(`${config.url}/set/${encodeURIComponent(nsKey(KEY_PREFIX + uid))}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${config.token}`,
