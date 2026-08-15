@@ -11,7 +11,29 @@
   Si no tienes KV, usa seedCache en memoria como base inicial.
 */
 
+import { createHash } from 'node:crypto'
+import { nsKey } from './env-namespace.js'
+
 const KEY_PREFIX = 'danivex:ffuid:'
+
+// Campos significativos para detectar un cambio REAL de perfil. Se excluye lo
+// volatil (lastLogin, accountAge, timestamps, que proveedor sirvio) para que un
+// simple tick de "ultimo acceso" no genere un snapshot nuevo.
+const MEANINGFUL_FIELDS = [
+  'nickname', 'region', 'regionCode', 'level', 'exp', 'likes',
+  'gameVersion', 'pass', 'clan', 'clanId', 'clanLevel', 'clanMembers',
+  'bio', 'avatar', 'banner', 'diamonds', 'primeLevel',
+]
+
+export function stableProfileHash(profile) {
+  const subset = {}
+  for (const key of MEANINGFUL_FIELDS) {
+    const value = profile?.[key]
+    subset[key] = value === undefined || value === null ? '' : value
+  }
+  // El orden de insercion (MEANINGFUL_FIELDS) es determinista => hash estable.
+  return createHash('sha1').update(JSON.stringify(subset)).digest('hex')
+}
 
 const seedCache = {
   '391832240': {
@@ -111,6 +133,8 @@ export async function saveCachedProfile(uid, profile) {
     }
   }
 
+  const now = new Date().toISOString()
+
   const normalized = {
     uid: cleanUid,
     nickname: profile.nickname || '',
@@ -138,14 +162,39 @@ export async function saveCachedProfile(uid, profile) {
     primeLevel: profile.primeLevel || '',
     sourceUrl: profile.sourceUrl || '',
     provider: profile.provider || 'Public source',
-    savedAt: profile.savedAt || new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
   }
 
-  const result = await saveToKv(cleanUid, normalized)
+  const contentHash = stableProfileHash(normalized)
+  const existing = await getFromKv(cleanUid)
+
+  // Dedup: si el contenido significativo no cambio, NO se reescribe un snapshot
+  // nuevo; solo se actualiza lastObservedAt + observedCount.
+  if (existing && existing.contentHash === contentHash) {
+    const touched = {
+      ...existing,
+      lastObservedAt: now,
+      observedCount: (Number(existing.observedCount) || 1) + 1,
+    }
+    const dedupResult = await saveToKv(cleanUid, touched)
+    return dedupResult.ok
+      ? { saved: true, dedup: true, observedCount: touched.observedCount, storage: 'kv' }
+      : { saved: false, reason: dedupResult.reason || 'kv_not_configured' }
+  }
+
+  const record = {
+    ...normalized,
+    contentHash,
+    firstObservedAt: existing?.firstObservedAt || now,
+    lastObservedAt: now,
+    observedCount: (Number(existing?.observedCount) || 0) + 1,
+    savedAt: existing?.savedAt || profile.savedAt || now,
+    updatedAt: now,
+  }
+
+  const result = await saveToKv(cleanUid, record)
 
   return result.ok
-    ? { saved: true, storage: 'kv' }
+    ? { saved: true, dedup: false, changed: Boolean(existing), observedCount: record.observedCount, storage: 'kv' }
     : { saved: false, reason: result.reason || 'kv_not_configured' }
 }
 
@@ -154,7 +203,7 @@ async function getFromKv(uid) {
   if (!config) return null
 
   try {
-    const response = await fetch(`${config.url}/get/${encodeURIComponent(KEY_PREFIX + uid)}`, {
+    const response = await fetch(`${config.url}/get/${encodeURIComponent(nsKey(KEY_PREFIX + uid))}`, {
       headers: {
         Authorization: `Bearer ${config.token}`,
       },
@@ -185,7 +234,7 @@ async function saveToKv(uid, profile) {
 
   try {
     const value = JSON.stringify(profile)
-    const response = await fetch(`${config.url}/set/${encodeURIComponent(KEY_PREFIX + uid)}`, {
+    const response = await fetch(`${config.url}/set/${encodeURIComponent(nsKey(KEY_PREFIX + uid))}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${config.token}`,

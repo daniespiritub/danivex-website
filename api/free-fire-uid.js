@@ -1,3 +1,27 @@
+import { enforceRateLimit, getClientIp } from './_lib/rate-limit.js'
+import { classifyFetchError, logEvent } from './_lib/log.js'
+import { saveCachedProfile } from './_lib/private-db.js'
+
+// Persistencia best-effort. NUNCA lanza: un fallo de DB no debe romper una
+// busqueda que ya tuvo exito (provider success + DB failure = el usuario
+// igual recibe su resultado). El save se hace con await para garantizar la
+// escritura, envuelto para tragar cualquier error.
+async function persistProfile(uid, response) {
+  try {
+    const result = await saveCachedProfile(uid, response)
+    logEvent('ff_uid_persist', {
+      uid,
+      saved: result.saved,
+      dedup: Boolean(result.dedup),
+      changed: Boolean(result.changed),
+      observedCount: result.observedCount || 0,
+      reason: result.reason || '',
+    })
+  } catch (error) {
+    logEvent('ff_uid_persist', { uid, saved: false, reason: 'exception', error: error.message })
+  }
+}
+
 const REQUEST_TIMEOUT_MS = 5500
 
 const SEED_CACHE = {
@@ -61,13 +85,29 @@ export default async function handler(req, res) {
     })
   }
 
+  const rl = await enforceRateLimit({ ip: getClientIp(req), endpoint: 'free-fire-uid', uid })
+  if (rl.blocked) {
+    logEvent('ff_uid_ratelimited', { uid, scope: rl.scope, retryAfter: rl.retryAfter || 60 })
+    res.setHeader('Retry-After', String(rl.retryAfter || 60))
+    return res.status(429).json({
+      ok: false,
+      uid,
+      error: 'rate_limited',
+      scope: rl.scope,
+      retryAfter: rl.retryAfter || 60,
+      message: 'Demasiadas consultas seguidas. Espera unos segundos e intenta de nuevo.',
+    })
+  }
+
   const cached = SEED_CACHE[uid]
 
   if (cached) {
+    logEvent('ff_uid_lookup', { uid, outcome: 'success', provider: 'seed_cache', cache: 'hit', fallback: false })
     return res.status(200).json(buildResponse(uid, cached, true))
   }
 
   const maniaUrl = `https://www.freefiremania.com.br/cuenta/${uid}.html`
+  const maniaStart = Date.now()
 
   try {
     const html = await getHtmlWithFetch(maniaUrl)
@@ -75,30 +115,44 @@ export default async function handler(req, res) {
     const profile = parseFreeFireManiaProfile(text, html)
 
     if (profile.nickname) {
-      return res.status(200).json(buildResponse(uid, {
+      logEvent('ff_uid_provider', { uid, provider: 'freefiremania', outcome: 'hit', ms: Date.now() - maniaStart })
+      logEvent('ff_uid_lookup', { uid, outcome: 'success', provider: 'freefiremania', cache: 'miss', fallback: false })
+      const response = buildResponse(uid, {
         ...profile,
         provider: 'FreeFireMania Fast',
         sourceUrl: maniaUrl,
-      }, false))
+      }, false)
+      await persistProfile(uid, response)
+      return res.status(200).json(response)
     }
-  } catch {
+
+    logEvent('ff_uid_provider', { uid, provider: 'freefiremania', outcome: 'empty', ms: Date.now() - maniaStart })
+  } catch (error) {
+    logEvent('ff_uid_provider', { uid, provider: 'freefiremania', outcome: classifyFetchError(error), ms: Date.now() - maniaStart, error: error.message })
     // Falls through to the FreeFireJornal fallback below.
   }
 
   const jornalUrl = `https://freefirejornal.com/es/perfil-jogador-freefire/${uid}/`
+  const jornalStart = Date.now()
 
   try {
     const html = await getHtmlWithFetch(jornalUrl)
     const profile = parseFreeFireJornalProfile(html)
 
     if (profile.nickname) {
-      return res.status(200).json(buildResponse(uid, {
+      logEvent('ff_uid_provider', { uid, provider: 'freefirejornal', outcome: 'hit', ms: Date.now() - jornalStart })
+      logEvent('ff_uid_lookup', { uid, outcome: 'success', provider: 'freefirejornal', cache: 'miss', fallback: true })
+      const response = buildResponse(uid, {
         ...profile,
         provider: 'FreeFireJornal Perfil',
         sourceUrl: jornalUrl,
-      }, false))
+      }, false)
+      await persistProfile(uid, response)
+      return res.status(200).json(response)
     }
 
+    logEvent('ff_uid_provider', { uid, provider: 'freefirejornal', outcome: 'empty', ms: Date.now() - jornalStart })
+    logEvent('ff_uid_lookup', { uid, outcome: 'not_found', provider: 'freefirejornal', cache: 'miss', fallback: true })
     return res.status(200).json({
       ok: false,
       uid,
@@ -107,6 +161,8 @@ export default async function handler(req, res) {
       message: 'No se encontro perfil publico para este UID.',
     })
   } catch (error) {
+    logEvent('ff_uid_provider', { uid, provider: 'freefirejornal', outcome: classifyFetchError(error), ms: Date.now() - jornalStart, error: error.message })
+    logEvent('ff_uid_lookup', { uid, outcome: 'error', provider: 'freefirejornal', cache: 'miss', fallback: true })
     return res.status(200).json({
       ok: false,
       uid,
@@ -556,4 +612,13 @@ function normalizeUrl(value) {
   } catch {
     return ''
   }
+}
+
+// Exports nombrados solo para tests de regresion. Vercel usa unicamente el
+// export default (handler); estos no cambian el comportamiento en runtime.
+export {
+  buildResponse,
+  htmlToText,
+  parseFreeFireManiaProfile,
+  parseFreeFireJornalProfile,
 }

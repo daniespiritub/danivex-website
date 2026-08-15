@@ -1,3 +1,6 @@
+import { enforceRateLimit, getClientIp } from './_lib/rate-limit.js'
+import { classifyFetchError, logEvent } from './_lib/log.js'
+
 const REQUEST_TIMEOUT_MS = 3500
 
 const PRIME_REQUIREMENTS = {
@@ -38,11 +41,28 @@ export default async function handler(req, res) {
     })
   }
 
+  const rl = await enforceRateLimit({ ip: getClientIp(req), endpoint: 'free-fire-prime', uid })
+  if (rl.blocked) {
+    logEvent('ff_prime_ratelimited', { uid, scope: rl.scope, retryAfter: rl.retryAfter || 60 })
+    res.setHeader('Retry-After', String(rl.retryAfter || 60))
+    return res.status(429).json({
+      ok: false,
+      uid,
+      error: 'rate_limited',
+      scope: rl.scope,
+      retryAfter: rl.retryAfter || 60,
+      message: 'Demasiadas consultas seguidas. Espera unos segundos e intenta de nuevo.',
+    })
+  }
+
   const cached = KNOWN_PRIME_CACHE[uid]
 
   if (cached) {
+    logEvent('ff_prime_lookup', { uid, outcome: 'confirmed', provider: 'known_prime_cache', cache: 'hit' })
     return res.status(200).json(buildPrimeResponse(uid, cached))
   }
+
+  const start = Date.now()
 
   try {
     const sourceUrl =
@@ -54,6 +74,7 @@ export default async function handler(req, res) {
     const result = extractPrimeFromStaticText(text, uid)
 
     if (!result.primeLevelNumber) {
+      logEvent('ff_prime_lookup', { uid, outcome: 'not_found', provider: 'freefirejornal_static', cache: 'miss', ms: Date.now() - start })
       return res.status(200).json({
         ok: false,
         uid,
@@ -64,11 +85,13 @@ export default async function handler(req, res) {
       })
     }
 
+    logEvent('ff_prime_lookup', { uid, outcome: 'confirmed', provider: 'freefirejornal_static', cache: 'miss', ms: Date.now() - start, primeLevel: result.primeLevelNumber })
     return res.status(200).json(buildPrimeResponse(uid, {
       ...result,
       sourceUrl,
     }))
   } catch (error) {
+    logEvent('ff_prime_lookup', { uid, outcome: classifyFetchError(error), provider: 'freefirejornal_static', cache: 'miss', ms: Date.now() - start, error: error.message })
     return res.status(200).json({
       ok: false,
       uid,
@@ -204,4 +227,12 @@ function parseNumber(value) {
 
 function clean(value) {
   return String(value || '').replace(/\s+/g, ' ').trim()
+}
+
+// Exports nombrados solo para tests de regresion. Vercel usa unicamente el
+// export default (handler); estos no cambian el comportamiento en runtime.
+export {
+  buildPrimeResponse,
+  extractPrimeFromStaticText,
+  htmlToText as htmlToTextPrime,
 }
