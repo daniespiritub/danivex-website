@@ -96,3 +96,37 @@ Tres estados que **no deben colapsarse**:
 - `src/pages/FreeFirePrimeScanner.jsx:356` → `lookupFreeFireUid` → `generatePlayerFromLookup` (`src/data/primeScanner.js:226`).
 - `src/pages/FreeFirePrimeScanner.jsx:372` → `lookupFreeFirePrime` → `applyPrimeToPlayer`.
 Ambos toleran `ok:false` y campos vacíos. Cualquier cambio debe mantener esa tolerancia.
+
+---
+
+## Contrato FINAL por caso (post-Fase 1 — Production Readiness Gate)
+
+> El único añadido de Fase 1 al contrato es el **`429`** (rate limited) y campos nuevos aditivos (`verified`, `emulator`, `elitePass`, `season`, `rankBR`, `rankCS`). Ningún campo ni código existente se quitó/cambió.
+
+### `/api/free-fire-uid`
+| Caso | HTTP | `ok` | Body / provider |
+|------|------|------|-----------------|
+| **Success** (cache/Mania/Jornal) | `200` | `true` | perfil completo; `provider` = `DaniVex Fast Cache` \| `FreeFireMania Fast` \| `FreeFireJornal Perfil` |
+| **Invalid UID** (vacío/no numérico) | `400` | `false` | `{ error:"UID requerido" }` |
+| **Player not found** (nadie sirvió nickname) | `200` | `false` | `{ provider:"FreeFireJornal Perfil", message:"No se encontro perfil publico..." }` |
+| **Provider timeout** | `200` | `false` | `{ error:"<AbortError>", message:"La consulta rapida no respondio..." }` (log `outcome:timeout`) |
+| **Provider failure** (403/5xx en ambos) | `200` | `false` | `{ error:"HTTP 403", message:"..." }` (log `outcome:http_error`) |
+| **Rate limited** | `429` | `false` | `{ error:"rate_limited", scope:"ip"\|"uid", retryAfter }` + header `Retry-After` |
+| **Partial provider data** | `200` | `true` | perfil con campos faltantes = `''`/`0` (p. ej. sin `clanLevel`/`emulator` vía Jornal). La ausencia **no** es error |
+| **Fallback success** (Mania 403 → Jornal) | `200` | `true` | `provider:"FreeFireJornal Perfil"` (log `fallback:true`). **Verificado en preview con `2196518104`** |
+
+### `/api/free-fire-prime`
+| Caso | HTTP | `ok` | Body / provider |
+|------|------|------|-----------------|
+| **Prime confirmado** | `200` | `true` | `primeConfirmed:true`, `primeLevelNumber>=1`; `provider` = `FreeFireJornal Prime Fast` \| cache |
+| **Invalid UID** | `400` | `false` | `{ error:"UID requerido" }` |
+| **Prime no encontrado** (UID no en artículo) | `200` | `false` | `{ primeConfirmed:false, message:"Prime no confirmado..." }` |
+| **Provider timeout/failure** | `200` | `false` | `{ error, primeConfirmed:false, message:"La verificacion Prime rapida no respondio." }` |
+| **Rate limited** | `429` | `false` | `{ error:"rate_limited", scope, retryAfter }` + `Retry-After` |
+
+**Nota (LOW_COVERAGE)**: `primeLevelNumber:0` = "no confirmado", nunca "Prime 0 demostrado". Ver `PROVIDER_STATUS.md`.
+
+### Garantías del `429` (verificadas en el gate con `2196518104`)
+- **No se guarda como fallo de perfil**: el check de rate-limit ocurre **antes** de cache/provider/persistencia, así que un `429` no llama a ningún proveedor ni a `persistProfile`.
+- **No modifica snapshots**: `observedCount` pasó de 2 a 12 tras 10 permitidas + 2 bloqueadas (=+10, no +12).
+- **No corrompe caché**: no toca ninguna clave de perfil.
