@@ -36,6 +36,8 @@ function FreeFirePrimeScanner() {
   const [primeResult, setPrimeResult] = useState(null)
   const [actionMessage, setActionMessage] = useState('')
   const [showShareCard, setShowShareCard] = useState(false)
+  const [cacheInfo, setCacheInfo] = useState(null)
+  const [timeline, setTimeline] = useState([])
   const resultRef = useRef(null)
 
   useEffect(() => {
@@ -64,6 +66,8 @@ function FreeFirePrimeScanner() {
     setPlayer(null)
     setActionMessage('')
     setShowShareCard(false)
+    setCacheInfo(null)
+    setTimeline([])
     setProgress(0)
 
     for (let index = 0; index < scannerSteps.length; index += 1) {
@@ -79,10 +83,15 @@ function FreeFirePrimeScanner() {
     setProgress(100)
     await wait(160)
     setPlayer(cleanPlayer)
+    setCacheInfo(lookup?.cache || null)
     setIsLoading(false)
 
     setActionMessage('Perfil analizado. El Prime se consulta aparte, en el buscador de UID / Player ID Prime.')
     window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
+
+    if (nextPlayer.lookupStatus === 'real') {
+      fetchTimeline(cleanUid).then(setTimeline)
+    }
   }
 
   async function scanPrimeValue(value) {
@@ -242,6 +251,13 @@ function FreeFirePrimeScanner() {
         <section className="scanner-results" ref={resultRef}>
           <PlayerProfileCard player={player} />
 
+          {cacheInfo?.state === 'stale' && (
+            <p className="action-message warning">
+              Datos no actuales: los proveedores no respondieron y DaniVex esta mostrando el ultimo perfil guardado
+              {cacheInfo.lastObservedAt ? ` (observado el ${formatDate(cacheInfo.lastObservedAt)})` : ''}.
+            </p>
+          )}
+
           {player.prime.diamonds > 0 && (
             <div className="scanner-grid two">
               <PrimeBadge prime={player.prime} />
@@ -285,6 +301,24 @@ function FreeFirePrimeScanner() {
             <Metric label="Miembros clan" value={player.clanMembers || 'No disponible'} />
             <Metric label="Skin" value={player.skinStatus || 'No disponible'} />
           </MetricGroup>
+
+          {timeline.length > 0 && (
+            <MetricGroup title="Historial reciente (cambios detectados por DaniVex)">
+              {timeline.slice(0, 8).map((event, index) => {
+                const short = (s) => (String(s || '').length <= 24 ? String(s || '') : '')
+                const detail = short(event.from) !== '' || short(event.to) !== ''
+                  ? `${short(event.from) || '—'} -> ${short(event.to) || '—'}`
+                  : 'actualizado'
+                return (
+                  <Metric
+                    key={`${event.at || index}-${event.type}`}
+                    label={EVENT_LABELS[event.type] || event.type}
+                    value={detail}
+                  />
+                )
+              })}
+            </MetricGroup>
+          )}
 
           {player.bio && (
             <div className="action-message">
@@ -349,6 +383,30 @@ function PrimeSearchForm({ uid, isLoading, onUidChange, onSubmit }) {
       </p>
     </form>
   )
+}
+
+const EVENT_LABELS = {
+  NICKNAME_CHANGED: 'Cambio de nick',
+  LEVEL_UP: 'Subio de nivel',
+  LEVEL_CHANGED: 'Cambio de nivel',
+  LIKES_CHANGED: 'Cambiaron los me gusta',
+  GUILD_CHANGED: 'Cambio de gremio',
+  AVATAR_CHANGED: 'Cambio de avatar',
+  BANNER_CHANGED: 'Cambio de banner',
+  BIO_CHANGED: 'Cambio de biografia',
+  PRIME_CHANGED: 'Cambio de nivel Prime',
+  REGION_CHANGED: 'Cambio de region',
+}
+
+async function fetchTimeline(uid) {
+  try {
+    const response = await fetch(`/api/free-fire-timeline?uid=${encodeURIComponent(uid)}`)
+    if (!response.ok) return []
+    const data = await response.json()
+    return data.ok ? data.events : []
+  } catch {
+    return []
+  }
 }
 
 async function lookupFreeFireUid(uid) {
