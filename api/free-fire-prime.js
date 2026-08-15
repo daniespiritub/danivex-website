@@ -205,3 +205,11 @@ function parseNumber(value) {
 function clean(value) {
   return String(value || '').replace(/\s+/g, ' ').trim()
 }
+
+// Exports nombrados solo para tests de regresion. Vercel usa unicamente el
+// export default (handler); estos no cambian el comportamiento en runtime.
+export {
+  buildPrimeResponse,
+  extractPrimeFromStaticText,
+  htmlToText as htmlToTextPrime,
+}

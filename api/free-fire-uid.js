@@ -557,3 +557,12 @@ function normalizeUrl(value) {
     return ''
   }
 }
+
+// Exports nombrados solo para tests de regresion. Vercel usa unicamente el
+// export default (handler); estos no cambian el comportamiento en runtime.
+export {
+  buildResponse,
+  htmlToText,
+  parseFreeFireManiaProfile,
+  parseFreeFireJornalProfile,
+}
