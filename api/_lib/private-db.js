@@ -13,6 +13,8 @@
 
 import { nsKey } from './env-namespace.js'
 import { normalizeStoredPlayer, stableProfileHash } from './player-model.js'
+import { detectPlayerEvents } from './change-detection.js'
+import { appendPlayerEvents } from './timeline.js'
 
 // Re-export para compatibilidad con importadores existentes (tests).
 export { stableProfileHash }
@@ -158,8 +160,17 @@ export async function saveCachedProfile(uid, profile) {
 
   const result = await saveToKv(cleanUid, record)
 
+  // Historical Intelligence: si actualizamos un perfil EXISTENTE con contenido
+  // distinto, detectamos que cambio y lo registramos en el timeline
+  // (best-effort). En la primera observacion no hay con que comparar.
+  let events = []
+  if (result.ok && existing) {
+    events = detectPlayerEvents(existing, normalized)
+    if (events.length) await appendPlayerEvents(cleanUid, events, now)
+  }
+
   return result.ok
-    ? { saved: true, dedup: false, changed: Boolean(existing), observedCount: record.observedCount, storage: 'kv' }
+    ? { saved: true, dedup: false, changed: Boolean(existing), observedCount: record.observedCount, events, storage: 'kv' }
     : { saved: false, reason: result.reason || 'kv_not_configured' }
 }
 

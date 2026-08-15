@@ -22,6 +22,9 @@ async function persistProfile(uid, response) {
       observedCount: result.observedCount || 0,
       reason: result.reason || '',
     })
+    for (const change of result.events || []) {
+      logEvent('ff_uid_change', { uid, type: change.type, field: change.field })
+    }
   } catch (error) {
     logEvent('ff_uid_persist', { uid, saved: false, reason: 'exception', error: error.message })
   }
