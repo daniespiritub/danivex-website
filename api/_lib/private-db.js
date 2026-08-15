@@ -11,29 +11,15 @@
   Si no tienes KV, usa seedCache en memoria como base inicial.
 */
 
-import { createHash } from 'node:crypto'
 import { nsKey } from './env-namespace.js'
+import { normalizeStoredPlayer, stableProfileHash } from './player-model.js'
+import { detectPlayerEvents } from './change-detection.js'
+import { appendPlayerEvents } from './timeline.js'
+
+// Re-export para compatibilidad con importadores existentes (tests).
+export { stableProfileHash }
 
 const KEY_PREFIX = 'danivex:ffuid:'
-
-// Campos significativos para detectar un cambio REAL de perfil. Se excluye lo
-// volatil (lastLogin, accountAge, timestamps, que proveedor sirvio) para que un
-// simple tick de "ultimo acceso" no genere un snapshot nuevo.
-const MEANINGFUL_FIELDS = [
-  'nickname', 'region', 'regionCode', 'level', 'exp', 'likes',
-  'gameVersion', 'pass', 'clan', 'clanId', 'clanLevel', 'clanMembers',
-  'bio', 'avatar', 'banner', 'diamonds', 'primeLevel',
-]
-
-export function stableProfileHash(profile) {
-  const subset = {}
-  for (const key of MEANINGFUL_FIELDS) {
-    const value = profile?.[key]
-    subset[key] = value === undefined || value === null ? '' : value
-  }
-  // El orden de insercion (MEANINGFUL_FIELDS) es determinista => hash estable.
-  return createHash('sha1').update(JSON.stringify(subset)).digest('hex')
-}
 
 const seedCache = {
   '391832240': {
@@ -98,6 +84,14 @@ const seedCache = {
   },
 }
 
+// Devuelve SOLO el registro persistido en KV (con lastObservedAt, contentHash,
+// observedCount) o null. A diferencia de getCachedProfile, no cae al seedCache:
+// el read-through necesita distinguir una observacion real almacenada de un
+// seed hardcodeado sin frescura.
+export async function getStoredProfile(uid) {
+  return getFromKv(normalizeUid(uid))
+}
+
 export async function getCachedProfile(uid) {
   const cleanUid = normalizeUid(uid)
 
@@ -135,34 +129,7 @@ export async function saveCachedProfile(uid, profile) {
 
   const now = new Date().toISOString()
 
-  const normalized = {
-    uid: cleanUid,
-    nickname: profile.nickname || '',
-    region: profile.region || '',
-    regionCode: profile.regionCode || '',
-    regionCountry: profile.regionCountry || '',
-    creationDate: profile.creationDate || null,
-    lastLogin: profile.lastLogin || null,
-    accountAge: profile.accountAge || '',
-    level: profile.level || '',
-    exp: profile.exp || '',
-    likes: Number(profile.likes || 0),
-    gameVersion: profile.gameVersion || '',
-    pass: profile.pass || '',
-    clan: profile.clan || '',
-    clanId: profile.clanId || '',
-    clanLevel: profile.clanLevel || '',
-    clanMembers: profile.clanMembers || '',
-    bio: profile.bio || '',
-    skinStatus: profile.skinStatus || '',
-    skinError: profile.skinError || '',
-    avatar: profile.avatar || '',
-    banner: profile.banner || '',
-    diamonds: Number(profile.diamonds || 0),
-    primeLevel: profile.primeLevel || '',
-    sourceUrl: profile.sourceUrl || '',
-    provider: profile.provider || 'Public source',
-  }
+  const normalized = normalizeStoredPlayer(cleanUid, profile)
 
   const contentHash = stableProfileHash(normalized)
   const existing = await getFromKv(cleanUid)
@@ -193,8 +160,17 @@ export async function saveCachedProfile(uid, profile) {
 
   const result = await saveToKv(cleanUid, record)
 
+  // Historical Intelligence: si actualizamos un perfil EXISTENTE con contenido
+  // distinto, detectamos que cambio y lo registramos en el timeline
+  // (best-effort). En la primera observacion no hay con que comparar.
+  let events = []
+  if (result.ok && existing) {
+    events = detectPlayerEvents(existing, normalized)
+    if (events.length) await appendPlayerEvents(cleanUid, events, now)
+  }
+
   return result.ok
-    ? { saved: true, dedup: false, changed: Boolean(existing), observedCount: record.observedCount, storage: 'kv' }
+    ? { saved: true, dedup: false, changed: Boolean(existing), observedCount: record.observedCount, events, storage: 'kv' }
     : { saved: false, reason: result.reason || 'kv_not_configured' }
 }
 

@@ -37,3 +37,14 @@
 
 ## No es riesgo (aclaración)
 SSRF está **mitigado**: el UID se sanea a dígitos y se interpola en hosts fijos; no hay URL controlada por usuario (`free-fire-uid.js:55`, `free-fire-prime.js:32`).
+
+## Fase 1.5 — Read-through / Stored Fallback
+
+| # | Riesgo | Tipo | Mitigación |
+|---|--------|------|-----------|
+| RT1 | **Datos stale presentados como perfil.** Un fresh cache hit (≤10 min) o un stale fallback muestran datos no consultados en vivo. | Verified | Fresh window corto (10 min); stale **siempre marcado** `cache.state:"stale"`+`fallback:true`+`lastObservedAt`; expired (>7d) **no** se usa. **Bajo.** |
+| RT2 | **Hooks de test (`__test_*`) en el handler.** Podrían alterar frescura/forzar fallo. | Verified | Guardados por `envNamespace()!=='prod'` → **inertes en producción**. Cubierto por `envNamespace` default `dev`. **Bajo.** |
+| RT3 | **Frontend aún no muestra el badge "stale".** La metadata `cache` existe pero la UI no la resalta todavía. | Verified | Backend honesto (marca stale en la respuesta); el badge UI es tarea futura, no regresión. **Bajo.** |
+| RT4 | `[DEP0169] url.parse()` DeprecationWarning (heredado de Fase 1, prob. `@upstash/redis`). | Verified | Warning, status 200, sin impacto funcional. **No-blocking**, a revisar. |
+
+**Nota:** la persistencia en stale fallback **no** ocurre (no se altera `contentHash` ni `observedCount`) — verificado por `tests/read-through.test.js` y por logs (no hay `ff_uid_persist` tras `cache_stale`).

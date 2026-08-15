@@ -1,6 +1,24 @@
 import { formatNumber } from '../../data/primeScanner'
 
-function ShareCard({ player }) {
+const CARD_CHANGE_PHRASES = {
+  LEVEL_UP: 'subio de nivel',
+  LEVEL_CHANGED: 'cambio de nivel',
+  NICKNAME_CHANGED: 'cambio de nick',
+  GUILD_CHANGED: 'cambio de gremio',
+  LIKES_CHANGED: 'mas me gusta',
+  AVATAR_CHANGED: 'nuevo avatar',
+  BANNER_CHANGED: 'nuevo banner',
+  BIO_CHANGED: 'nueva bio',
+  PRIME_CHANGED: 'cambio de Prime',
+  REGION_CHANGED: 'cambio de region',
+}
+
+function summarizeChanges(events) {
+  const phrases = [...new Set((events || []).map((e) => CARD_CHANGE_PHRASES[e.type]).filter(Boolean))].slice(0, 4)
+  return phrases.join(' · ')
+}
+
+function ShareCard({ player, events }) {
   const rarityPercent = calculateRarityPercent(player)
 
   const primeText =
@@ -199,6 +217,34 @@ function ShareCard({ player }) {
             {player?.bio || 'Sin biografia publica'}
           </strong>
         </div>
+
+        {Array.isArray(events) && events.length > 0 && summarizeChanges(events) && (
+          <div
+            style={{
+              marginTop: 12,
+              padding: '12px 14px',
+              borderRadius: 10,
+              background: 'var(--accent2-soft)',
+              border: '1px solid var(--accent2-line)',
+            }}
+          >
+            <span
+              style={{
+                display: 'block',
+                marginBottom: 6,
+                fontWeight: 900,
+                color: 'var(--accent2)',
+                textTransform: 'uppercase',
+                fontSize: 12,
+              }}
+            >
+              Cambios recientes (DaniVex)
+            </span>
+            <strong style={{ lineHeight: 1.4, fontSize: 14, color: 'var(--text)' }}>
+              {summarizeChanges(events)}
+            </strong>
+          </div>
+        )}
 
         <div
           style={{

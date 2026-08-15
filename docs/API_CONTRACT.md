@@ -130,3 +130,33 @@ Ambos toleran `ok:false` y campos vacíos. Cualquier cambio debe mantener esa to
 - **No se guarda como fallo de perfil**: el check de rate-limit ocurre **antes** de cache/provider/persistencia, así que un `429` no llama a ningún proveedor ni a `persistProfile`.
 - **No modifica snapshots**: `observedCount` pasó de 2 a 12 tras 10 permitidas + 2 bloqueadas (=+10, no +12).
 - **No corrompe caché**: no toca ninguna clave de perfil.
+
+---
+
+## Fase 1.5 — metadata de cache en `/api/free-fire-uid` (aditiva)
+
+El único añadido es el objeto **`cache`** (aditivo; `cacheHit` y todos los campos previos se mantienen). Ver `READ_THROUGH_CACHE.md`.
+
+**1) Respuesta fresca desde proveedor** (refresh):
+```json
+{ "ok": true, "uid": "2196518104", "nickname": "DaniメPepito", "provider": "FreeFireJornal Perfil",
+  "cacheHit": false, "cache": { "hit": false, "state": "fresh" }, "...": "..." }
+```
+**2) Respuesta fresca desde DaniVex** (cache hit, sin proveedor):
+```json
+{ "ok": true, "uid": "2196518104", "nickname": "DaniメPepito", "provider": "FreeFireJornal Perfil",
+  "cacheHit": true, "cache": { "hit": true, "state": "fresh" }, "...": "..." }
+```
+**3) Stale fallback** (proveedores caídos, se sirve lo almacenado marcado no-actual):
+```json
+{ "ok": true, "uid": "2196518104", "nickname": "DaniメPepito", "provider": "FreeFireJornal Perfil",
+  "cacheHit": true,
+  "cache": { "hit": true, "state": "stale", "fallback": true,
+             "lastObservedAt": "2026-08-15T11:32:11.650Z", "source": "FreeFireJornal Perfil" } }
+```
+**4) Fallo de proveedor sin caché usable** (missing o expired):
+```json
+{ "ok": false, "uid": "2196518104", "provider": "FreeFireJornal Perfil",
+  "message": "La consulta rapida no respondio. Intenta de nuevo." }
+```
+(sin objeto `cache`; HTTP **200**, contrato de error sin cambios). El `429` de rate-limit es idéntico al de Fase 1.

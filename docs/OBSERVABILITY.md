@@ -49,3 +49,19 @@ Forma base: `{ t, svc:"danivex", event, ...fields }`.
 
 ## Nota
 Los fallos de proveedor siguen devolviendo **HTTP 200 `ok:false`** (contrato invariante). El logging es la vía para verlos; no se cambian los códigos HTTP.
+
+## Fase 1.5 — eventos de read-through / stored fallback
+Añadidos en `api/free-fire-uid.js`:
+
+| Evento | Campos | Distingue |
+|--------|--------|-----------|
+| `ff_uid_cache` | `uid`, `state` (`fresh`\|`stale`\|`expired`\|`unknown`\|`miss`) | estado del perfil almacenado al iniciar |
+| `ff_uid_stale_fallback` | `uid`, `lastObservedAt` | se sirvió stored stale porque el proveedor falló |
+| `ff_uid_lookup` (ampliado) | `servedFrom` (`seed_cache`\|`cache_fresh`\|`provider`\|`cache_stale`\|`none`), `provider`, `fallback` | de dónde salió la respuesta final |
+
+Preguntas que ahora se responden:
+- **Cuántas consultas evitamos enviar a terceros**: `ff_uid_lookup.servedFrom = cache_fresh` (+ `seed_cache`).
+- **Cuántas veces falla Jornal**: `ff_uid_provider.provider=freefirejornal` con `outcome` = `http_error`/`timeout`/`error`.
+- **Cuántas veces DaniVex salva la consulta con datos almacenados**: `ff_uid_stale_fallback` / `servedFrom=cache_stale`.
+
+No se registran secretos, tokens ni IPs (igual que Fase 1).
