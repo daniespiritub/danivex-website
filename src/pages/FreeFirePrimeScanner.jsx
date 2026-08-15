@@ -11,6 +11,7 @@ import UIDSearchForm from '../components/prime-scanner/UIDSearchForm'
 import logo from '../assets/logo.png'
 import fondo from '../assets/fondo-gamer.png'
 import { formatNumber, generatePlayerFromLookup, scannerSteps } from '../data/primeScanner'
+import { buildDaniVexAiRead } from '../data/aiSummary'
 import '../styles/prime-scanner.css'
 
 const seoTitle = 'Free Fire Prime AI Scanner - Analiza tu cuenta por UID'
@@ -318,6 +319,12 @@ function FreeFirePrimeScanner() {
                 )
               })}
             </MetricGroup>
+          )}
+
+          {player.lookupStatus === 'real' && (
+            <div className="action-message">
+              <strong>Lectura DaniVex AI:</strong> {buildDaniVexAiRead(player, timeline)}
+            </div>
           )}
 
           {player.bio && (
