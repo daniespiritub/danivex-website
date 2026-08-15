@@ -27,6 +27,10 @@
     {
       "source": "/free-fire-prime-scanner/",
       "destination": "/"
+    },
+    {
+      "source": "/cuenta/:uid.html",
+      "destination": "/"
     }
   ],
   "functions": {
