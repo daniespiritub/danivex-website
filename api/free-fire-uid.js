@@ -9,7 +9,14 @@ import { saveCachedProfile } from './_lib/private-db.js'
 async function persistProfile(uid, response) {
   try {
     const result = await saveCachedProfile(uid, response)
-    logEvent('ff_uid_persist', { uid, saved: result.saved, reason: result.reason || '' })
+    logEvent('ff_uid_persist', {
+      uid,
+      saved: result.saved,
+      dedup: Boolean(result.dedup),
+      changed: Boolean(result.changed),
+      observedCount: result.observedCount || 0,
+      reason: result.reason || '',
+    })
   } catch (error) {
     logEvent('ff_uid_persist', { uid, saved: false, reason: 'exception', error: error.message })
   }
