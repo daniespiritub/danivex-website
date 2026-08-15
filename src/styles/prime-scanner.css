@@ -792,3 +792,69 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Comparacion de dos jugadores (roadmap Comparison) */
+.compare-panel {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+
+.compare-panel h4 {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.compare-table {
+  margin-top: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+}
+
+.compare-row span {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.compare-row b,
+.compare-row strong {
+  color: var(--text);
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.compare-head {
+  background: transparent;
+  border-color: var(--border-strong);
+}
+
+.compare-head strong {
+  color: var(--accent2);
+}
+
+.compare-lead {
+  color: var(--accent2-strong) !important;
+  font-weight: 900;
+}
+
+.compare-summary {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
