@@ -6,12 +6,10 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import {
-  buildResponse,
-  htmlToText,
-  parseFreeFireManiaProfile,
-  parseFreeFireJornalProfile,
-} from '../api/free-fire-uid.js'
+import { buildResponse } from '../api/_lib/normalize.js'
+import { htmlToText } from '../api/_lib/providers/text-utils.js'
+import { parseFreeFireManiaProfile } from '../api/_lib/providers/freefiremania.js'
+import { parseFreeFireJornalProfile } from '../api/_lib/providers/freefirejornal.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const fixture = (name) => readFileSync(join(here, 'fixtures', name), 'utf8')
