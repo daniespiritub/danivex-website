@@ -2,7 +2,10 @@
 
 > CURRENT = lo que existe. TARGET = propuesta conceptual, NO implementar en Fase 0.
 
-## CURRENT
+## IMPLEMENTADO (Fase 3 — Normalized Data Model)
+`api/_lib/player-model.js` es la **fuente única** del modelo de jugador: `PLAYER_DATA_FIELDS` (schema), `MEANINGFUL_FIELDS` (para el hash), `stableProfileHash`, y `normalizeStoredPlayer(uid, profile)` (normaliza un perfil crudo de cualquier proveedor a la forma persistida). Elimina el drift previo entre los 3 mapeos dispersos; `private-db.js` ahora deriva de este modelo. **Byte-compatible** con lo anterior (tests de persistencia verdes). El envelope por-campo con procedencia completa (`{value,source,observedAt,confidence}`) sigue siendo trabajo futuro; hoy la procedencia es el campo `provider` + `lastObservedAt`.
+
+## CURRENT (previo)
 
 No hay modelo de datos formal ni base de datos relacional. Lo que existe:
 
