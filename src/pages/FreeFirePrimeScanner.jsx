@@ -12,6 +12,7 @@ import logo from '../assets/logo.png'
 import fondo from '../assets/fondo-gamer.png'
 import { formatNumber, generatePlayerFromLookup, scannerSteps } from '../data/primeScanner'
 import { buildDaniVexAiRead } from '../data/aiSummary'
+import { comparePlayers, compareSummary } from '../data/compare'
 import '../styles/prime-scanner.css'
 
 const seoTitle = 'Free Fire Prime AI Scanner - Analiza tu cuenta por UID'
@@ -39,6 +40,9 @@ function FreeFirePrimeScanner() {
   const [showShareCard, setShowShareCard] = useState(false)
   const [cacheInfo, setCacheInfo] = useState(null)
   const [timeline, setTimeline] = useState([])
+  const [compareUid, setCompareUid] = useState('')
+  const [comparePlayer, setComparePlayer] = useState(null)
+  const [isComparing, setIsComparing] = useState(false)
   const resultRef = useRef(null)
 
   useEffect(() => {
@@ -69,6 +73,8 @@ function FreeFirePrimeScanner() {
     setShowShareCard(false)
     setCacheInfo(null)
     setTimeline([])
+    setCompareUid('')
+    setComparePlayer(null)
     setProgress(0)
 
     for (let index = 0; index < scannerSteps.length; index += 1) {
@@ -137,7 +143,21 @@ function FreeFirePrimeScanner() {
     setPrimeResult(null)
     setActionMessage('')
     setShowShareCard(false)
+    setCompareUid('')
+    setComparePlayer(null)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  async function runCompare(event) {
+    event?.preventDefault?.()
+    const cleanCompare = String(compareUid).replace(/[^\d]/g, '').slice(0, 14)
+    if (!cleanCompare || !player) return
+
+    setIsComparing(true)
+    setComparePlayer(null)
+    const lookup = await lookupFreeFireUid(cleanCompare)
+    setComparePlayer(generatePlayerFromLookup(cleanCompare, lookup))
+    setIsComparing(false)
   }
 
   function verifySanctions() {
@@ -351,6 +371,52 @@ function FreeFirePrimeScanner() {
             <button type="button" onClick={showShare}><PiShareNetworkBold aria-hidden="true" /> Compartir</button>
             <button type="button" onClick={roastPlayer}><PiLightningBold aria-hidden="true" /> AI Roast</button>
           </div>
+
+          {player.lookupStatus === 'real' && (
+            <div className="compare-panel">
+              <h4>Comparar con otro jugador</h4>
+              <form className="uid-form" onSubmit={runCompare}>
+                <div className="uid-input-wrap">
+                  <input
+                    inputMode="numeric"
+                    maxLength={14}
+                    placeholder="UID a comparar (ej: 391832240)"
+                    value={compareUid}
+                    onChange={(event) => setCompareUid(event.target.value.replace(/[^\d]/g, '').slice(0, 14))}
+                  />
+                  <button type="submit" disabled={isComparing || !compareUid}>
+                    {isComparing ? 'Comparando...' : 'Comparar'}
+                  </button>
+                </div>
+              </form>
+
+              {comparePlayer && comparePlayer.lookupStatus === 'real' && (
+                <div className="compare-table">
+                  <div className="compare-row compare-head">
+                    <span>Metrica</span>
+                    <strong>{player.username}</strong>
+                    <strong>{comparePlayer.username}</strong>
+                  </div>
+                  {comparePlayers(player, comparePlayer).map((row) => (
+                    <div className="compare-row" key={row.label}>
+                      <span>{row.label}</span>
+                      <b className={row.leader === 'a' ? 'compare-lead' : ''}>{row.a || 'No disponible'}</b>
+                      <b className={row.leader === 'b' ? 'compare-lead' : ''}>{row.b || 'No disponible'}</b>
+                    </div>
+                  ))}
+                  <p className="compare-summary">
+                    {compareSummary(comparePlayers(player, comparePlayer)) === 'tie'
+                      ? 'Empate en metricas numericas.'
+                      : `Lidera en mas metricas: ${compareSummary(comparePlayers(player, comparePlayer)) === 'a' ? player.username : comparePlayer.username}.`}
+                  </p>
+                </div>
+              )}
+
+              {comparePlayer && comparePlayer.lookupStatus !== 'real' && (
+                <p className="action-message warning">No se encontro perfil publico para ese UID.</p>
+              )}
+            </div>
+          )}
 
           {player.lookupStatus !== 'real' && (
             <p className="action-message warning">
