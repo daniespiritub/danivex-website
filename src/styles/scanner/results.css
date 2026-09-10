@@ -1,0 +1,332 @@
+/* prime-scanner.css / results — extraido del monolito, orden preservado. */
+.scanner-results {
+  display: grid;
+  gap: 16px;
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 18px 16px 72px;
+}
+
+.player-card {
+  align-items: center;
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.player-avatar {
+  align-items: center;
+  background:
+    linear-gradient(135deg, hsl(var(--avatar-hue) 42% 32%), hsl(var(--avatar-hue) 42% 20%));
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  display: grid;
+  height: 88px;
+  place-items: center;
+  width: 88px;
+}
+
+.player-avatar span {
+  font-family: var(--font-display);
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.player-avatar img {
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.player-avatar.compact {
+  height: 64px;
+  width: 64px;
+}
+
+.player-main h2 {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-size: 1.65rem;
+  line-height: 1.15;
+  margin-bottom: 12px;
+  overflow-wrap: anywhere;
+  unicode-bidi: plaintext;
+}
+
+.player-name-source {
+  color: var(--accent2);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin: -4px 0 12px;
+}
+
+.player-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.player-tags span {
+  align-items: center;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 700;
+  gap: 6px;
+  padding: 7px 10px;
+}
+
+.scanner-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.prime-badge {
+  align-items: center;
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.prime-badge-mark {
+  align-items: center;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, var(--accent2-soft-strong), var(--accent2-soft));
+  border: 1px solid var(--accent2-line);
+  border-radius: var(--radius-panel);
+  display: grid;
+  justify-self: start;
+  min-width: 112px;
+  place-items: center;
+  position: relative;
+}
+
+.prime-badge-mark svg {
+  color: var(--accent2);
+  height: 26px;
+  position: absolute;
+  top: 16px;
+  width: 26px;
+}
+
+.prime-badge-mark strong {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+  padding-top: 22px;
+}
+
+.prime-badge h2,
+.scanner-panel-head h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.prime-badge p {
+  color: var(--text);
+  font-size: 1.02rem;
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+.prime-badge small {
+  color: var(--accent2);
+  display: block;
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+.prime-progress,
+.prime-privileges,
+.ai-card {
+  padding: 18px;
+}
+
+.scanner-panel-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.scanner-panel-head strong,
+.scanner-panel-head svg {
+  color: var(--accent2);
+  font-size: 1.1rem;
+}
+
+.prime-progress p,
+.ai-card p,
+.source-note {
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin-top: 12px;
+}
+
+.metrics-group {
+  display: grid;
+  gap: 12px;
+}
+
+.metrics-group h4 {
+  font-family: var(--font-display);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.metrics-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+
+.metric-card {
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  display: grid;
+  gap: 7px;
+  min-height: 84px;
+  padding: 14px;
+}
+
+.metric-card span {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.metric-card strong {
+  color: var(--text);
+  font-size: 1.04rem;
+  line-height: 1.2;
+}
+
+.prime-table {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.prime-table div {
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+}
+
+.prime-table div.active {
+  border-color: var(--accent2-line);
+  background: var(--accent2-soft);
+}
+
+.prime-table span,
+.prime-table strong,
+.prime-table small {
+  line-height: 1.2;
+}
+
+.prime-table span {
+  color: var(--accent2);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.prime-table strong {
+  color: var(--text);
+}
+
+.prime-table small {
+  color: var(--text-faint);
+}
+
+.privilege-list {
+  display: grid;
+  gap: 9px;
+  list-style: none;
+  margin-top: 16px;
+}
+
+.privilege-list li {
+  align-items: center;
+  color: var(--text-muted);
+  display: flex;
+  gap: 9px;
+  font-weight: 600;
+}
+
+.privilege-list svg {
+  color: var(--accent2);
+  flex: 0 0 auto;
+}
+
+.source-note {
+  border-top: 1px solid var(--border);
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  padding-top: 12px;
+}
+
+.source-note a {
+  color: var(--accent2);
+}
+
+.scanner-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.scanner-actions button {
+  background: var(--surface);
+}
+
+.scanner-actions button:hover {
+  border-color: var(--accent2-line);
+  background: var(--surface-hover);
+}
+
+.action-message {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  color: var(--text-muted);
+  font-weight: 600;
+  line-height: 1.55;
+  padding: 14px;
+}
+
+.action-message.warning {
+  background: var(--accent2-soft);
+  border-color: var(--accent2-line);
+  color: var(--text);
+}
+
+.share-card-wrap {
+  display: grid;
+  place-items: center;
+}
+
+.share-card {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+}

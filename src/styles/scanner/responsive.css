@@ -1,0 +1,128 @@
+/* prime-scanner.css / responsive — extraido del monolito, orden preservado. */
+@media (min-width: 720px) {
+  .scanner-nav {
+    padding-inline: 40px;
+  }
+
+  .scanner-hero {
+    grid-template-columns: 1.1fr 0.9fr;
+    padding: 64px 30px 38px;
+  }
+
+  .scanner-preview {
+    padding: 28px 30px;
+  }
+
+  .scanner-preview-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .scanner-form {
+    order: -1;
+  }
+
+  .scanner-hero h1 {
+    font-size: 3.4rem;
+  }
+
+  .player-card,
+  .prime-badge {
+    grid-template-columns: auto 1fr;
+  }
+
+  .scanner-grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .scanner-actions {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .scanner-actions button {
+    min-height: 56px;
+  }
+}
+
+@media (max-width: 420px) {
+  .scanner-brand span {
+    display: none;
+  }
+
+  .scanner-hero h1 {
+    font-size: 2rem;
+  }
+
+  .prime-table {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Comparacion de dos jugadores (roadmap Comparison) */
+.compare-panel {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+
+.compare-panel h4 {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.compare-table {
+  margin-top: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+}
+
+.compare-row span {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.compare-row b,
+.compare-row strong {
+  color: var(--text);
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.compare-head {
+  background: transparent;
+  border-color: var(--border-strong);
+}
+
+.compare-head strong {
+  color: var(--accent2);
+}
+
+.compare-lead {
+  color: var(--accent2-strong) !important;
+  font-weight: 900;
+}
+
+.compare-summary {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}

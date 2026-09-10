@@ -1,0 +1,118 @@
+/* prime-scanner.css / base — extraido del monolito, orden preservado. */
+.scanner-page {
+  min-height: 100vh;
+  background-attachment: fixed;
+  background-position: center;
+  background-size: cover;
+  color: var(--text);
+  overflow-x: hidden;
+  position: relative;
+}
+
+.scanner-page::before {
+  background:
+    linear-gradient(180deg, rgba(11, 13, 16, 0.82), rgba(11, 13, 16, 0.95)),
+    radial-gradient(900px 480px at 50% -6%, var(--accent2-soft), transparent 55%);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: fixed;
+}
+
+.scanner-nav,
+.scanner-hero,
+.scanner-preview,
+.loading-scanner,
+.scanner-results {
+  position: relative;
+  z-index: 1;
+}
+
+.scanner-nav {
+  align-items: center;
+  background: rgba(11, 13, 16, 0.85);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  min-height: 68px;
+  padding: 14px 20px;
+}
+
+.scanner-brand {
+  align-items: center;
+  color: var(--text);
+  display: inline-flex;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.scanner-brand img {
+  width: 38px;
+  border-radius: var(--radius-control);
+}
+
+.scanner-brand span {
+  letter-spacing: 0.04em;
+}
+
+.scanner-home-link {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  text-decoration: none;
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.scanner-home-link:hover {
+  border-color: var(--accent2-line);
+  color: var(--text);
+}
+
+.scanner-hero {
+  display: grid;
+  gap: 22px;
+  margin: 0 auto;
+  max-width: 1120px;
+  padding: 42px 16px 26px;
+}
+
+.scanner-hero-copy {
+  align-content: center;
+  display: grid;
+  min-height: 220px;
+}
+
+.scanner-kicker {
+  color: var(--accent2);
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.scanner-hero h1 {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-size: 2.3rem;
+  line-height: 1.08;
+  margin-bottom: 16px;
+  max-width: 640px;
+}
+
+.scanner-hero p {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.7;
+  max-width: 600px;
+}
