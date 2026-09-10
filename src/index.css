@@ -70,6 +70,18 @@
   box-sizing: border-box;
 }
 
+/* Foco visible por teclado en elementos interactivos (solo teclado, no mouse).
+   Los inputs/selects ya definen su propio :focus-visible en App.css. */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+summary:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid var(--accent-strong, #ff5c53);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 body {
   margin: 0;
   font-family: var(--font-body);
