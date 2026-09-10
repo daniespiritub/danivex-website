@@ -1,5 +1,5 @@
 /*
-  Normalized Data Model (Fase 3).
+  Normalized Data Model (Player Scanner).
 
   Fuente UNICA del modelo de jugador DaniVex:
    - PLAYER_DATA_FIELDS: los campos de datos del perfil.
@@ -8,8 +8,9 @@
    - normalizeStoredPlayer: normaliza un perfil crudo (de cualquier proveedor) a
      la forma de datos que se persiste (sin metadata operativa).
 
-  Elimina el drift previo entre 3 mapeos dispersos. La forma es byte-compatible
-  con lo que persistia saveCachedProfile (los tests de persistencia lo prueban).
+  Campos ricos (rankBR/rankCS/prime/outfit/pet/title/badges) se pueblan solo si
+  un proveedor los devuelve realmente (ej: SiamBhau con API key). Con la fuente
+  keyless (FreeFireMania/Jornal) quedan vacios: NUNCA se fabrican.
 */
 
 import { createHash } from 'node:crypto'
@@ -19,25 +20,37 @@ export const PLAYER_DATA_FIELDS = [
   'creationDate', 'lastLogin', 'accountAge',
   'level', 'exp', 'likes',
   'gameVersion', 'pass',
-  'clan', 'clanId', 'clanLevel', 'clanMembers',
+  'clan', 'clanId', 'clanLevel', 'clanMembers', 'clanLeader',
   'bio', 'skinStatus', 'skinError', 'avatar', 'banner',
   'diamonds', 'primeLevel',
+  // Campos ricos (rank/temporada/outfit/pet/perfil) — proveedor con key.
+  'rankBR', 'rankBRPoints', 'rankCS', 'rankCSPoints', 'season',
+  'title', 'badgeCount', 'pet', 'petLevel', 'outfit',
 ]
 
 // Significativos para el content-hash. Excluye lo volatil (lastLogin,
 // accountAge, timestamps, procedencia): un tick de "ultimo acceso" no debe
-// generar un snapshot nuevo.
+// generar un snapshot nuevo. Incluye los campos ricos que si cuentan como
+// cambio real (rank, prime, outfit, clan, pet).
 export const MEANINGFUL_FIELDS = [
   'nickname', 'region', 'regionCode', 'level', 'exp', 'likes',
   'gameVersion', 'pass', 'clan', 'clanId', 'clanLevel', 'clanMembers',
   'bio', 'avatar', 'banner', 'diamonds', 'primeLevel',
+  'rankBR', 'rankBRPoints', 'rankCS', 'rankCSPoints', 'season',
+  'title', 'pet', 'petLevel', 'outfit',
 ]
+
+// Serializa de forma estable un valor para el hash (arrays => JSON).
+function hashValue(value) {
+  if (value === undefined || value === null) return ''
+  if (Array.isArray(value)) return JSON.stringify(value)
+  return value
+}
 
 export function stableProfileHash(profile) {
   const subset = {}
   for (const key of MEANINGFUL_FIELDS) {
-    const value = profile?.[key]
-    subset[key] = value === undefined || value === null ? '' : value
+    subset[key] = hashValue(profile?.[key])
   }
   // Orden de insercion determinista (MEANINGFUL_FIELDS) => hash estable.
   return createHash('sha1').update(JSON.stringify(subset)).digest('hex')
@@ -65,6 +78,7 @@ export function normalizeStoredPlayer(uid, profile) {
     clanId: profile.clanId || '',
     clanLevel: profile.clanLevel || '',
     clanMembers: profile.clanMembers || '',
+    clanLeader: profile.clanLeader || '',
     bio: profile.bio || '',
     skinStatus: profile.skinStatus || '',
     skinError: profile.skinError || '',
@@ -72,6 +86,17 @@ export function normalizeStoredPlayer(uid, profile) {
     banner: profile.banner || '',
     diamonds: Number(profile.diamonds || 0),
     primeLevel: profile.primeLevel || '',
+    // Ricos (vacios si el proveedor no los da):
+    rankBR: profile.rankBR || '',
+    rankBRPoints: profile.rankBRPoints || '',
+    rankCS: profile.rankCS || '',
+    rankCSPoints: profile.rankCSPoints || '',
+    season: profile.season || '',
+    title: profile.title || '',
+    badgeCount: profile.badgeCount || '',
+    pet: profile.pet || '',
+    petLevel: profile.petLevel || '',
+    outfit: Array.isArray(profile.outfit) ? profile.outfit : [],
     sourceUrl: profile.sourceUrl || '',
     provider: profile.provider || 'Public source',
   }

@@ -1,7 +1,21 @@
-// Normalizacion comun: todos los proveedores producen esta misma forma de
-// respuesta. Movida desde free-fire-uid.js (Provider Layer), sin cambios.
+// Normalizacion comun (Player Scanner): todos los proveedores producen esta
+// misma forma de respuesta, independiente de la estructura JSON del proveedor.
+// Los campos ricos (rank/prime/outfit/pet/title) salen del proveedor si existen;
+// si no, quedan vacios (nunca se fabrican).
+
+// Placeholders de UI que algunas fuentes (FreeFireMania) filtran como "nombre"
+// de clan cuando el parseo del nombre falla. No son nombres reales => se vacian.
+const CLAN_PLACEHOLDERS = new Set(['registrar clan', 'register clan', 'cadastrar cla', 'cadastrar clã', 'registrar cla', 'registrar clã'])
+
+function cleanClanName(value) {
+  const v = String(value || '').trim()
+  return CLAN_PLACEHOLDERS.has(v.toLowerCase()) ? '' : v
+}
 
 export function buildResponse(uid, profile, cacheHit) {
+  const outfit = Array.isArray(profile.outfit) ? profile.outfit : []
+  const providerLabel = profile.provider || 'FreeFireMania Fast'
+
   return {
     ok: true,
     uid,
@@ -26,10 +40,11 @@ export function buildResponse(uid, profile, cacheHit) {
     pass: profile.pass || '',
     booyahPass: profile.pass || '',
 
-    clan: profile.clan || '',
+    clan: cleanClanName(profile.clan),
     clanId: profile.clanId || '',
     clanLevel: profile.clanLevel || '',
     clanMembers: profile.clanMembers || '',
+    clanLeader: profile.clanLeader || '',
 
     bio: profile.bio || '',
     skinStatus: profile.skinStatus || '',
@@ -40,10 +55,21 @@ export function buildResponse(uid, profile, cacheHit) {
     emulator: profile.emulator || '',
     elitePass: profile.elitePass || '',
     season: profile.season || '',
-    rankBR: profile.rankBR || '',
-    rankCS: profile.rankCS || '',
 
-    provider: profile.provider || 'FreeFireMania Fast',
+    // Rangos (pueblan solo con proveedor rico):
+    rankBR: profile.rankBR || '',
+    rankBRPoints: profile.rankBRPoints || '',
+    rankCS: profile.rankCS || '',
+    rankCSPoints: profile.rankCSPoints || '',
+
+    // Perfil visual / cosmeticos:
+    title: profile.title || '',
+    badgeCount: profile.badgeCount || '',
+    pet: profile.pet || '',
+    petLevel: profile.petLevel || '',
+    outfit,
+
+    provider: providerLabel,
     sourceUrl: profile.sourceUrl || '',
     cacheHit,
     savedToPrivateDb: cacheHit,
@@ -51,14 +77,14 @@ export function buildResponse(uid, profile, cacheHit) {
     sourceCount: 1,
     sourcesFound: [
       {
-        provider: profile.provider || 'FreeFireMania Fast',
+        provider: providerLabel,
         sourceUrl: profile.sourceUrl || '',
       },
     ],
 
-    diamonds: 0,
-    diamondsConfirmed: false,
-    primeLevel: '',
-    primeConfirmed: false,
+    diamonds: Number(profile.diamonds || 0),
+    diamondsConfirmed: Boolean(profile.diamonds),
+    primeLevel: profile.primeLevel || '',
+    primeConfirmed: Boolean(profile.primeLevel),
   }
 }

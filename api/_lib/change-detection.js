@@ -45,5 +45,16 @@ export function detectPlayerEvents(prev, next) {
   if (changed('primeLevel')) events.push(ev('PRIME_CHANGED', 'primeLevel', prev.primeLevel, next.primeLevel))
   if (changed('region')) events.push(ev('REGION_CHANGED', 'region', prev.region, next.region))
 
+  // Campos ricos (solo si el proveedor los da; con la fuente keyless quedan
+  // vacios y por tanto nunca disparan un evento espurio).
+  if (changed('rankBR')) events.push(ev('RANK_BR_CHANGED', 'rankBR', prev.rankBR, next.rankBR))
+  if (changed('rankCS')) events.push(ev('RANK_CS_CHANGED', 'rankCS', prev.rankCS, next.rankCS))
+  if (changed('title')) events.push(ev('TITLE_CHANGED', 'title', prev.title, next.title))
+  if (changed('pet')) events.push(ev('PET_CHANGED', 'pet', prev.pet, next.pet))
+
+  // Outfit: arrays; se comparan serializados.
+  const outfitKey = (p) => JSON.stringify(Array.isArray(p.outfit) ? p.outfit : [])
+  if (outfitKey(prev) !== outfitKey(next)) events.push(ev('OUTFIT_CHANGED', 'outfit', 'cambio', 'cambio'))
+
   return events
 }

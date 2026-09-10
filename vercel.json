@@ -19,18 +19,30 @@
       ]
     }
   ],
-  "rewrites": [
+  "redirects": [
     {
       "source": "/free-fire-prime-scanner",
-      "destination": "/free-fire-prime-scanner.html"
+      "destination": "/player-scanner",
+      "permanent": true
     },
     {
-      "source": "/free-fire-prime-scanner/",
-      "destination": "/free-fire-prime-scanner.html"
+      "source": "/prime-scanner",
+      "destination": "/player-scanner",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/player-scanner",
+      "destination": "/player-scanner.html"
+    },
+    {
+      "source": "/player-scanner/",
+      "destination": "/player-scanner.html"
     },
     {
       "source": "/cuenta/:uid.html",
-      "destination": "/free-fire-prime-scanner.html"
+      "destination": "/player-scanner.html"
     }
   ],
   "functions": {
