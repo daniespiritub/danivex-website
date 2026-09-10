@@ -22,15 +22,15 @@
   "rewrites": [
     {
       "source": "/free-fire-prime-scanner",
-      "destination": "/"
+      "destination": "/free-fire-prime-scanner.html"
     },
     {
       "source": "/free-fire-prime-scanner/",
-      "destination": "/"
+      "destination": "/free-fire-prime-scanner.html"
     },
     {
       "source": "/cuenta/:uid.html",
-      "destination": "/"
+      "destination": "/free-fire-prime-scanner.html"
     }
   ],
   "functions": {
