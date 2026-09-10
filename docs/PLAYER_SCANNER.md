@@ -23,15 +23,26 @@ El frontend NUNCA habla con proveedores externos ni ve API keys: solo con
 `/api/player`, que devuelve el perfil ya **normalizado** (modelo unico
 `player-model.js`).
 
-## Fuentes de datos (verificado 2026-09-11)
+## Fuentes de datos (probadas de verdad con curl, UID 2196518104, 2026-09-11)
 
-| Proveedor | Estado | Key | Datos ricos (rank/stats/outfit) |
-|---|---|---|---|
-| SiamBhau (`siambhau69.eu.cc`) | Operativo | **Requerida** (gratis, Telegram @SiamBhau); HTTP sin TLS | Si |
-| FreeFireMania | Operativo, keyless | No | No |
-| FreeFireJornal | Operativo, keyless (fallback) | No | No |
-| HL Gaming / FF Community API | Operativos | Requerida (registro / pago) | Si |
-| jinix6 free-ff-api | **Caido** (404) | — | — |
+| Proveedor | Estado real | HTTPS | Key | Datos ricos |
+|---|---|---|---|---|
+| **SiamBhau** (`siambhau69.eu.cc`) | Vivo (403 sin key) | Si (cert valido, ssl_verify=0) | **Requerida** (gratis, Telegram @SiamBhau) | Si (ranks/prime/outfit/pet) |
+| **HL Gaming** (`proapis.hlgamingofficial.com`) | Vivo (400 pide useruid+api) | Si | Requerida (registro) | Si (+ stats de partida) |
+| **FF Community** (`developers.freefirecommunity.com`) | Vivo (401 AUTH_001) | Si | Requerida (de pago; trial solo playground) + WAF por User-Agent | Si |
+| FreeFireMania | Vivo, keyless | Si | No | No |
+| FreeFireJornal | Vivo, keyless (fallback) | Si | No | No |
+| jinix6 free-ff-api | **Caido** (404 en todo, incl. su ejemplo) | — | — | — |
+| glob-info2 (paulafredo) | **Caido** (402 DEPLOYMENT_DISABLED) | — | — | — |
+| 0xMe FreeFire-Api | **Roto** (401 MAJOR_LOGIN_FAILED) | — | — | — |
+| tanmay-info-api | **Roto** (500 JWT token failed, toda region) | — | — | — |
+| PRINCE-LKTEAM | **Caido** (404) | — | — | — |
+
+Conclusion: **no existe hoy una fuente keyless viva y verificable que devuelva
+datos ricos.** Las que sirven datos ricos (SiamBhau, HL Gaming, FF Community)
+exigen API key. La mejor por seguridad+coste es **SiamBhau** (HTTPS con cert
+valido, key gratis). Las community self-hosted (0xMe/tanmay/jinix6) dependen de
+un "major login"/JWT interno de Free Fire que esta caducado => caidas.
 
 Con la configuracion por defecto (sin key) Player Scanner usa las fuentes
 **keyless**: devuelven nickname, region, nivel, exp, likes, antiguedad, creacion,
@@ -49,8 +60,9 @@ muestran como "No disponible": **nunca se fabrican**.
 3. Redeploy. La capa de proveedores antepone SiamBhau automaticamente
    (`resolveProviders`) y empiezan a aparecer rangos/prime/outfit reales.
 
-Nota: SiamBhau expone HTTP (sin TLS). La key viaja solo server-side; aun asi,
-para produccion conviene un proveedor HTTPS si se dispone.
+Nota: SiamBhau responde por HTTPS con certificado valido (verificado
+2026-09-11), asi que la key viaja cifrada. El adaptador usa HTTPS por defecto.
+Alternativa rica secundaria documentada: HL Gaming (HTTPS, registro).
 
 ## Variables de entorno
 

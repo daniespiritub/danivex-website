@@ -100,3 +100,23 @@ test('siambhau deshabilitado sin API key => getProfile outcome disabled', async 
   assert.equal(r.outcome, 'disabled')
   if (prev !== undefined) process.env.SIAMBHAU_API_KEY = prev
 })
+
+test('siambhau construye la peticion por HTTPS (cert valido verificado)', async () => {
+  const prevKey = process.env.SIAMBHAU_API_KEY
+  const prevFetch = globalThis.fetch
+  process.env.SIAMBHAU_API_KEY = 'test-key'
+  let calledUrl = ''
+  globalThis.fetch = async (url) => {
+    calledUrl = String(url)
+    return { ok: true, json: async () => ({ basicInfo: { nickname: 'X' } }) }
+  }
+  try {
+    await getProfile('2196518104', { region: 'US' })
+    assert.ok(calledUrl.startsWith('https://'), `debe usar HTTPS, fue: ${calledUrl.slice(0, 12)}`)
+    assert.ok(!calledUrl.startsWith('http://'), 'nunca HTTP plano')
+  } finally {
+    globalThis.fetch = prevFetch
+    if (prevKey === undefined) delete process.env.SIAMBHAU_API_KEY
+    else process.env.SIAMBHAU_API_KEY = prevKey
+  }
+})

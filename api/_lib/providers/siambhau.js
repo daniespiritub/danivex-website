@@ -7,8 +7,9 @@
   fuente keyless (FreeFireMania/Jornal) no ofrece. Se activa SOLO si esta la env
   SIAMBHAU_API_KEY (la key NUNCA va al frontend; toda consulta es server-side).
 
-  Nota: el endpoint publico de SiamBhau es HTTP (siambhau69.eu.cc). La key se
-  obtiene gratis via Telegram @SiamBhau. Ver docs/PROVIDER_STATUS.md.
+  Nota: el endpoint responde por HTTPS con certificado valido (verificado
+  2026-09-11), asi que la key viaja cifrada. Se obtiene gratis via Telegram
+  @SiamBhau. Ver docs/PLAYER_SCANNER.md.
 
   El mapeo sigue la forma estandar de AccountInfo de Free Fire, leyendo con
   tolerancia varios nombres de campo posibles. Nunca inventa: si un campo no
@@ -21,7 +22,9 @@ export const name = 'siambhau'
 export const label = 'SiamBhau'
 export const needsRegion = true
 
-const BASE_URL = process.env.SIAMBHAU_BASE_URL || 'http://siambhau69.eu.cc'
+// HTTPS con certificado valido verificado (ssl_verify=0) el 2026-09-11: la key
+// viaja cifrada. Override con SIAMBHAU_BASE_URL si el host cambia.
+const BASE_URL = process.env.SIAMBHAU_BASE_URL || 'https://siambhau69.eu.cc'
 // Base opcional de iconos de items (avatar/outfit) por ID. Sin ella, se guardan
 // los IDs numericos sin URL de imagen (el front no muestra imagen rota).
 const ITEM_ICON_BASE = process.env.FF_ITEM_ICON_BASE || ''
