@@ -1,12 +1,15 @@
 /*
-  SEO por vista para la SPA. Al ser routing manual (sin react-router ni SSR),
-  actualizamos las etiquetas <head> en runtime segun la ruta. Esto lo aprovechan
-  los crawlers que ejecutan JS (Google) y fija el canonical correcto por vista.
-  Nota: los scrapers sociales que NO ejecutan JS (WhatsApp/Twitter) siguen viendo
-  el <head> estatico de index.html, por eso ese default es de marca (neutro).
+  SEO por vista para la SPA. Actualiza las etiquetas <head> en runtime segun la
+  ruta (para crawlers que ejecutan JS, como Google, y para fijar el canonical).
+  Los datos por vista viven en src/data/seo-meta.js (fuente unica compartida con
+  el prerender de build). Las rutas conocidas ya se sirven prerenderizadas con su
+  <head> correcto (ver vite.config.js), asi que los scrapers sociales sin JS
+  tambien ven los metadatos correctos.
 */
 
-const SITE = 'https://danivex.com'
+import { SITE, SEO } from '../data/seo-meta.js'
+
+export { SEO }
 
 function setMeta(attr, key, content) {
   if (!content) return
@@ -47,25 +50,4 @@ export function applySeo({ title, description, path = '/', image, noindex = fals
   setMeta('name', 'twitter:title', title)
   setMeta('name', 'twitter:description', description)
   if (image) setMeta('name', 'twitter:image', image)
-}
-
-// Metadatos por vista. Centralizados para mantener consistencia.
-export const SEO = {
-  home: {
-    title: 'DaniVex - Generador de Sensibilidad Free Fire',
-    description:
-      'Elegi tu dispositivo y arma una base de sensibilidad lista para Free Fire, gratis y sin registro.',
-    path: '/',
-  },
-  primeScanner: {
-    title: 'Free Fire Prime AI Scanner - Analiza tu cuenta por UID | DaniVex',
-    description:
-      'Consulta el perfil publico de cualquier cuenta de Free Fire por UID: nivel, region, gremio, antiguedad, cambios recientes y comparacion entre jugadores. Gratis y sin registro.',
-    path: '/free-fire-prime-scanner',
-  },
-  notFound: {
-    title: 'Pagina no encontrada | DaniVex',
-    description: 'La pagina que buscas no existe en DaniVex.',
-    noindex: true,
-  },
 }
