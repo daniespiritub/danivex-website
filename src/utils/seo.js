@@ -30,12 +30,14 @@ function setCanonical(url) {
 }
 
 // Aplica un set de metadatos de forma idempotente (title, description, canonical,
-// Open Graph y Twitter). Solo toca lo que recibe.
-export function applySeo({ title, description, path = '/', image }) {
+// Open Graph, Twitter y robots). Solo toca lo que recibe. `noindex` marca la
+// vista como no indexable (ej: 404) y se revierte al navegar a una vista real.
+export function applySeo({ title, description, path = '/', image, noindex = false }) {
   const url = SITE + path
   if (title) document.title = title
   setMeta('name', 'description', description)
   setCanonical(url)
+  setMeta('name', 'robots', noindex ? 'noindex, follow' : 'index, follow')
 
   setMeta('property', 'og:title', title)
   setMeta('property', 'og:description', description)
@@ -60,5 +62,10 @@ export const SEO = {
     description:
       'Consulta el perfil publico de cualquier cuenta de Free Fire por UID: nivel, region, gremio, antiguedad, cambios recientes y comparacion entre jugadores. Gratis y sin registro.',
     path: '/free-fire-prime-scanner',
+  },
+  notFound: {
+    title: 'Pagina no encontrada | DaniVex',
+    description: 'La pagina que buscas no existe en DaniVex.',
+    noindex: true,
   },
 }

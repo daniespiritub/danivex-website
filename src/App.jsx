@@ -7,6 +7,7 @@ import mobiladorLogo from './assets/mobilador-logo.webp'
 import mobiladorScreenInicio from './assets/mobilador-screens/inicio.png'
 import mobiladorScreenPerfiles from './assets/mobilador-screens/perfiles.png'
 import mobiladorScreenAcercaDe from './assets/mobilador-screens/acerca-de.png'
+import NotFound from './components/NotFound.jsx'
 import { applySeo, SEO } from './utils/seo.js'
 import {
   createManualDevice,
@@ -951,17 +952,30 @@ function HomePage() {
   )
 }
 
+// Resuelve la ruta actual a una vista conocida. Todo lo que no matchea una
+// ruta valida cae en 'notFound' (evita el soft-404 que servia la home en
+// cualquier URL basura).
+function resolveRoute(pathname) {
+  const path = pathname.replace(/\/$/, '')
+  if (path === '') return 'home'
+  if (path === '/free-fire-prime-scanner') return 'scanner'
+  if (/^\/cuenta\/\d+\.html$/.test(path)) return 'scanner'
+  return 'notFound'
+}
+
 function App() {
-  const normalizedPath = window.location.pathname.replace(/\/$/, '')
-  const isPrimeScanner = normalizedPath === '/free-fire-prime-scanner'
-  const isAccountProfile = /^\/cuenta\/\d+\.html$/.test(normalizedPath)
-  const isScannerView = isPrimeScanner || isAccountProfile
+  const route = resolveRoute(window.location.pathname)
 
   useEffect(() => {
-    applySeo(isScannerView ? SEO.primeScanner : SEO.home)
-  }, [isScannerView])
+    applySeo(
+      route === 'scanner' ? SEO.primeScanner
+        : route === 'notFound' ? SEO.notFound
+          : SEO.home,
+    )
+  }, [route])
 
-  if (isScannerView) return <FreeFirePrimeScanner />
+  if (route === 'scanner') return <FreeFirePrimeScanner />
+  if (route === 'notFound') return <NotFound />
 
   return <HomePage />
 }
