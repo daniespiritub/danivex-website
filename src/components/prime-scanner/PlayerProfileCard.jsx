@@ -5,7 +5,7 @@ function PlayerProfileCard({ player }) {
     <article className="player-card scanner-panel">
       <div className="player-avatar" style={{ '--avatar-hue': `${player.avatarSeed % 360}deg` }}>
         {player.avatarUrl ? (
-          <img src={player.avatarUrl} alt="" />
+          <img src={player.avatarUrl} alt="" loading="lazy" />
         ) : (
           <span>{player.username.slice(0, 2)}</span>
         )}

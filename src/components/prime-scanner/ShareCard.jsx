@@ -87,6 +87,7 @@ function ShareCard({ player, events }) {
                 <img
                   src={player.avatar}
                   alt={player?.username || 'avatar'}
+                  loading="lazy"
                   onError={(event) => {
                     event.currentTarget.style.display = 'none'
                   }}

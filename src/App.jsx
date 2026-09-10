@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { FaDiscord, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa'
 import { PiChartBarBold, PiDeviceMobileBold, PiEyeBold, PiSlidersHorizontalBold } from 'react-icons/pi'
-import logo from './assets/logo.png'
-import fondo from './assets/fondo-gamer.png'
-import mobiladorLogo from './assets/mobilador-logo.png'
+import logo from './assets/logo.webp'
+import fondo from './assets/fondo-gamer.webp'
+import mobiladorLogo from './assets/mobilador-logo.webp'
 import mobiladorScreenInicio from './assets/mobilador-screens/inicio.png'
 import mobiladorScreenPerfiles from './assets/mobilador-screens/perfiles.png'
 import mobiladorScreenAcercaDe from './assets/mobilador-screens/acerca-de.png'
+import { applySeo, SEO } from './utils/seo.js'
 import {
   createManualDevice,
   devices,
@@ -954,8 +955,13 @@ function App() {
   const normalizedPath = window.location.pathname.replace(/\/$/, '')
   const isPrimeScanner = normalizedPath === '/free-fire-prime-scanner'
   const isAccountProfile = /^\/cuenta\/\d+\.html$/.test(normalizedPath)
+  const isScannerView = isPrimeScanner || isAccountProfile
 
-  if (isPrimeScanner || isAccountProfile) return <FreeFirePrimeScanner />
+  useEffect(() => {
+    applySeo(isScannerView ? SEO.primeScanner : SEO.home)
+  }, [isScannerView])
+
+  if (isScannerView) return <FreeFirePrimeScanner />
 
   return <HomePage />
 }
