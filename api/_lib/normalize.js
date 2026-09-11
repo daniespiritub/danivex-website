@@ -75,8 +75,9 @@ export function buildResponse(uid, profile, cacheHit) {
     rankBRCode: profile.rankBRCode || '',
     rankCS: profile.rankCS || '',
     rankCSDivision: profile.rankCSDivision || '',
-    rankCSStars: profile.rankCSStars || profile.rankCSPoints || '',
-    rankCSPoints: profile.rankCSPoints || '',
+    rankCSStars: profile.rankCSStars || '', // vacio: la API no da las estrellas reales del juego
+    rankCSRawValue: profile.rankCSRawValue || '', // valor interno csRankingPoints (no mostrar como estrellas)
+    rankCSPoints: '', // no exponer como puntos
     rankCSCode: profile.rankCSCode || '',
 
     // Perfil visual / cosmeticos:
@@ -84,6 +85,9 @@ export function buildResponse(uid, profile, cacheHit) {
     badgeCount: profile.badgeCount || '',
     pet: profile.pet || '',
     petLevel: profile.petLevel || '',
+    petImage: profile.petImage || '',
+    petId: profile.petId || '',
+    petSkinId: profile.petSkinId || '',
     outfit,
 
     provider: providerLabel,
