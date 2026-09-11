@@ -355,7 +355,17 @@ function PlayerScanner() {
 function PlayerCard({ player, primeLevel, outfit, changesCount, onSeeHistory }) {
   return (
     <article className="pc">
-      <div className="pc-banner" style={player.bannerUrl ? { backgroundImage: `url(${player.bannerUrl})` } : undefined} aria-hidden="true" />
+      <div className="pc-banner-wrap" aria-hidden="true">
+        {player.bannerUrl && (
+          <img
+            className="pc-banner-img"
+            src={player.bannerUrl}
+            alt=""
+            data-fallback={player.bannerFallbackUrl || ''}
+            onError={handleBannerError}
+          />
+        )}
+      </div>
       <div className="pc-overlay" aria-hidden="true" />
       <div className="pc-body">
         <div className="pc-avatar-wrap">
@@ -423,7 +433,7 @@ function PlayerSkeleton() {
   return (
     <div className="ps-result">
       <div className="pc pc-skeleton">
-        <div className="pc-banner sk" />
+        <div className="pc-banner-wrap sk" />
         <div className="pc-body">
           <div className="pc-avatar-wrap"><div className="pc-avatar sk" /></div>
           <div className="pc-identity">
@@ -500,6 +510,19 @@ function playerPrimeLevel(player) {
 }
 
 function hideImg(e) { e.currentTarget.style.display = 'none' }
+// Banner: si la URL principal (proveedor) falla al renderizar, intenta el
+// fallback por bannerId (catalogo jsDelivr, sin hotlink). Si tambien falla, se
+// oculta y queda el fondo DaniVex del gradiente.
+function handleBannerError(e) {
+  const img = e.currentTarget
+  const fb = img.getAttribute('data-fallback')
+  if (fb && !img.dataset.usedFallback) {
+    img.dataset.usedFallback = '1'
+    img.src = fb
+  } else {
+    img.style.display = 'none'
+  }
+}
 function hideSlot(e) { const p = e.currentTarget.closest('.ps-slot, .pc-slot'); if (p) p.style.display = 'none' }
 
 function cleanErrorMessage(lookup) {

@@ -29,24 +29,34 @@
   min-height: 260px;
 }
 
-.pc-banner {
+/* Banner como CAPA DE IMAGEN (no background-image): se ve realmente el banner
+   equipado del jugador. Fondo DaniVex debajo por si la imagen no carga. */
+.pc-banner-wrap {
   position: absolute;
-  inset: -20% -10%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  filter: blur(26px) saturate(1.25) brightness(0.85);
-  transform: scale(1.15);
+  inset: 0;
   z-index: 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, #23131a 0%, #14171d 55%, #0b0d10 100%);
+}
+.pc-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  /* blur MINIMO: solo suaviza el upscale del asset, sin ocultar el banner. */
+  filter: blur(3px) saturate(1.25) brightness(1);
+  transform: scale(1.06);
 }
 
 .pc-overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
+  /* Overlay CLARO: casi transparente arriba (se distingue el banner) y mas
+     oscuro abajo para que el texto sea legible. */
   background:
-    radial-gradient(120% 120% at 15% 0%, rgba(214, 48, 43, 0.20), transparent 55%),
-    linear-gradient(180deg, rgba(6, 7, 10, 0.55), rgba(6, 7, 10, 0.86));
+    linear-gradient(180deg, rgba(8, 9, 12, 0.22) 0%, rgba(8, 9, 12, 0.42) 52%, rgba(8, 9, 12, 0.80) 100%),
+    linear-gradient(90deg, rgba(8, 9, 12, 0.42) 0%, rgba(8, 9, 12, 0.04) 62%);
 }
 
 .pc-body {
@@ -228,7 +238,7 @@
 /* ---------------- SKELETON ---------------- */
 .sk { background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.10), rgba(255,255,255,0.04)); background-size: 200% 100%; animation: sk-shimmer 1.3s ease-in-out infinite; border-radius: 10px; }
 @keyframes sk-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-.pc-skeleton .pc-banner.sk { position: absolute; inset: 0; filter: none; transform: none; }
+.pc-skeleton .pc-banner-wrap.sk { position: absolute; inset: 0; filter: none; transform: none; }
 .pc-skeleton .pc-avatar.sk { box-shadow: none; border: none; }
 .sk-line { height: 14px; }
 .sk-tile { height: 78px; }

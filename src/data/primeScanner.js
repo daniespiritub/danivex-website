@@ -271,6 +271,9 @@ export function generatePlayerFromLookup(uid, lookup) {
     bannerUrl: hasRealData
       ? (lookup.banner || '')
       : '',
+    bannerFallbackUrl: hasRealData
+      ? (lookup.bannerFallback || '')
+      : '',
 
     avatarSeed: 0,
 

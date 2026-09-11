@@ -35,6 +35,21 @@ test('resolveBanner: usa bannerId; prioriza URL real de proveedor', () => {
   assert.equal(resolveBanner({ banner: real, bannerId: '901000008' }).url, real)
 })
 
+test('resolveBanner: siempre devuelve URL http (nunca el nombre del banner)', () => {
+  // Aunque el proveedor mande un "nombre" en vez de URL, resolveBanner NO lo usa.
+  const r = resolveBanner({ banner: 'Valentine', bannerId: '901000008' })
+  assert.match(r.url, /^https?:\/\//)
+  assert.ok(!r.url.includes('Valentine') || r.url.includes('http'))
+  assert.match(r.url, /901000008/, 'cae al catalogo por bannerId, no al texto "Valentine"')
+})
+
+test('resolveBanner: expone fallback por bannerId para onError del <img>', () => {
+  const real = 'https://www.freefiremania.com.br/images/itens/x.png'
+  const r = resolveBanner({ banner: real, bannerId: '901000008' })
+  assert.equal(r.url, real)
+  assert.match(r.fallback, /901000008/, 'fallback = catalogo por bannerId')
+})
+
 test('avatar/banner NO pasan por el mismo resolver que las prendas del outfit', () => {
   // El resolver de items del outfit es itemIconUrl(id). El de avatar NO usa
   // avatarId indiscriminadamente: son rutas de decision distintas.
