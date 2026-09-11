@@ -5,10 +5,10 @@
   verificado 2026-09-11). Temporada/version pueden cambiar => tabla versionada y
   documentada para poder actualizarla.
 
-  Uso: el CODIGO de rango que da la API (rank/csRank) es la fuente primaria del
-  TIER (el juego ya lo asigno; ver ff-rank.js). Estas reglas de RP se usan para
-  CROSS-VALIDAR el tier de BR contra los puntos reales y asignar una confianza.
-  NO se usan para "adivinar" Gran Maestro por umbral (GM depende de leaderboard).
+  Uso: el RP del jugador es la FUENTE DE VERDAD del tier de BR (brRankFromPoints).
+  El codigo de rango de la API (basicInfo.rank) NO es fiable para nombrar el tier
+  (verificado: codigo 321 + 3539 RP = "Heroico", no "Maestro"). NO se deriva Gran
+  Maestro por umbral de RP (GM depende de leaderboard top-300, umbral dinamico).
 
   Escalera (baja -> alta): Bronce, Plata, Oro, Platino, Diamante, Heroico,
   Heroico de Elite, Maestro, Maestro de Elite, Gran Maestro.
@@ -41,6 +41,27 @@ export function brTierGroupFromPoints(points) {
     if (rp >= band.min) group = band.tier
   }
   return group
+}
+
+// FUENTE DE VERDAD del tier de BR: el RP del jugador (verificado contra el juego,
+// UID 2196518104: 3539 RP => "Heroico", NO "Maestro"). El CODIGO de rango de la
+// API (basicInfo.rank) NO es fiable para nombrar el tier, por eso se usa el RP.
+//
+// Heroico (3125+) es el tier mas alto VERIFICABLE por RP. Gran Maestro es un tier
+// de leaderboard (top ~300 por region, umbral dinamico diario) => NO se deriva por
+// RP ni por codigo sin evidencia. Un jugador Gran Maestro real se muestra como
+// "Heroico" (honesto) en vez de arriesgar un nombre superior sin poder verificarlo.
+// Tampoco se afirman subdivisiones (Bronce I/II/III): los umbrales por division no
+// estan documentados de forma fiable, asi que se muestra solo el grupo de tier.
+export function brRankFromPoints(points) {
+  const rp = Number(points)
+  if (!Number.isFinite(rp) || rp < 1000) return { name: '', confidence: 'unavailable' }
+  let name = ''
+  for (const band of BR_RP_BANDS) {
+    if (rp >= band.min) name = band.tier
+  }
+  if (name === 'Heroico+') name = 'Heroico'
+  return { name, confidence: name ? 'verified' : 'unavailable' }
 }
 
 // Grupo base de un nombre de tier (para comparar con el grupo por RP).

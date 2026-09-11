@@ -268,7 +268,7 @@ function PlayerScanner() {
             <div className="ps-ranks">
               <RankCard title="Battle Royale" tier={player.rankBR} division={player.rankBRDivision} tierKey={player.rankBRTierKey} metric={player.rankBRPoints} metricLabel="RP" season={player.season} />
               <RankCard title="Duelo de Escuadras" tier={player.rankCS} division={player.rankCSDivision} tierKey={player.rankCSTierKey} metric={player.rankCSStars} metricLabel="★" season={player.rankCSSeason}
-                note={player.rankCSStars ? '' : 'Estrellas y temporada de CS no disponibles en la fuente'} />
+                note={player.rankCS ? '' : 'La fuente de datos no expone el rango, las estrellas ni la temporada de Duelo de Escuadras.'} />
             </div>
           </section>
 
