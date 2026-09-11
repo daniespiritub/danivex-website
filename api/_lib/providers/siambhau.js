@@ -25,9 +25,12 @@ export const needsRegion = true
 // HTTPS con certificado valido verificado (ssl_verify=0) el 2026-09-11: la key
 // viaja cifrada. Override con SIAMBHAU_BASE_URL si el host cambia.
 const BASE_URL = process.env.SIAMBHAU_BASE_URL || 'https://siambhau69.eu.cc'
-// Base opcional de iconos de items (avatar/outfit) por ID. Sin ella, se guardan
-// los IDs numericos sin URL de imagen (el front no muestra imagen rota).
-const ITEM_ICON_BASE = process.env.FF_ITEM_ICON_BASE || ''
+// CDN publico de iconos de items FF por ID (avatar/banner/outfit). jsdelivr:
+// HTTPS, keyless, cross-origin, cacheado global. Verificado 2026-09-11 con IDs
+// reales (218x218 png/webp). Overridable con FF_ITEM_ICON_BASE. Al ser keyless
+// no expone ningun secreto: el frontend puede usar estas URLs directamente.
+const ITEM_ICON_BASE = process.env.FF_ITEM_ICON_BASE || 'https://cdn.jsdelivr.net/gh/ShahGCreator/icon@main/PNG'
+const ICON_EXT = process.env.FF_ITEM_ICON_EXT || 'png'
 
 export function isEnabled() {
   return Boolean(process.env.SIAMBHAU_API_KEY)
@@ -54,7 +57,7 @@ function rankTierName(value) {
 
 function iconUrl(id) {
   if (!id || !ITEM_ICON_BASE) return ''
-  return `${ITEM_ICON_BASE.replace(/\/$/, '')}/${id}.png`
+  return `${ITEM_ICON_BASE.replace(/\/$/, '')}/${id}.${ICON_EXT}`
 }
 
 function epochToDate(value) {
