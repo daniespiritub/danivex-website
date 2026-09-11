@@ -32,6 +32,8 @@ export const PLAYER_DATA_FIELDS = [
   'title', 'badgeCount', 'badgeId', 'pet', 'petLevel', 'petId', 'petSkinId', 'petImage', 'outfit',
   // Estadisticas de partidas (objeto normalizado). Ver stats-model.js.
   'stats',
+  // Album de posesion de pases (owned/notOwned/values). Ver ffmania-passes.js.
+  'passAlbum',
 ]
 
 // Significativos para el content-hash. Excluye lo volatil (lastLogin,
@@ -119,6 +121,8 @@ export function normalizeStoredPlayer(uid, profile) {
     // Estadisticas de partidas: se persisten tal cual (o null). NO entran en el
     // content-hash (MEANINGFUL_FIELDS) para no generar snapshots en cada partida.
     stats: profile.stats || null,
+    // Posesion de pases (compacto: owned/notOwned/values). NO en el content-hash.
+    passAlbum: profile.passAlbum || null,
     sourceUrl: profile.sourceUrl || '',
     provider: profile.provider || 'Public source',
   }
