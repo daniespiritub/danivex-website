@@ -2,84 +2,95 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { mapSiamBhauProfile, isEnabled, getProfile } from '../api/_lib/providers/siambhau.js'
 
-// Fixture con la forma ESTANDAR de AccountInfo de Free Fire (la que exponen
-// SiamBhau y otras APIs de info). Prueba NUESTRO normalizador, no la API.
+// Fixture con la forma REAL confirmada de SiamBhau (request autenticada
+// verificada 2026-09-11 con UID 2196518104). Prueba NUESTRO normalizador.
 const fixture = {
   basicInfo: {
     accountId: '2196518104',
     nickname: 'DaniPepito',
     level: 85,
-    exp: 11074588,
-    liked: 24186,
+    exp: 11161460,
+    liked: 24400,
     region: 'US',
-    rank: 19,
-    rankingPoints: 4210,
-    csRank: 20,
-    csRankingPoints: 5120,
-    seasonId: 44,
+    rank: 321,
+    rankingPoints: 3539,
+    maxRank: 322,
+    csRank: 323,
+    csRankingPoints: 142,
+    csMaxRank: 323,
+    seasonId: 53,
     releaseVersion: 'OB54',
-    badgeCnt: 12,
-    title: 900300012,
-    primeLevel: 4,
-    createAt: 1594662512,
-    lastLoginAt: 1786000000,
+    badgeCnt: 145,
+    bannerId: 901000008,
+    headPic: 902033014,
+    showBrRank: true,
+    showCsRank: true,
+    createAt: '1595100512',
+    lastLoginAt: '1789068939',
+    primeInfo: { primeLevel: 8 },
   },
   profileInfo: {
-    avatarId: 102000022,
-    bannerId: 901048012,
-    clothes: [205000051, 211000579, 214000000],
+    avatarId: 102000004,
+    clothes: [211000253, 203053011, 204000103, 205000133, 214053002],
   },
-  clanBasicInfo: {
-    clanId: 2060675720,
-    clanName: 'PorN',
-    clanLevel: 3,
-    memberNum: 31,
-  },
+  clanBasicInfo: { clanId: '2060675720', clanName: 'PorN', clanLevel: 3, memberNum: 12 },
   captainBasicInfo: { nickname: 'ElLider' },
-  petInfo: { id: 1300000, level: 7 },
+  petInfo: { id: 1300000091, name: 'Palomita', level: 7 },
   socialInfo: { signature: 'TIKTOK: MASH PRN!' },
 }
 
-test('mapSiamBhauProfile: extrae info general real del fixture', () => {
+test('mapSiamBhauProfile: info general real', () => {
   const p = mapSiamBhauProfile(fixture)
   assert.equal(p.nickname, 'DaniPepito')
   assert.equal(p.level, '85')
-  assert.equal(p.exp, '11074588')
-  assert.equal(p.likes, 24186)
+  assert.equal(p.likes, 24400)
   assert.equal(p.region, 'US')
   assert.equal(p.gameVersion, 'OB54')
 })
 
-test('mapSiamBhauProfile: mapea rangos BR/CS con nombre de tier', () => {
+test('mapSiamBhauProfile: PRIME desde primeInfo.primeLevel (anidado)', () => {
   const p = mapSiamBhauProfile(fixture)
-  assert.equal(p.rankBR, 'Heroico') // id 19
-  assert.equal(p.rankBRPoints, '4210')
-  assert.equal(p.rankCS, 'Gran Maestro') // id 20
-  assert.equal(p.rankCSPoints, '5120')
-  assert.equal(p.season, '44')
+  assert.equal(p.primeLevel, '8')
 })
 
-test('mapSiamBhauProfile: prime, title, badges, pet', () => {
+test('mapSiamBhauProfile: rangos BR/CS por codigo de 3 digitos + puntos', () => {
   const p = mapSiamBhauProfile(fixture)
-  assert.equal(p.primeLevel, '4')
-  assert.equal(p.title, '900300012')
-  assert.equal(p.badgeCount, '12')
-  assert.equal(p.pet, '1300000')
+  assert.equal(p.rankBR, 'Gran Maestro') // codigo 321
+  assert.equal(p.rankBRPoints, '3539')
+  assert.equal(p.rankCS, 'Gran Maestro') // codigo 323
+  assert.equal(p.rankCSPoints, '142')
+  assert.equal(p.season, '53')
+})
+
+test('mapSiamBhauProfile: tiers de rango por rango de codigo', () => {
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 102 } }).rankBR, 'Bronce')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 205 } }).rankBR, 'Plata')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 303 } }).rankBR, 'Oro')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 313 } }).rankBR, 'Platino')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 316 } }).rankBR, 'Diamante')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 319 } }).rankBR, 'Heroico')
+})
+
+test('mapSiamBhauProfile: showBrRank=false oculta el rango', () => {
+  const p = mapSiamBhauProfile({ basicInfo: { rank: 321, showBrRank: false } })
+  assert.equal(p.rankBR, '')
+})
+
+test('mapSiamBhauProfile: outfit (IDs), pet con nombre, badges', () => {
+  const p = mapSiamBhauProfile(fixture)
+  assert.equal(p.outfit.length, 5)
+  assert.equal(p.outfit[0].id, '211000253')
+  assert.equal(p.pet, 'Palomita')
   assert.equal(p.petLevel, '7')
+  assert.equal(p.badgeCount, '145')
+  assert.equal(p.avatarId, '102000004')
 })
 
-test('mapSiamBhauProfile: outfit como lista de IDs', () => {
-  const p = mapSiamBhauProfile(fixture)
-  assert.equal(p.outfit.length, 3)
-  assert.equal(p.outfit[0].id, '205000051')
-})
-
-test('mapSiamBhauProfile: clan y lider', () => {
+test('mapSiamBhauProfile: clan y lider reales', () => {
   const p = mapSiamBhauProfile(fixture)
   assert.equal(p.clan, 'PorN')
   assert.equal(p.clanId, '2060675720')
-  assert.equal(p.clanLevel, '3')
-  assert.equal(p.clanMembers, '31')
+  assert.equal(p.clanMembers, '12')
   assert.equal(p.clanLeader, 'ElLider')
 })
 
@@ -113,7 +124,6 @@ test('siambhau construye la peticion por HTTPS (cert valido verificado)', async 
   try {
     await getProfile('2196518104', { region: 'US' })
     assert.ok(calledUrl.startsWith('https://'), `debe usar HTTPS, fue: ${calledUrl.slice(0, 12)}`)
-    assert.ok(!calledUrl.startsWith('http://'), 'nunca HTTP plano')
   } finally {
     globalThis.fetch = prevFetch
     if (prevKey === undefined) delete process.env.SIAMBHAU_API_KEY

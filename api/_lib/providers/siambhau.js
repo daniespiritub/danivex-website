@@ -33,21 +33,23 @@ export function isEnabled() {
   return Boolean(process.env.SIAMBHAU_API_KEY)
 }
 
-// Mapa estandar de tier de rango de Free Fire (id -> nombre). Si el id no esta
-// en el mapa, se devuelve el valor crudo (nunca se inventa un nombre).
-const RANK_TIERS = {
-  1: 'Bronce I', 2: 'Bronce II', 3: 'Bronce III',
-  4: 'Plata I', 5: 'Plata II', 6: 'Plata III',
-  7: 'Oro I', 8: 'Oro II', 9: 'Oro III', 10: 'Oro IV',
-  11: 'Platino I', 12: 'Platino II', 13: 'Platino III', 14: 'Platino IV',
-  15: 'Diamante I', 16: 'Diamante II', 17: 'Diamante III', 18: 'Diamante IV',
-  19: 'Heroico', 20: 'Gran Maestro',
-}
-
-function rankName(value) {
+// Nombre de tier a partir del codigo `rank` de Free Fire (enum de 3 digitos,
+// ej. 321). Se deriva por rangos segun la escalera oficial de 8 tiers; el punto
+// de ranking exacto SIEMPRE se muestra aparte, asi el label es orientativo y el
+// dato duro (puntos) es la verdad. Confirmado con datos reales 2026-09-11
+// (UID 2196518104: rank 321 = Gran Maestro con 3539 pts; csRank 323).
+function rankTierName(value) {
   if (value === undefined || value === null || value === '') return ''
   const n = Number(value)
-  return RANK_TIERS[n] || String(value)
+  if (!Number.isFinite(n) || n <= 0) return String(value)
+  if (n < 200) return 'Bronce'
+  if (n < 300) return 'Plata'
+  if (n < 311) return 'Oro'
+  if (n < 315) return 'Platino'
+  if (n < 318) return 'Diamante'
+  if (n < 320) return 'Heroico'
+  if (n < 321) return 'Maestro'
+  return 'Gran Maestro'
 }
 
 function iconUrl(id) {
@@ -76,9 +78,12 @@ export function mapSiamBhauProfile(data) {
   const pet = d.petInfo || d.pet || {}
   const social = d.socialInfo || d.social || {}
 
+  const prime = basic.primeInfo || d.primeInfo || {}
   const clothes = profileInfo.clothes || profileInfo.equippedOutfit || profileInfo.outfit || []
-  const avatarId = profileInfo.avatarId || basic.headPic || profileInfo.headPic || ''
-  const bannerId = profileInfo.bannerId || basic.bannerId || ''
+  // avatarId = avatar de perfil; headPic = icono de cabeza del personaje.
+  const avatarId = profileInfo.avatarId || basic.avatarId || ''
+  const headPic = basic.headPic || profileInfo.headPic || ''
+  const bannerId = basic.bannerId || profileInfo.bannerId || ''
 
   return {
     nickname: basic.nickname || basic.username || '',
@@ -90,27 +95,31 @@ export function mapSiamBhauProfile(data) {
     creationDate: epochToDate(basic.createAt || basic.createTime || basic.accountCreateTime),
     lastLogin: epochToDate(basic.lastLoginAt || basic.lastLoginTime),
 
-    // Rangos BR / CS:
-    rankBR: rankName(basic.rank ?? basic.brRank ?? basic.maxRank),
+    // Rangos BR / CS (codigo de 3 digitos -> tier; puntos exactos aparte):
+    rankBR: basic.showBrRank === false ? '' : rankTierName(basic.rank ?? basic.brRank ?? basic.maxRank),
     rankBRPoints: basic.rankingPoints != null ? String(basic.rankingPoints) : (basic.brRankPoint != null ? String(basic.brRankPoint) : ''),
-    rankCS: rankName(basic.csRank ?? basic.csMaxRank),
+    rankCS: basic.showCsRank === false ? '' : rankTierName(basic.csRank ?? basic.csMaxRank),
     rankCSPoints: basic.csRankingPoints != null ? String(basic.csRankingPoints) : (basic.csRankPoint != null ? String(basic.csRankPoint) : ''),
     season: basic.seasonId != null ? String(basic.seasonId) : '',
 
-    // Prime:
-    primeLevel: basic.primeLevel != null && basic.primeLevel !== 0 ? String(basic.primeLevel) : '',
+    // Prime (anidado en primeInfo.primeLevel):
+    primeLevel: prime.primeLevel != null && prime.primeLevel !== 0 ? String(prime.primeLevel) : '',
 
-    // Perfil visual:
+    // Perfil visual (SiamBhau da IDs; el avatar/banner en URL lo completa el
+    // merge keyless si no hay CDN configurado):
     title: basic.title != null ? String(basic.title) : '',
     badgeCount: basic.badgeCnt != null ? String(basic.badgeCnt) : '',
+    avatarId: avatarId ? String(avatarId) : '',
+    bannerId: bannerId ? String(bannerId) : '',
+    headPic: headPic ? String(headPic) : '',
     avatar: iconUrl(avatarId),
     banner: iconUrl(bannerId),
 
     // Outfit: lista de IDs (+ url si hay CDN configurado).
     outfit: (Array.isArray(clothes) ? clothes : []).map((id) => ({ id: String(id), image: iconUrl(id) })),
 
-    // Pet:
-    pet: pet.id != null ? String(pet.id) : '',
+    // Pet (con nombre real cuando viene):
+    pet: pet.name || (pet.id != null ? String(pet.id) : ''),
     petLevel: pet.level != null ? String(pet.level) : '',
 
     // Bio / social:

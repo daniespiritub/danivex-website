@@ -51,11 +51,20 @@ export async function fetchProfileFromProviders(uid, { logEvent, region } = {}) 
 
     if (result.ok) {
       logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: 'hit', ms })
+      let profile = { ...result.profile, provider: provider.label, sourceUrl: result.sourceUrl }
+
+      // Merge de imagen: un proveedor rico (SiamBhau) devuelve IDs de avatar/
+      // banner pero no URL. Para no perder la foto de perfil (que la fuente
+      // keyless si da como URL), la completamos best-effort. No es fatal.
+      if (optionalProviders.includes(provider) && (!profile.avatar || !profile.banner)) {
+        profile = await mergeImagesFromKeyless(uid, profile, logEvent)
+      }
+
       return {
         ok: true,
         provider: provider.name,
         fallback: i > firstDataProviderIndex,
-        response: buildResponse(uid, { ...result.profile, provider: provider.label, sourceUrl: result.sourceUrl }, false),
+        response: buildResponse(uid, profile, false),
       }
     }
 
@@ -69,4 +78,26 @@ export async function fetchProfileFromProviders(uid, { logEvent, region } = {}) 
   }
 
   return { ok: false, reason: lastOutcome === 'empty' ? 'not_found' : 'provider_error' }
+}
+
+// Completa avatar/banner (URL de imagen) desde el primer proveedor keyless que
+// responda, sin pisar los campos ricos ya obtenidos. Best-effort: cualquier
+// fallo se ignora y se devuelve el perfil tal cual.
+async function mergeImagesFromKeyless(uid, profile, logEvent) {
+  for (const provider of profileProviders) {
+    try {
+      const r = await provider.getProfile(uid, {})
+      if (r.ok && (r.profile.avatar || r.profile.banner)) {
+        logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: 'image_merge' })
+        return {
+          ...profile,
+          avatar: profile.avatar || r.profile.avatar || '',
+          banner: profile.banner || r.profile.banner || '',
+        }
+      }
+    } catch {
+      // ignorar: el merge de imagen nunca debe romper la respuesta rica.
+    }
+  }
+  return profile
 }

@@ -44,6 +44,22 @@ exigen API key. La mejor por seguridad+coste es **SiamBhau** (HTTPS con cert
 valido, key gratis). Las community self-hosted (0xMe/tanmay/jinix6) dependen de
 un "major login"/JWT interno de Free Fire que esta caducado => caidas.
 
+### SiamBhau: VERIFICADO end-to-end con API key (2026-09-11, UID 2196518104, US)
+
+Request autenticada real -> `HTTP 200` (~1s). Campos reales confirmados y
+mapeados: nickname, region, level, exp, likes, bio, **primeLevel** (nested en
+`primeInfo.primeLevel`), **rank BR/CS** (`rank`/`csRank` como codigo de 3
+digitos + `rankingPoints`/`csRankingPoints`), seasonId, clan (nombre real +
+lider via `captainBasicInfo`), **outfit** (`profileInfo.clothes` = IDs), **pet**
+(nombre + nivel), badgeCnt, avatarId/bannerId/headPic (IDs). **NO devuelve
+stats de partida** (kills/wins/KD/damage): esos no existen en este endpoint.
+
+- Avatar/banner llegan como IDs; sin CDN de iconos, el provider layer completa
+  la URL de imagen con la fuente keyless (`mergeImagesFromKeyless`) para no
+  perder la foto de perfil.
+- `preserveRichFields` (private-db): si SiamBhau cae y sirve el keyless, los
+  campos ricos ya guardados NO se sobrescriben con vacio.
+
 Con la configuracion por defecto (sin key) Player Scanner usa las fuentes
 **keyless**: devuelven nickname, region, nivel, exp, likes, antiguedad, creacion,
 ultimo login, clan (id/nivel/miembros), bio, avatar y banner reales. Los campos
