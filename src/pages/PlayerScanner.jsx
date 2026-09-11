@@ -421,6 +421,13 @@ function PlayerCard({ player, primeLevel, outfit, changesCount, onSeeHistory }) 
                 <span className="pc-badge-v">Prime {primeLevel}</span>
               </div>
             )}
+            {player.badge && player.badge.image && (
+              <div className="pc-badge pc-badge-insignia" title={player.badge.name || 'Insignia'}>
+                <img className="pc-badge-img" src={player.badge.image} alt="" aria-hidden="true" loading="lazy"
+                  onError={(e) => { const c = e.currentTarget.closest('.pc-badge-insignia'); if (c) c.style.display = 'none' }} />
+                <span className="pc-badge-v">{player.badge.name || 'Insignia'}</span>
+              </div>
+            )}
           </div>
 
           <div className="pc-ranks">

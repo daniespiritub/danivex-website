@@ -19,7 +19,7 @@ const REAL_FIXTURE = {
     accountId: '2196518104', nickname: 'DaniPepito', level: 85, exp: 11161460,
     liked: 24400, region: 'US', rank: 321, rankingPoints: 3539, maxRank: 322,
     csRank: 323, csRankingPoints: 142, csMaxRank: 323, seasonId: 53,
-    releaseVersion: 'OB54', badgeCnt: 145, bannerId: 901000008, headPic: 902033014,
+    releaseVersion: 'OB54', badgeCnt: 145, badgeId: 1001000100, bannerId: 901000008, headPic: 902033014,
     showBrRank: true, showCsRank: true, createAt: '1595100512', lastLoginAt: '1789068939',
     primeInfo: { primeLevel: 8 },
   },
@@ -84,6 +84,20 @@ test('CONTRATO: CS del UID verificado — 55★ => MAESTRO (reglas de estrellas)
   assert.notEqual(r.rankCSSeason, '53')
   assert.equal(r.rankCSRawValue, '142', 'raw csRankingPoints conservado internamente')
   assert.equal(r.rankCSStarsSource, 'in-game-verification', 'provenance explicita, NO API live')
+})
+
+test('CONTRATO: insignia de perfil resuelta (badgeId => nombre + imagen)', () => {
+  const r = fullResponse()
+  assert.ok(r.badge, 'debe resolver la insignia del badgeId')
+  assert.equal(r.badge.name, 'Mystery Badge')
+  assert.equal(r.badge.type, 'elite-pass')
+  assert.match(r.badge.image, /1001000100\.png$/)
+})
+
+test('CONTRATO: resolver de insignia GENERAL — sin badgeId => badge null (no se inventa)', () => {
+  const profile = mapSiamBhauProfile({ ...REAL_FIXTURE, basicInfo: { ...REAL_FIXTURE.basicInfo, badgeId: 0 } })
+  const r = buildResponse('2196518104', { ...profile, provider: 'SiamBhau' }, false)
+  assert.equal(r.badge, null)
 })
 
 test('CONTRATO: la capa verified es GENERAL — un UID sin observacion NO fabrica CS', () => {

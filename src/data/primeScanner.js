@@ -327,6 +327,7 @@ export function generatePlayerFromLookup(uid, lookup) {
     rankCSTierKey: lookup?.rankCSTierKey || '',
     title: lookup?.title || '',
     badgeCount: lookup?.badgeCount || '',
+    badge: lookup?.badge || null,
     pet: lookup?.pet || '',
     petLevel: lookup?.petLevel || '',
     petImage: lookup?.petImage || '',

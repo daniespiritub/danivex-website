@@ -29,7 +29,7 @@ export const PLAYER_DATA_FIELDS = [
   // raw (rankBRCode/rankCSCode) como identidad historica del tier.
   'rankBR', 'rankBRDivision', 'rankBRPoints', 'rankBRCode',
   'rankCS', 'rankCSDivision', 'rankCSStars', 'rankCSRawValue', 'rankCSPoints', 'rankCSCode', 'season',
-  'title', 'badgeCount', 'pet', 'petLevel', 'petId', 'petSkinId', 'petImage', 'outfit',
+  'title', 'badgeCount', 'badgeId', 'pet', 'petLevel', 'petId', 'petSkinId', 'petImage', 'outfit',
   // Estadisticas de partidas (objeto normalizado). Ver stats-model.js.
   'stats',
 ]
@@ -109,6 +109,7 @@ export function normalizeStoredPlayer(uid, profile) {
     season: profile.season || '',
     title: profile.title || '',
     badgeCount: profile.badgeCount || '',
+    badgeId: profile.badgeId || '',
     pet: profile.pet || '',
     petLevel: profile.petLevel || '',
     petId: profile.petId || '',
