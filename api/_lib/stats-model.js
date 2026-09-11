@@ -84,10 +84,9 @@ function csMode(raw) {
   }
 }
 
-// normalizeStats({ br, cs }) donde br/cs son el objeto `stats` crudo del endpoint
-// (br: {solostats,duostats,quadstats}; cs: {csstats}). Devuelve el modelo o null
-// si no hay ningun dato util.
-export function normalizeStats({ br, cs } = {}, opts = {}) {
+// Normaliza un "scope" (br crudo {solostats,duostats,quadstats} + cs crudo
+// {csstats}). Devuelve { br, cs } con lo que exista, o null si no hay nada.
+function buildScope(br, cs) {
   const brOut = {}
   if (br) {
     const solo = brMode(br.solostats)
@@ -98,13 +97,32 @@ export function normalizeStats({ br, cs } = {}, opts = {}) {
     if (squad) brOut.squad = squad
   }
   const csOut = cs ? csMode(cs.csstats || cs) : null
-
   const hasBr = Object.keys(brOut).length > 0
   if (!hasBr && !csOut) return null
+  return { br: hasBr ? brOut : null, cs: csOut }
+}
+
+// normalizeStats({ br, cs, rankedBr, rankedCs }) — br/cs son el scope CARRERA
+// (matchmode=CAREER, acumulado historico del perfil); rankedBr/rankedCs el scope
+// CLASIFICATORIA (matchmode=RANKED). Estructura:
+//   { br, cs,            // CARRERA (compat hacia atras; es el scope principal)
+//     scope: 'career',   // etiqueta explicita del scope de br/cs
+//     ranked: { br, cs } | null }
+// IMPORTANTE (aclaracion de scope): "verified" = datos reales del proveedor, NO
+// que coincidan con una captura concreta del juego. CARRERA != CLASIFICATORIA:
+// se etiquetan por separado, no se mezclan ni se llaman "match" entre si.
+export function normalizeStats({ br, cs, rankedBr, rankedCs } = {}, opts = {}) {
+  const career = buildScope(br, cs)
+  const ranked = buildScope(rankedBr, rankedCs)
+  if (!career && !ranked) return null
 
   return {
-    br: hasBr ? brOut : null,
-    cs: csOut,
+    // CARRERA como scope principal (compat: mismos campos br/cs de antes).
+    br: career ? career.br : null,
+    cs: career ? career.cs : null,
+    scope: 'career',
+    // CLASIFICATORIA (solo si hay datos). Bloque aparte, etiquetado.
+    ranked: ranked || null,
     source: opts.source || 'siambhau-stats',
     confidence: 'verified',
     updatedAt: opts.updatedAt || new Date().toISOString(),

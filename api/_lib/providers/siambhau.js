@@ -219,11 +219,15 @@ export async function getStats(uid, opts = {}) {
   if (!region) return { ok: false, outcome: 'no_region' }
   const key = process.env.SIAMBHAU_API_KEY
 
-  const [br, cs] = await Promise.all([
+  // CARRERA (acumulado) + CLASIFICATORIA (ranked), BR y CS, en PARALELO (4 reqs
+  // acotadas). Cada una best-effort: si un scope falla, el resto sigue.
+  const [br, cs, rankedBr, rankedCs] = await Promise.all([
     fetchStatsMode(uid, region, key, 'br', 'CAREER'),
     fetchStatsMode(uid, region, key, 'cs', 'CAREER'),
+    fetchStatsMode(uid, region, key, 'br', 'RANKED'),
+    fetchStatsMode(uid, region, key, 'cs', 'RANKED'),
   ])
-  const stats = normalizeStats({ br, cs })
+  const stats = normalizeStats({ br, cs, rankedBr, rankedCs })
   if (!stats) return { ok: false, outcome: 'empty' }
   return { ok: true, stats }
 }
