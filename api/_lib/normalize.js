@@ -4,6 +4,7 @@
 // si no, quedan vacios (nunca se fabrican).
 
 import { resolveAvatar, resolveBanner } from './profile-images.js'
+import { enrichRanks } from './rank-enrichment.js'
 
 // Placeholders de UI que algunas fuentes (FreeFireMania) filtran como "nombre"
 // de clan cuando el parseo del nombre falla. No son nombres reales => se vacian.
@@ -20,6 +21,9 @@ export function buildResponse(uid, profile, cacheHit) {
   // Avatar/banner por resolvers dedicados (NO el resolver de items del outfit).
   const avatarRes = resolveAvatar(profile)
   const bannerRes = resolveBanner(profile)
+  // Enriquecimiento de rangos por-campo (provenance + confidence + tier-key).
+  // secondaryCs: cuando exista un proveedor CS verificado se inyecta aqui.
+  const ranks = enrichRanks(profile, { secondaryCs: profile.secondaryCs })
 
   return {
     ok: true,
@@ -68,17 +72,26 @@ export function buildResponse(uid, profile, cacheHit) {
     elitePass: profile.elitePass || '',
     season: profile.season || '',
 
-    // Rangos (pueblan solo con proveedor rico). BR = RP; CS = ESTRELLAS.
+    // Rangos enriquecidos por-campo. BR = RP (verificado); CS = ESTRELLAS (solo
+    // si un proveedor secundario verificado las aporta; si no, vacio).
     rankBR: profile.rankBR || '',
     rankBRDivision: profile.rankBRDivision || '',
     rankBRPoints: profile.rankBRPoints || '',
     rankBRCode: profile.rankBRCode || '',
+    rankBRSource: ranks.brRankSource,
+    rankBRConfidence: ranks.brRankConfidence,
+    rankBRTierKey: ranks.brTierKey,
     rankCS: profile.rankCS || '',
     rankCSDivision: profile.rankCSDivision || '',
-    rankCSStars: profile.rankCSStars || '', // vacio: la API no da las estrellas reales del juego
-    rankCSRawValue: profile.rankCSRawValue || '', // valor interno csRankingPoints (no mostrar como estrellas)
+    rankCSStars: ranks.csStars, // solo con proveedor secundario verificado
+    rankCSSeason: ranks.csSeason, // temporada CS separada de BR (si se obtiene)
+    rankCSRawValue: profile.rankCSRawValue || '', // valor interno csRankingPoints (no es estrellas)
     rankCSPoints: '', // no exponer como puntos
     rankCSCode: profile.rankCSCode || '',
+    rankCSSource: ranks.csRankSource,
+    rankCSStarsSource: ranks.csStarsSource,
+    rankCSStarsConfidence: ranks.csStarsConfidence,
+    rankCSTierKey: ranks.csTierKey,
 
     // Perfil visual / cosmeticos:
     title: profile.title || '',
