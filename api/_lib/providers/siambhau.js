@@ -108,15 +108,15 @@ export function mapSiamBhauProfile(data) {
     // Prime (anidado en primeInfo.primeLevel):
     primeLevel: prime.primeLevel != null && prime.primeLevel !== 0 ? String(prime.primeLevel) : '',
 
-    // Perfil visual (SiamBhau da IDs; el avatar/banner en URL lo completa el
-    // merge keyless si no hay CDN configurado):
+    // Perfil visual: SiamBhau da IDs. El avatar/banner los resuelve profile-images
+    // (prioriza la URL real de la fuente de perfil via el merge keyless; si no,
+    // catalogo por headPic/bannerId). avatarId NO se usa para el avatar (es el
+    // personaje base, no el avatar equipado). Aqui NO se fija avatar/banner.
     title: basic.title != null ? String(basic.title) : '',
     badgeCount: basic.badgeCnt != null ? String(basic.badgeCnt) : '',
     avatarId: avatarId ? String(avatarId) : '',
     bannerId: bannerId ? String(bannerId) : '',
     headPic: headPic ? String(headPic) : '',
-    avatar: iconUrl(avatarId),
-    banner: iconUrl(bannerId),
 
     // Outfit: lista de IDs (+ url si hay CDN configurado).
     outfit: (Array.isArray(clothes) ? clothes : []).map((id) => ({ id: String(id), image: iconUrl(id) })),

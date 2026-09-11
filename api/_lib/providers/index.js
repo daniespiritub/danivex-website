@@ -89,10 +89,14 @@ async function mergeImagesFromKeyless(uid, profile, logEvent) {
       const r = await provider.getProfile(uid, {})
       if (r.ok && (r.profile.avatar || r.profile.banner)) {
         logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: 'image_merge' })
+        const avatar = profile.avatar || r.profile.avatar || ''
+        const banner = profile.banner || r.profile.banner || ''
         return {
           ...profile,
-          avatar: profile.avatar || r.profile.avatar || '',
-          banner: profile.banner || r.profile.banner || '',
+          avatar,
+          banner,
+          avatarSource: avatar && avatar === r.profile.avatar ? provider.name : profile.avatarSource,
+          bannerSource: banner && banner === r.profile.banner ? provider.name : profile.bannerSource,
         }
       }
     } catch {
