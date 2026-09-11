@@ -46,10 +46,13 @@ export function resolveAvatar(profile) {
   return { url: '', source: '' }
 }
 
-// Devuelve { url, source } para el BANNER.
+// Devuelve { url, source, fallback } para el BANNER. `fallback` es el asset por
+// bannerId en el catalogo (jsDelivr, sin hotlink): lo usa el frontend en onError
+// si la URL principal (proveedor de perfil) fallara al renderizar.
 export function resolveBanner(profile) {
+  const catalog = profile?.bannerId ? itemIconUrl(profile.bannerId) : ''
   const real = realProviderUrl(profile?.banner)
-  if (real) return { url: real, source: profile?.bannerSource || 'provider' }
-  if (profile?.bannerId) return { url: itemIconUrl(profile.bannerId), source: 'catalog:bannerId' }
-  return { url: '', source: '' }
+  if (real) return { url: real, source: profile?.bannerSource || 'provider', fallback: catalog }
+  if (catalog) return { url: catalog, source: 'catalog:bannerId', fallback: '' }
+  return { url: '', source: '', fallback: '' }
 }

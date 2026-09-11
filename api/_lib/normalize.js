@@ -56,6 +56,7 @@ export function buildResponse(uid, profile, cacheHit) {
     skinError: profile.skinError || '',
     avatar: avatarRes.url,
     banner: bannerRes.url,
+    bannerFallback: bannerRes.fallback || '',
     avatarSource: avatarRes.source,
     bannerSource: bannerRes.source,
     // IDs de referencia (para re-resolver dinamicamente y para snapshots):
