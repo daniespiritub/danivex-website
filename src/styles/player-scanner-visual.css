@@ -237,6 +237,9 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 4px 12px -4px rgba(0, 0, 0, 0.6);
 }
 .ps-emblem-sm { width: 20px; height: 20px; border-radius: 6px; font-size: 0.6rem; }
+/* Emblema OFICIAL (PNG self-hosted). object-fit contain para respetar el arte. */
+.ps-emblem-img { width: 46px; height: 46px; object-fit: contain; flex: 0 0 auto; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5)); }
+.ps-emblem-img-sm { width: 30px; height: 30px; }
 .ps-emblem-bronze { background: linear-gradient(135deg, #e0955a, #a5642f); }
 .ps-emblem-silver { background: linear-gradient(135deg, #d8dee8, #9aa4b2); }
 .ps-emblem-gold { background: linear-gradient(135deg, #ffd76b, #e0a72c); }
