@@ -22,8 +22,9 @@ const num = (v) => {
   const n = Number(v)
   return Number.isFinite(n) ? n : 0
 }
-// Porcentaje con 1 decimal (0 si el divisor es 0).
-const pct = (a, b) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0)
+// Porcentaje con 2 decimales (0 si el divisor es 0). 2 decimales para COINCIDIR
+// exactamente con lo que muestra el juego (p.ej. CS RANKED HS% 68.21, WR 63.41).
+const pct = (a, b) => (b > 0 ? Math.round((a / b) * 10000) / 100 : 0)
 // Ratio con 2 decimales (si no hay muertes, se usa el nº de kills como piso).
 const ratio = (a, b) => (b > 0 ? Math.round((a / b) * 100) / 100 : num(a))
 
