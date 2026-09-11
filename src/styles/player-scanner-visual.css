@@ -209,6 +209,37 @@
 .ps-rankcard-empty .ps-rankcard-mode { color: var(--text-muted, #98a2b0); }
 .ps-rankcard-tier { font-size: 1.5rem; font-weight: 800; font-family: var(--font-display, sans-serif); color: var(--text, #f2f4f7); }
 .ps-rankcard-meta { display: flex; gap: 14px; font-size: 0.82rem; color: var(--text-muted, #98a2b0); }
+.ps-rankcard-note { display: block; margin-top: 8px; font-size: 0.72rem; color: var(--text-faint, #5c6672); font-style: italic; }
+
+/* ---------------- MASCOTA (compañero de loadout) ---------------- */
+/* En la Player Card: outfit + pet juntos como "loadout". */
+.pc-loadout-wrap { display: flex; align-items: center; gap: 12px; align-self: center; }
+.pc-pet {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.pc-pet img {
+  width: 66px; height: 66px; object-fit: contain;
+  border-radius: 14px; background: rgba(0, 0, 0, 0.30);
+  border: 1px solid rgba(120, 220, 200, 0.35);
+  box-shadow: 0 0 14px -4px rgba(80, 220, 190, 0.45);
+}
+.pc-pet-name { font-size: 0.66rem; color: rgba(255, 255, 255, 0.8); max-width: 72px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* En la seccion Outfit: mini-card de mascota. */
+.ps-pet-card {
+  display: flex; align-items: center; gap: 16px; margin-top: 16px; padding: 14px 16px;
+  border-radius: 14px; background: var(--surface-sunken, #0f1115);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+}
+.ps-pet-img {
+  width: 84px; height: 84px; object-fit: contain; flex: 0 0 auto;
+  border-radius: 14px; background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(120, 220, 200, 0.30);
+}
+.ps-pet-info { display: flex; flex-direction: column; gap: 2px; }
+.ps-pet-label { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted, #98a2b0); }
+.ps-pet-name-lg { font-size: 1.1rem; font-weight: 800; color: var(--text, #f2f4f7); }
+.ps-pet-lvl { font-size: 0.8rem; color: var(--text-faint, #5c6672); }
 
 /* ---------------- PERFIL DETALLE ---------------- */
 .ps-detail {
@@ -247,7 +278,8 @@
 @media (max-width: 780px) {
   .pc-body { grid-template-columns: auto 1fr; gap: 16px; padding: 20px 18px; }
   .pc-avatar { width: 84px; height: 84px; border-radius: 16px; }
-  .pc-loadout { grid-column: 1 / -1; grid-template-columns: repeat(6, 1fr); margin-top: 6px; }
+  .pc-loadout-wrap { grid-column: 1 / -1; justify-content: flex-start; flex-wrap: wrap; margin-top: 6px; }
+  .pc-loadout { grid-template-columns: repeat(6, 1fr); }
   .pc-slot { max-width: 54px; }
   .ps-outfit { grid-template-columns: 1fr; }
   .ps-outfit-hero { flex-direction: row; justify-content: center; }
@@ -255,10 +287,11 @@
 
 @media (max-width: 460px) {
   .pc-body { grid-template-columns: 1fr; justify-items: start; text-align: left; }
-  .pc-avatar-wrap { }
-  .pc-loadout { grid-template-columns: repeat(4, 1fr); width: 100%; }
+  .pc-loadout-wrap { width: 100%; }
+  .pc-loadout { grid-template-columns: repeat(4, 1fr); flex: 1; }
   .ps-summary-grid, .ps-detail-grid { grid-template-columns: repeat(2, 1fr); }
   .ps-section { padding: 18px 15px; }
+  .ps-pet-card { flex-direction: column; text-align: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

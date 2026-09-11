@@ -28,8 +28,8 @@ export const PLAYER_DATA_FIELDS = [
   // BR = RP (rankBRPoints); CS = ESTRELLAS (rankCSStars). Se guardan los codigos
   // raw (rankBRCode/rankCSCode) como identidad historica del tier.
   'rankBR', 'rankBRDivision', 'rankBRPoints', 'rankBRCode',
-  'rankCS', 'rankCSDivision', 'rankCSStars', 'rankCSPoints', 'rankCSCode', 'season',
-  'title', 'badgeCount', 'pet', 'petLevel', 'outfit',
+  'rankCS', 'rankCSDivision', 'rankCSStars', 'rankCSRawValue', 'rankCSPoints', 'rankCSCode', 'season',
+  'title', 'badgeCount', 'pet', 'petLevel', 'petId', 'petSkinId', 'petImage', 'outfit',
 ]
 
 // Significativos para el content-hash. Excluye lo volatil (lastLogin,
@@ -40,8 +40,8 @@ export const MEANINGFUL_FIELDS = [
   'nickname', 'region', 'regionCode', 'level', 'exp', 'likes',
   'gameVersion', 'pass', 'clan', 'clanId', 'clanLevel', 'clanMembers',
   'bio', 'avatar', 'banner', 'headPic', 'bannerId', 'diamonds', 'primeLevel',
-  'rankBR', 'rankBRCode', 'rankBRPoints', 'rankCS', 'rankCSCode', 'rankCSStars', 'season',
-  'title', 'pet', 'petLevel', 'outfit',
+  'rankBR', 'rankBRCode', 'rankBRPoints', 'rankCS', 'rankCSCode', 'rankCSRawValue', 'season',
+  'title', 'pet', 'petLevel', 'petSkinId', 'outfit',
 ]
 
 // Serializa de forma estable un valor para el hash (arrays => JSON).
@@ -100,14 +100,18 @@ export function normalizeStoredPlayer(uid, profile) {
     rankBRCode: profile.rankBRCode || '',
     rankCS: profile.rankCS || '',
     rankCSDivision: profile.rankCSDivision || '',
-    rankCSStars: profile.rankCSStars || profile.rankCSPoints || '',
-    rankCSPoints: profile.rankCSPoints || '',
+    rankCSStars: profile.rankCSStars || '',
+    rankCSRawValue: profile.rankCSRawValue || '',
+    rankCSPoints: '',
     rankCSCode: profile.rankCSCode || '',
     season: profile.season || '',
     title: profile.title || '',
     badgeCount: profile.badgeCount || '',
     pet: profile.pet || '',
     petLevel: profile.petLevel || '',
+    petId: profile.petId || '',
+    petSkinId: profile.petSkinId || '',
+    petImage: profile.petImage || '',
     outfit: Array.isArray(profile.outfit) ? profile.outfit : [],
     sourceUrl: profile.sourceUrl || '',
     provider: profile.provider || 'Public source',

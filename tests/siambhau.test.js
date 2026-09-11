@@ -53,15 +53,27 @@ test('mapSiamBhauProfile: PRIME desde primeInfo.primeLevel (anidado)', () => {
   assert.equal(p.primeLevel, '8')
 })
 
-test('mapSiamBhauProfile: BR=Maestro(321)/RP y CS=Gran Maestro(323)/estrellas', () => {
+test('mapSiamBhauProfile: BR verificado (Maestro/RP) y CS sin estrellas falsas', () => {
   const p = mapSiamBhauProfile(fixture)
+  // BR: verificado contra el juego (RP + temporada coinciden).
   assert.equal(p.rankBR, 'Maestro') // codigo 321 = Maestro, NO Gran Maestro
   assert.equal(p.rankBRPoints, '3539') // BR se mide en RP
   assert.equal(p.rankBRCode, '321')
-  assert.equal(p.rankCS, 'Gran Maestro') // codigo 323 = Gran Maestro
-  assert.equal(p.rankCSStars, '142') // CS se mide en ESTRELLAS
-  assert.equal(p.rankCSCode, '323')
   assert.equal(p.season, '53')
+  // CS: el valor de la API (142) NO son las estrellas del juego (55) -> NO se
+  // expone como estrellas. Solo se conserva el raw internamente + el tier.
+  assert.equal(p.rankCS, 'Gran Maestro') // tier desde el codigo csRank
+  assert.equal(p.rankCSCode, '323')
+  assert.equal(p.rankCSStars, '', 'NO debe fabricar estrellas cuando la API no da el valor real del juego')
+  assert.equal(p.rankCSRawValue, '142', 'conserva el valor raw csRankingPoints internamente')
+})
+
+test('mapSiamBhauProfile: imagen de mascota usa la skin equipada (skinId)', () => {
+  const p = mapSiamBhauProfile({ basicInfo: { nickname: 'X' }, petInfo: { id: 1300000091, name: 'Palomita', level: 7, skinId: 1310000097 } })
+  assert.equal(p.pet, 'Palomita')
+  assert.equal(p.petLevel, '7')
+  assert.match(p.petImage, /1310000097/, 'usa la skin equipada, no el id base')
+  assert.equal(p.petSkinId, '1310000097')
 })
 
 test('mapSiamBhauProfile: tiers por codigo verificado (301..323)', () => {

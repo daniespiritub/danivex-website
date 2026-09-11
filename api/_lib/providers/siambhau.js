@@ -42,27 +42,39 @@ function iconUrl(id) {
   return `${ITEM_ICON_BASE.replace(/\/$/, '')}/${id}.${ICON_EXT}`
 }
 
-// Mapea los rangos BR/CS desde basicInfo. BR = RP; CS = ESTRELLAS. Conserva los
-// codigos raw. Si showBrRank/showCsRank es false, el rango se oculta.
+// Mapea los rangos BR/CS desde basicInfo. Conserva los codigos raw.
+//
+// VERIFICADO contra capturas del juego (UID 2196518104, 2026-09-11):
+//  - BR: rankingPoints (3539) = RP mostrado en el juego; seasonId (53) = temporada
+//    BR. COINCIDE => BR se muestra con RP + temporada (verificado).
+//  - CS: el juego muestra 55 estrellas y temporada S38, pero la API devuelve
+//    csRankingPoints=142 y NO trae la temporada CS (seasonId es solo la de BR).
+//    142 != 55 => NO se muestra ese numero como "estrellas" (seria falso). Se
+//    conserva el valor raw internamente (rankCSRawValue) pero rankCSStars queda
+//    vacio. El TIER de CS si sale del codigo csRank (=csMaxRank actual).
 function mapRanks(basic) {
   const brTier = basic.showBrRank === false ? { name: '', division: '', code: '', confidence: 'hidden' } : resolveRankTier(basic.rank ?? basic.brRank)
   const csTier = basic.showCsRank === false ? { name: '', division: '', code: '', confidence: 'hidden' } : resolveRankTier(basic.csRank)
   const str = (v) => (v != null ? String(v) : '')
-  const csStars = str(basic.csRankingPoints ?? basic.csRankPoint)
+  const csRaw = str(basic.csRankingPoints ?? basic.csRankPoint)
   return {
-    // Battle Royale (RP):
+    // Battle Royale (RP) — verificado contra el juego:
     rankBR: rankLabel(brTier),
     rankBRDivision: brTier.division,
     rankBRCode: str(basic.rank ?? basic.brRank),
     rankBRPoints: str(basic.rankingPoints ?? basic.brRankPoint),
     rankBRConfidence: brTier.confidence,
-    // Clash Squad (ESTRELLAS):
+    // Clash Squad — tier desde el codigo; el valor raw NO es las estrellas del
+    // juego (142 != 55), asi que no se muestra como estrellas. Se guarda raw.
     rankCS: rankLabel(csTier),
     rankCSDivision: csTier.division,
     rankCSCode: str(basic.csRank),
-    rankCSStars: csStars,
-    rankCSPoints: csStars, // backward-compat de snapshots viejos (mismo valor)
-    rankCSConfidence: csTier.confidence,
+    rankCSStars: '', // no se fabrica: la API no da las estrellas reales del juego
+    rankCSRawValue: csRaw, // valor interno csRankingPoints (pendiente de interpretacion)
+    rankCSPoints: '', // no exponer como puntos (seria falso)
+    rankCSConfidence: csTier.confidence === 'verified' ? 'tier_only' : csTier.confidence,
+    // seasonId es la temporada de BR; CS tiene su propia temporada que la API no
+    // expone, por eso NO se asigna una temporada a CS.
     season: str(basic.seasonId),
   }
 }
@@ -126,9 +138,14 @@ export function mapSiamBhauProfile(data) {
     // Outfit: lista de IDs (+ url si hay CDN configurado).
     outfit: (Array.isArray(clothes) ? clothes : []).map((id) => ({ id: String(id), image: iconUrl(id) })),
 
-    // Pet (con nombre real cuando viene):
+    // Pet (con nombre real + imagen). Se usa la skin equipada (skinId) para la
+    // imagen: coincide con lo que muestra el juego (ej: aguila teal). Fallback al
+    // id base del pet. Verificado 2026-09-11 con el pet real del UID de prueba.
     pet: pet.name || (pet.id != null ? String(pet.id) : ''),
     petLevel: pet.level != null ? String(pet.level) : '',
+    petId: pet.id != null ? String(pet.id) : '',
+    petSkinId: pet.skinId != null ? String(pet.skinId) : '',
+    petImage: iconUrl(pet.skinId || pet.id),
 
     // Bio / social:
     bio: social.signature || basic.signature || '',

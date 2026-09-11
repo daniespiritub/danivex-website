@@ -249,6 +249,17 @@ function PlayerScanner() {
             ) : (
               <p className="ps-muted">Outfit visual no disponible para esta cuenta.</p>
             )}
+
+            {player.petImage && (
+              <div className="ps-pet-card">
+                <img className="ps-pet-img" src={player.petImage} alt={player.pet || 'Mascota'} loading="lazy" onError={hideImg} />
+                <div className="ps-pet-info">
+                  <span className="ps-pet-label">Mascota</span>
+                  <span className="ps-pet-name-lg">{player.pet || 'Mascota equipada'}</span>
+                  {player.petLevel && <span className="ps-pet-lvl">Nivel {player.petLevel}</span>}
+                </div>
+              </div>
+            )}
           </section>
 
           {/* RANGOS */}
@@ -256,7 +267,7 @@ function PlayerScanner() {
             <h3 className="ps-h3">Rangos</h3>
             <div className="ps-ranks">
               <RankCard title="Battle Royale" tier={player.rankBR} division={player.rankBRDivision} metric={player.rankBRPoints} metricLabel="RP" season={player.season} />
-              <RankCard title="Clash Squad" tier={player.rankCS} division={player.rankCSDivision} metric={player.rankCSStars} metricLabel="★" season={player.season} />
+              <RankCard title="Duelo de Escuadras" tier={player.rankCS} division={player.rankCSDivision} metric={player.rankCSStars} metricLabel="★" season="" note="Estrellas y temporada de CS no disponibles en la fuente" />
             </div>
           </section>
 
@@ -415,13 +426,23 @@ function PlayerCard({ player, primeLevel, outfit, changesCount, onSeeHistory }) 
           )}
         </div>
 
-        {outfit.length > 0 && (
-          <div className="pc-loadout" aria-label="Outfit equipado">
-            {outfit.slice(0, 6).map((item, i) => (
-              <div className="pc-slot" key={item.id || i}>
-                <img src={item.image} alt={`Item equipado ${i + 1}`} loading="lazy" onError={hideSlot} />
+        {(outfit.length > 0 || player.petImage) && (
+          <div className="pc-loadout-wrap">
+            {outfit.length > 0 && (
+              <div className="pc-loadout" aria-label="Outfit equipado">
+                {outfit.slice(0, 6).map((item, i) => (
+                  <div className="pc-slot" key={item.id || i}>
+                    <img src={item.image} alt={`Item equipado ${i + 1}`} loading="lazy" onError={hideSlot} />
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+            {player.petImage && (
+              <div className="pc-pet" title={player.pet ? `Mascota: ${player.pet}${player.petLevel ? ` (Nv ${player.petLevel})` : ''}` : 'Mascota'}>
+                <img src={player.petImage} alt={player.pet || 'Mascota'} loading="lazy" onError={hideImg} />
+                {player.pet && <span className="pc-pet-name">{player.pet}</span>}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -461,7 +482,7 @@ function StatTile({ label, value, sub, accent, onClick }) {
   )
 }
 
-function RankCard({ title, tier, division, metric, metricLabel, season }) {
+function RankCard({ title, tier, division, metric, metricLabel, season, note }) {
   const has = Boolean(tier)
   return (
     <div className={`ps-rankcard${has ? '' : ' ps-rankcard-empty'}`}>
@@ -471,6 +492,7 @@ function RankCard({ title, tier, division, metric, metricLabel, season }) {
         {metric && <span>{metricLabel === '★' ? `${metric} ★` : `${metric} ${metricLabel}`}</span>}
         {season && <span>Temporada {season}</span>}
       </div>
+      {note && <span className="ps-rankcard-note">{note}</span>}
     </div>
   )
 }

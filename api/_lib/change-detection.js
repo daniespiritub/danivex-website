@@ -53,8 +53,10 @@ export function detectPlayerEvents(prev, next) {
   // Metrica: BR en RP, CS en ESTRELLAS (solo si NO cambio el tier, para no
   // duplicar; el cambio de tier ya es evento propio).
   if (!changed('rankBR') && changed('rankBRPoints')) events.push(ev('RANK_BR_RP_CHANGED', 'rankBRPoints', prev.rankBRPoints, next.rankBRPoints))
-  const csStars = (p) => norm(p.rankCSStars || p.rankCSPoints)
-  if (!changed('rankCS') && csStars(prev) !== csStars(next)) events.push(ev('RANK_CS_STARS_CHANGED', 'rankCSStars', csStars(prev), csStars(next)))
+  // CS: se compara el valor raw interno (rankCSRawValue), no un "estrellas"
+  // fabricado. Backward-compat con snapshots viejos que usaban rankCSStars/Points.
+  const csVal = (p) => norm(p.rankCSRawValue || p.rankCSStars || p.rankCSPoints)
+  if (!changed('rankCS') && csVal(prev) !== csVal(next)) events.push(ev('RANK_CS_CHANGED', 'rankCS', prev.rankCS, next.rankCS))
   if (changed('title')) events.push(ev('TITLE_CHANGED', 'title', prev.title, next.title))
   if (changed('pet')) events.push(ev('PET_CHANGED', 'pet', prev.pet, next.pet))
 
