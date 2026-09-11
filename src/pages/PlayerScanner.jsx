@@ -31,6 +31,7 @@ const SECTIONS = [
   { id: 'outfit', label: 'Outfit' },
   { id: 'rangos', label: 'Rangos' },
   { id: 'estadisticas', label: 'Estadisticas' },
+  { id: 'pases', label: 'Pases' },
   { id: 'perfil', label: 'Perfil' },
   { id: 'historial', label: 'Historial' },
 ]
@@ -39,6 +40,12 @@ const SECTIONS = [
 function hasStats(player) {
   const s = player?.stats
   return Boolean(s && ((s.br && (s.br.solo || s.br.duo || s.br.squad)) || s.cs))
+}
+
+// ¿Hay coleccion de pases publicada para este UID?
+function hasPasses(player) {
+  const p = player?.passCollection
+  return Boolean(p && ((p.elitePass && p.elitePass.length) || (p.booyahPass && p.booyahPass.length)))
 }
 
 function PlayerScanner() {
@@ -215,7 +222,7 @@ function PlayerScanner() {
           )}
 
           <nav className="ps-nav" aria-label="Secciones del perfil">
-            {SECTIONS.filter((s) => s.id !== 'estadisticas' || hasStats(player)).map((s) => (
+            {SECTIONS.filter((s) => (s.id !== 'estadisticas' || hasStats(player)) && (s.id !== 'pases' || hasPasses(player))).map((s) => (
               <button key={s.id} type="button" className={activeSection === s.id ? 'ps-chip active' : 'ps-chip'} onClick={() => goToSection(s.id)}>
                 {s.label}
               </button>
@@ -285,6 +292,14 @@ function PlayerScanner() {
             <section id="ps-estadisticas" className="ps-section">
               <h3 className="ps-h3">Estadisticas</h3>
               <StatsPanel stats={player.stats} />
+            </section>
+          )}
+
+          {/* PASES */}
+          {hasPasses(player) && (
+            <section id="ps-pases" className="ps-section">
+              <h3 className="ps-h3">Coleccion de Pases</h3>
+              <PassCollection collection={player.passCollection} />
             </section>
           )}
 
@@ -611,6 +626,60 @@ function StatModeCard({ title, mode, m }) {
           <div className="ps-statcell" key={k}>
             <span className="ps-statcell-v">{v}</span>
             <span className="ps-statcell-k">{k}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Coleccion de Pases: catalogo historico + posesion real. Adquirido = dorado;
+// No adquirido = gris/desaturado. El estado NO depende solo del color (label +
+// aria-label + icono). Filtros por sistema (Elite/Booyah) y por estado.
+function PassFilterChip({ active, onClick, children }) {
+  return <button type="button" className={active ? 'ps-passfilter active' : 'ps-passfilter'} onClick={onClick}>{children}</button>
+}
+
+function PassCollection({ collection }) {
+  const [sys, setSys] = useState('all') // all | elite-pass | booyah-pass
+  const [own, setOwn] = useState('all') // all | owned | not-owned
+  if (!collection) return null
+  const c = collection.counts || {}
+  const all = [...(collection.booyahPass || []), ...(collection.elitePass || [])]
+  const list = all
+    .filter((p) => sys === 'all' || p.system === sys)
+    .filter((p) => own === 'all' || (own === 'owned' ? p.owned : !p.owned))
+    .sort((a, b) => b.num - a.num)
+  return (
+    <div className="ps-passes">
+      <div className="ps-pass-counts">
+        <span className="ps-pass-count"><strong>{(c.eliteOwned || 0) + (c.booyahOwned || 0)}</strong> / {(c.eliteTotal || 0) + (c.booyahTotal || 0)} adquiridos</span>
+        <span className="ps-pass-count ps-pass-count-elite">Pase de Élite {c.eliteOwned || 0}/{c.eliteTotal || 0}</span>
+        <span className="ps-pass-count ps-pass-count-booyah">Pase Booyah {c.booyahOwned || 0}/{c.booyahTotal || 0}</span>
+      </div>
+      <div className="ps-pass-filters">
+        <div className="ps-passfilter-group">
+          <PassFilterChip active={sys === 'all'} onClick={() => setSys('all')}>Todos</PassFilterChip>
+          <PassFilterChip active={sys === 'elite-pass'} onClick={() => setSys('elite-pass')}>Élite</PassFilterChip>
+          <PassFilterChip active={sys === 'booyah-pass'} onClick={() => setSys('booyah-pass')}>Booyah</PassFilterChip>
+        </div>
+        <div className="ps-passfilter-group">
+          <PassFilterChip active={own === 'all'} onClick={() => setOwn('all')}>Todos</PassFilterChip>
+          <PassFilterChip active={own === 'owned'} onClick={() => setOwn('owned')}>Adquiridos</PassFilterChip>
+          <PassFilterChip active={own === 'not-owned'} onClick={() => setOwn('not-owned')}>No adquiridos</PassFilterChip>
+        </div>
+      </div>
+      <div className="ps-pass-grid">
+        {list.map((p) => (
+          <div key={p.id} className={`ps-passcard${p.owned ? ' owned' : ' not-owned'}`}
+            aria-label={`${p.name} · ${p.system === 'elite-pass' ? 'Pase de Élite' : 'Pase Booyah'} · ${p.owned ? 'Adquirido' : 'No adquirido'}`}>
+            <div className="ps-passcard-img">
+              <img src={p.image} alt="" aria-hidden="true" loading="lazy" width="72" height="72"
+                onError={(e) => { const ph = e.currentTarget.parentElement; if (ph) { e.currentTarget.style.display = 'none'; ph.classList.add('ps-passcard-noimg'); ph.dataset.n = '#' + p.num } }} />
+              {p.owned && <span className="ps-passcard-check" aria-hidden="true">✓</span>}
+            </div>
+            <span className="ps-passcard-name" title={p.name}>{p.name}</span>
+            <span className="ps-passcard-state">{p.owned ? 'Adquirido' : 'No adquirido'}</span>
           </div>
         ))}
       </div>

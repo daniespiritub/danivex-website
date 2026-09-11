@@ -8,6 +8,37 @@ import { enrichRanks } from './rank-enrichment.js'
 import { verifiedSecondaryCs } from './verified-observations.js'
 import { resolveCsTierFromStars } from './cs-rank-rules.js'
 import { resolveBadge } from './badge-resolver.js'
+import { getPassCatalog } from './pass-catalog.js'
+
+// Construye la coleccion de pases: catalogo historico + POSESION real (del album
+// publico de FreeFireMania). Solo incluye los pases que aparecen en el album (con
+// posesion conocida owned/not-owned); los que FFM no publica quedan fuera (no se
+// inventa ownership). null si no hay album.
+function buildPassCollection(album) {
+  if (!album || (!Array.isArray(album.owned) && !Array.isArray(album.notOwned))) return null
+  const ownedSet = new Set(album.owned || [])
+  const notOwnedSet = new Set(album.notOwned || [])
+  const values = album.values || {}
+  const elitePass = []
+  const booyahPass = []
+  let eliteOwned = 0
+  let booyahOwned = 0
+  for (const p of getPassCatalog()) {
+    if (!ownedSet.has(p.num) && !notOwnedSet.has(p.num)) continue // sin dato de posesion
+    const owned = ownedSet.has(p.num)
+    const entry = { num: p.num, id: p.id, system: p.system, name: p.name, image: p.image, owned, ownershipValue: values[p.num] ?? null }
+    if (p.system === 'elite-pass') { elitePass.push(entry); if (owned) eliteOwned += 1 } else { booyahPass.push(entry); if (owned) booyahOwned += 1 }
+  }
+  if (!elitePass.length && !booyahPass.length) return null
+  return {
+    elitePass,
+    booyahPass,
+    counts: { eliteOwned, eliteTotal: elitePass.length, booyahOwned, booyahTotal: booyahPass.length },
+    source: 'freefiremania',
+    confidence: 'verified',
+    updatedAt: new Date().toISOString(),
+  }
+}
 
 // Placeholders de UI que algunas fuentes (FreeFireMania) filtran como "nombre"
 // de clan cuando el parseo del nombre falla. No son nombres reales => se vacian.
@@ -117,6 +148,11 @@ export function buildResponse(uid, profile, cacheHit) {
     badgeId: profile.badgeId || '',
     // Insignia / titulo de perfil resuelto (id -> nombre + imagen). null si no hay.
     badge: resolveBadge(profile.badgeId),
+    // Coleccion de Pases (Elite + Booyah) con posesion real. null si no publicado.
+    passCollection: buildPassCollection(profile.passAlbum),
+    // Album crudo (owned/notOwned/values) — se persiste para reconstruir la
+    // coleccion en lecturas cacheadas sin re-consultar FreeFireMania.
+    passAlbum: profile.passAlbum || null,
     pet: profile.pet || '',
     petLevel: profile.petLevel || '',
     petImage: profile.petImage || '',

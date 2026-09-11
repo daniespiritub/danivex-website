@@ -153,6 +153,11 @@ export function preserveRichFields(existing, incoming) {
   if (statsEmpty && existing.stats && typeof existing.stats === 'object') {
     out.stats = existing.stats
   }
+  // passAlbum: si FFM no publico el album esta vez, conservar el ultimo valido.
+  const passEmpty = !out.passAlbum || typeof out.passAlbum !== 'object'
+  if (passEmpty && existing.passAlbum && typeof existing.passAlbum === 'object') {
+    out.passAlbum = existing.passAlbum
+  }
   return out
 }
 

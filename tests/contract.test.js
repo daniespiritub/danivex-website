@@ -86,6 +86,34 @@ test('CONTRATO: CS del UID verificado — 55★ => MAESTRO (reglas de estrellas)
   assert.equal(r.rankCSStarsSource, 'in-game-verification', 'provenance explicita, NO API live')
 })
 
+test('CONTRATO: passCollection desde el album (posesion real), NO por existir en catalogo', () => {
+  const profile = mapSiamBhauProfile(REAL_FIXTURE)
+  const withAlbum = { ...profile, provider: 'SiamBhau', passAlbum: { owned: [55, 97], notOwned: [98, 29], values: { 55: 334, 97: 110 } } }
+  const r = buildResponse('2196518104', withAlbum, false)
+  assert.ok(r.passCollection, 'debe construir la coleccion')
+  const byNum = Object.fromEntries([...r.passCollection.elitePass, ...r.passCollection.booyahPass].map((p) => [p.num, p]))
+  // Solo los del album; posesion real (no todo el catalogo es owned).
+  assert.equal(byNum[55].owned, true) // Elite P55 owned
+  assert.equal(byNum[98].owned, false) // Booyah P98 not owned
+  assert.equal(byNum[29].owned, false)
+  assert.equal(byNum[1], undefined, 'un pase que NO esta en el album NO se incluye (posesion desconocida)')
+  assert.equal(r.passCollection.counts.eliteOwned, 1)
+  assert.equal(r.passCollection.counts.booyahOwned, 1)
+  assert.equal(r.passCollection.source, 'freefiremania')
+})
+
+test('CONTRATO: sin album publicado => passCollection null (no se fabrica ownership)', () => {
+  const r = fullResponse() // fixture sin passAlbum
+  assert.equal(r.passCollection, null)
+})
+
+test('CONTRATO: Mystery Badge (badge) es SEPARADO de passCollection, no es historial de pases', () => {
+  const r = fullResponse()
+  assert.ok(r.badge, 'el profile badge sigue como campo propio')
+  assert.equal(r.passCollection, null, 'el badge NO se convierte en coleccion de pases')
+  assert.notEqual(r.badge.type, undefined)
+})
+
 test('CONTRATO: insignia de perfil resuelta (badgeId => nombre + imagen)', () => {
   const r = fullResponse()
   assert.ok(r.badge, 'debe resolver la insignia del badgeId')
