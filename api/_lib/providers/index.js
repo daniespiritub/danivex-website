@@ -38,10 +38,32 @@ export function resolveProviders() {
 // outcomes que significan "no aplica este proveedor" (no es un error real).
 const SKIP_OUTCOMES = new Set(['disabled', 'no_region', 'no_key'])
 
+// Construye la respuesta final para un proveedor que dio perfil. Para el
+// proveedor rico (SiamBhau) enriquece best-effort y EN PARALELO: (a) completa la
+// URL de avatar/banner desde la fuente keyless; (b) adjunta las stats reales de
+// partidas. Si el enriquecimiento falla, el perfil base sigue intacto.
+async function buildProviderResponse(provider, result, uid, region, logEvent, fallback) {
+  let profile = { ...result.profile, provider: provider.label, sourceUrl: result.sourceUrl }
+  if (optionalProviders.includes(provider)) {
+    const needImages = !profile.avatar || !profile.banner
+    const [mergedProfile, statsResult] = await Promise.all([
+      needImages ? mergeImagesFromKeyless(uid, profile, logEvent) : Promise.resolve(profile),
+      typeof provider.getStats === 'function' ? provider.getStats(uid, { region }).catch(() => ({ ok: false })) : Promise.resolve({ ok: false }),
+    ])
+    profile = mergedProfile
+    if (statsResult?.ok && statsResult.stats) profile.stats = statsResult.stats
+    logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: statsResult?.ok ? 'stats_ok' : 'stats_miss' })
+  }
+  return { ok: true, provider: provider.name, fallback, response: buildResponse(uid, profile, false) }
+}
+
 export async function fetchProfileFromProviders(uid, { logEvent, region } = {}) {
   const providers = resolveProviders()
   let lastOutcome = 'empty'
   const firstDataProviderIndex = providers.findIndex((p) => !optionalProviders.includes(p))
+  // Proveedores ricos (SiamBhau) saltados por falta de region. Si un proveedor
+  // keyless luego detecta la region del jugador, se reintentan con ella.
+  const skippedForRegion = []
 
   for (let i = 0; i < providers.length; i += 1) {
     const provider = providers[i]
@@ -51,35 +73,27 @@ export async function fetchProfileFromProviders(uid, { logEvent, region } = {}) 
 
     if (result.ok) {
       logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: 'hit', ms })
-      let profile = { ...result.profile, provider: provider.label, sourceUrl: result.sourceUrl }
 
-      // Enriquecimiento del proveedor rico (SiamBhau), best-effort y en PARALELO:
-      //  (a) merge de imagen: SiamBhau da IDs de avatar/banner pero no URL; la
-      //      completamos desde la fuente keyless para no perder la foto de perfil.
-      //  (b) stats: estadisticas REALES de partidas (endpoint /freefireinfo/stats).
-      //      Si fallan, el perfil sigue intacto (no es fatal, nunca rompe el scanner).
-      if (optionalProviders.includes(provider)) {
-        const needImages = !profile.avatar || !profile.banner
-        const [mergedProfile, statsResult] = await Promise.all([
-          needImages ? mergeImagesFromKeyless(uid, profile, logEvent) : Promise.resolve(profile),
-          typeof provider.getStats === 'function' ? provider.getStats(uid, { region }).catch(() => ({ ok: false })) : Promise.resolve({ ok: false }),
-        ])
-        profile = mergedProfile
-        if (statsResult?.ok && statsResult.stats) {
-          profile.stats = statsResult.stats
+      // RECUPERACION DE REGION: la app suele consultar sin region ("Autodetectar"),
+      // y SiamBhau (rico) EXIGE la region correcta. Si SiamBhau se salto por eso y
+      // ahora un keyless nos da la region real del jugador, reintentamos SiamBhau
+      // con esa region para servir el perfil RICO en vez del keyless degradado.
+      const detected = result.profile?.region
+      if (!region && detected && !optionalProviders.includes(provider) && skippedForRegion.length) {
+        for (const opt of skippedForRegion) {
+          const rich = await opt.getProfile(uid, { region: detected }).catch(() => ({ ok: false }))
+          if (rich.ok) {
+            logEvent?.('ff_uid_provider', { uid, provider: opt.name, outcome: 'region_recovered', region: detected })
+            return await buildProviderResponse(opt, rich, uid, detected, logEvent, false)
+          }
         }
-        logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: statsResult?.ok ? 'stats_ok' : 'stats_miss' })
       }
 
-      return {
-        ok: true,
-        provider: provider.name,
-        fallback: i > firstDataProviderIndex,
-        response: buildResponse(uid, profile, false),
-      }
+      return await buildProviderResponse(provider, result, uid, region, logEvent, i > firstDataProviderIndex)
     }
 
     if (SKIP_OUTCOMES.has(result.outcome)) {
+      if (optionalProviders.includes(provider) && result.outcome === 'no_region') skippedForRegion.push(provider)
       logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: result.outcome, ms, skipped: true })
       continue
     }

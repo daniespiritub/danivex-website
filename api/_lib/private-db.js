@@ -128,7 +128,10 @@ export async function getCachedProfile(uid) {
 // el futuro un proveedor secundario VERIFICADO aporta CS, se guardara normalmente.
 const RICH_PRESERVE_FIELDS = [
   'primeLevel', 'rankBR', 'rankBRPoints', 'season',
-  'title', 'badgeCount', 'pet', 'petLevel', 'clanLeader', 'avatar', 'banner',
+  'title', 'badgeCount', 'pet', 'petLevel', 'avatar', 'banner',
+  // Clan: solo lo aporta el proveedor rico (SiamBhau). Un refresh keyless (sin
+  // region) no lo trae => se conserva el ultimo bueno en vez de vaciarlo.
+  'clan', 'clanId', 'clanLevel', 'clanMembers', 'clanLeader',
 ]
 
 export function preserveRichFields(existing, incoming) {

@@ -6,6 +6,7 @@ import fondo from '../assets/fondo-gamer.webp'
 import { formatNumber, generatePlayerFromLookup } from '../data/primeScanner'
 import { buildDaniVexAiRead } from '../data/aiSummary'
 import { comparePlayers, compareSummary } from '../data/compare'
+import { rankEmblemSrc } from '../data/rankEmblems'
 import '../styles/prime-scanner.css'
 import '../styles/player-scanner-visual.css'
 
@@ -273,8 +274,8 @@ function PlayerScanner() {
           <section id="ps-rangos" className="ps-section">
             <h3 className="ps-h3">Rangos</h3>
             <div className="ps-ranks">
-              <RankCard title="Battle Royale" tier={player.rankBR} division={player.rankBRDivision} tierKey={player.rankBRTierKey} metric={player.rankBRPoints} metricLabel="RP" season={player.season} />
-              <RankCard title="Duelo de Escuadras" tier={player.rankCS} division={player.rankCSDivision} tierKey={player.rankCSTierKey} metric={player.rankCSStars} metricLabel="★" season={player.rankCSSeason}
+              <RankCard title="Battle Royale" mode="br" tier={player.rankBR} division={player.rankBRDivision} tierKey={player.rankBRTierKey} metric={player.rankBRPoints} metricLabel="RP" season={player.season} />
+              <RankCard title="Duelo de Escuadras" mode="cs" tier={player.rankCS} division={player.rankCSDivision} tierKey={player.rankCSTierKey} metric={player.rankCSStars} metricLabel="★" season={player.rankCSSeason}
                 note={player.rankCS ? '' : 'La fuente de datos no expone el rango, las estrellas ni la temporada de Duelo de Escuadras.'} />
             </div>
           </section>
@@ -425,7 +426,7 @@ function PlayerCard({ player, primeLevel, outfit, changesCount, onSeeHistory }) 
           <div className="pc-ranks">
             <div className="pc-rank">
               <div className="pc-rank-top">
-                {player.rankBRTierKey && <span className={`ps-emblem ps-emblem-sm ps-emblem-${player.rankBRTierKey}`} aria-hidden="true">{emblemInitial(player.rankBRTierKey)}</span>}
+                <RankEmblem mode="br" tierKey={player.rankBRTierKey} size="sm" />
                 <span className="pc-rank-mode">BR</span>
               </div>
               <span className="pc-rank-tier">{rankFull(player.rankBR, player.rankBRDivision) || 'No disponible'}</span>
@@ -433,7 +434,7 @@ function PlayerCard({ player, primeLevel, outfit, changesCount, onSeeHistory }) 
             </div>
             <div className="pc-rank">
               <div className="pc-rank-top">
-                {player.rankCSTierKey && <span className={`ps-emblem ps-emblem-sm ps-emblem-${player.rankCSTierKey}`} aria-hidden="true">{emblemInitial(player.rankCSTierKey)}</span>}
+                <RankEmblem mode="cs" tierKey={player.rankCSTierKey} size="sm" />
                 <span className="pc-rank-mode">CS</span>
               </div>
               <span className="pc-rank-tier">{rankFull(player.rankCS, player.rankCSDivision) || 'No disponible'}</span>
@@ -504,13 +505,13 @@ function StatTile({ label, value, sub, accent, onClick }) {
   )
 }
 
-function RankCard({ title, tier, division, tierKey, metric, metricLabel, season, note }) {
+function RankCard({ title, mode, tier, division, tierKey, metric, metricLabel, season, note }) {
   const has = Boolean(tier)
   return (
     <div className={`ps-rankcard${has ? '' : ' ps-rankcard-empty'}`}>
       <span className="ps-rankcard-mode">{title}</span>
       <div className="ps-rankcard-head">
-        {tierKey && <span className={`ps-emblem ps-emblem-${tierKey}`} aria-hidden="true">{emblemInitial(tierKey)}</span>}
+        {tierKey && <RankEmblem mode={mode} tierKey={tierKey} size="lg" />}
         <span className="ps-rankcard-tier">{rankFull(tier, division) || 'No disponible'}</span>
       </div>
       <div className="ps-rankcard-meta">
@@ -596,7 +597,22 @@ function StatModeCard({ title, mode, m }) {
   )
 }
 
-// Inicial para el badge de tier (DaniVex, no es un asset del juego).
+// Emblema de rango: intenta el PNG OFICIAL self-hosted (/ff-emblems) y, si no
+// existe o falla la carga, cae al badge de color CSS (fallback). El emblema
+// oficial es el asset real del juego (guía oficial de rangos de Garena).
+function RankEmblem({ mode, tierKey, size = 'sm' }) {
+  const [failed, setFailed] = useState(false)
+  if (!tierKey) return null
+  const src = rankEmblemSrc(mode, tierKey)
+  const badgeCls = `ps-emblem${size === 'sm' ? ' ps-emblem-sm' : ''} ps-emblem-${tierKey}`
+  if (!src || failed) {
+    return <span className={badgeCls} aria-hidden="true">{emblemInitial(tierKey)}</span>
+  }
+  const imgCls = `ps-emblem-img${size === 'sm' ? ' ps-emblem-img-sm' : ''}`
+  return <img className={imgCls} src={src} alt="" aria-hidden="true" loading="lazy" onError={() => setFailed(true)} />
+}
+
+// Inicial para el badge de tier (DaniVex, fallback cuando no hay PNG oficial).
 function emblemInitial(key) {
   const map = { grandmaster: 'GM', master: 'M', heroic: 'H', diamond: 'D', platinum: 'P', gold: 'O', silver: 'S', bronze: 'B' }
   return map[key] || '?'
