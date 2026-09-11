@@ -1,21 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { PiArrowClockwiseBold, PiCrownBold, PiShareNetworkBold } from 'react-icons/pi'
-import AIAnalysisCard from '../components/prime-scanner/AIAnalysisCard'
-import LoadingScanner from '../components/prime-scanner/LoadingScanner'
-import PlayerProfileCard from '../components/prime-scanner/PlayerProfileCard'
-import PrimeBadge from '../components/prime-scanner/PrimeBadge'
-import PrimeProgress from '../components/prime-scanner/PrimeProgress'
+import { PiArrowClockwiseBold, PiCrownSimpleFill, PiShareNetworkBold, PiCrownBold } from 'react-icons/pi'
 import ShareCard from '../components/prime-scanner/ShareCard'
 import logo from '../assets/logo.webp'
 import fondo from '../assets/fondo-gamer.webp'
-import { formatNumber, generatePlayerFromLookup, scannerSteps } from '../data/primeScanner'
+import { formatNumber, generatePlayerFromLookup } from '../data/primeScanner'
 import { buildDaniVexAiRead } from '../data/aiSummary'
 import { comparePlayers, compareSummary } from '../data/compare'
 import '../styles/prime-scanner.css'
+import '../styles/player-scanner-visual.css'
 
-// Regiones soportadas por las fuentes de datos. "Autodetectar" deja que la
-// fuente keyless determine la region; el codigo explicito lo usan proveedores
-// ricos (ej: SiamBhau) que lo requieren.
 const REGIONS = [
   { value: '', label: 'Autodetectar region' },
   { value: 'US', label: 'America (US / NA)' },
@@ -32,13 +25,12 @@ const REGIONS = [
   { value: 'EU', label: 'Europa (EU)' },
 ]
 
-const previewItems = [
-  { title: 'Perfil publico', text: 'Nickname, UID, region, nivel, experiencia y me gusta tal como figuran en la fuente.' },
-  { title: 'Cuenta', text: 'Fecha de creacion, antiguedad y ultimo acceso cuando la fuente los publica.' },
-  { title: 'Gremio', text: 'Nombre del clan, ID, nivel, miembros y lider, si el jugador tiene uno.' },
-  { title: 'Rangos', text: 'Clasificatoria BR y Duelo de Escuadras con puntos, si la fuente los ofrece.' },
-  { title: 'Outfit', text: 'Personaje y cosmeticos equipados, cuando el proveedor los devuelve.' },
-  { title: 'Historial DaniVex', text: 'Cambios detectados entre consultas: nick, nivel, rango, clan, outfit y mas.' },
+const SECTIONS = [
+  { id: 'resumen', label: 'Resumen' },
+  { id: 'outfit', label: 'Outfit' },
+  { id: 'rangos', label: 'Rangos' },
+  { id: 'perfil', label: 'Perfil' },
+  { id: 'historial', label: 'Historial' },
 ]
 
 function PlayerScanner() {
@@ -46,8 +38,6 @@ function PlayerScanner() {
   const [region, setRegion] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isPrimeLoading, setIsPrimeLoading] = useState(false)
-  const [activeStep, setActiveStep] = useState(0)
-  const [progress, setProgress] = useState(0)
   const [player, setPlayer] = useState(null)
   const [actionMessage, setActionMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
@@ -57,6 +47,7 @@ function PlayerScanner() {
   const [compareUid, setCompareUid] = useState('')
   const [comparePlayer, setComparePlayer] = useState(null)
   const [isComparing, setIsComparing] = useState(false)
+  const [activeSection, setActiveSection] = useState('resumen')
   const resultRef = useRef(null)
 
   async function handleSubmit(event) {
@@ -81,19 +72,14 @@ function PlayerScanner() {
     setTimeline([])
     setCompareUid('')
     setComparePlayer(null)
-    setProgress(0)
+    setActiveSection('resumen')
 
-    for (let index = 0; index < scannerSteps.length; index += 1) {
-      setActiveStep(index)
-      setProgress(Math.round(((index + 0.35) / scannerSteps.length) * 100))
-      await wait(210 + index * 28)
-    }
+    // Pequeña espera para que el skeleton se perciba fluido (no bloqueante).
+    await wait(120)
 
     const lookup = await lookupPlayer(cleanUid, region)
     const nextPlayer = generatePlayerFromLookup(cleanUid, lookup)
 
-    setProgress(100)
-    await wait(150)
     setPlayer(nextPlayer)
     setCacheInfo(lookup?.cache || null)
     setIsLoading(false)
@@ -107,14 +93,12 @@ function PlayerScanner() {
     window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
   }
 
-  // Confirmacion de Prime opcional (fuente aparte: FreeFireJornal Prime).
   async function confirmPrime() {
     if (!player) return
     setIsPrimeLoading(true)
     setActionMessage('Consultando nivel Prime en FreeFireJornal...')
     const primeLookup = await lookupFreeFirePrime(player.uid)
     setIsPrimeLoading(false)
-
     if (!primeLookup.ok || !primeLookup.primeConfirmed) {
       setActionMessage(primeLookup.message || 'No se pudo confirmar Prime para este UID.')
       return
@@ -123,7 +107,6 @@ function PlayerScanner() {
     setPlayer((current) => (current && current.uid === player.uid ? applyPrimeToPlayer(current, primeLookup) : current))
   }
 
-  // Deep-link /cuenta/:uid.html
   useEffect(() => {
     const match = window.location.pathname.match(/^\/cuenta\/(\d+)\.html$/)
     if (match) scanUidValue(match[1])
@@ -154,17 +137,20 @@ function PlayerScanner() {
 
   function showShare() {
     setShowShareCard(true)
-    setActionMessage('Tarjeta lista para captura con los datos publicos detectados.')
     window.setTimeout(() => document.querySelector('.share-card-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120)
   }
 
-  const outfit = Array.isArray(player?.outfit) ? player.outfit : []
-  const primeLevelText = player?.providerPrimeLevel
-    ? `Prime ${player.providerPrimeLevel}`
-    : (player?.prime?.diamonds > 0 ? `Prime ${player.prime.level}` : 'No disponible')
+  function goToSection(id) {
+    setActiveSection(id)
+    document.getElementById(`ps-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const primeLevel = playerPrimeLevel(player)
+  const outfit = Array.isArray(player?.outfit) ? player.outfit.filter((o) => o && o.image) : []
+  const changes = timeline.slice(0, 10)
 
   return (
-    <main className="scanner-page" style={{ backgroundImage: `url(${fondo})` }}>
+    <main className="scanner-page ps-page" style={{ backgroundImage: `url(${fondo})` }}>
       <header className="scanner-nav">
         <a className="scanner-brand" href="/">
           <img src={logo} alt="DaniVex" />
@@ -173,212 +159,169 @@ function PlayerScanner() {
         <a className="scanner-home-link" href="/">Volver al inicio</a>
       </header>
 
-      <section className="scanner-hero">
+      <section className="scanner-hero ps-hero">
         <div className="scanner-hero-copy">
           <span className="scanner-kicker">Buscador de jugadores Free Fire</span>
           <h1>Player Scanner</h1>
-          <p>
-            Busca cualquier jugador de Free Fire por su UID y consulta toda su informacion publica:
-            perfil, region, nivel, rangos, clan, outfit e historial de cambios de DaniVex.
-          </p>
+          <p>Busca cualquier jugador por su UID y explora su perfil real: banner, avatar, Prime, rangos, clan, outfit e historial de cambios.</p>
         </div>
 
-        <div className="scanner-stack">
-          <form className="uid-form" onSubmit={handleSubmit}>
-            <label htmlFor="player-uid-input">UID del jugador</label>
-            <div className="uid-input-wrap">
-              <input
-                id="player-uid-input"
-                inputMode="numeric"
-                maxLength={12}
-                placeholder="Ej: 2196518104"
-                value={uid}
-                onChange={(event) => setUid(event.target.value.replace(/[^\d]/g, '').slice(0, 12))}
-              />
-              <button type="submit" disabled={isLoading || uid.length < 6}>
-                {isLoading ? 'Buscando...' : 'Buscar jugador'}
-              </button>
-            </div>
-
-            <label htmlFor="player-region-select" style={{ marginTop: 12 }}>Region (opcional)</label>
-            <select
-              id="player-region-select"
-              className="scanner-region-select"
-              value={region}
-              onChange={(event) => setRegion(event.target.value)}
-            >
-              {REGIONS.map((r) => (
-                <option key={r.value || 'auto'} value={r.value}>{r.label}</option>
-              ))}
-            </select>
-
-            <p className="uid-helper">
-              El UID aparece en tu perfil de Free Fire, debajo del nick (6 a 12 digitos). La region se
-              autodetecta; solo hace falta elegirla con fuentes que la requieran.
-            </p>
-          </form>
-        </div>
+        <form className="uid-form ps-form" onSubmit={handleSubmit}>
+          <label htmlFor="player-uid-input">UID del jugador</label>
+          <div className="uid-input-wrap">
+            <input
+              id="player-uid-input"
+              inputMode="numeric"
+              maxLength={12}
+              placeholder="Ej: 2196518104"
+              value={uid}
+              onChange={(event) => setUid(event.target.value.replace(/[^\d]/g, '').slice(0, 12))}
+            />
+            <button type="submit" disabled={isLoading || uid.length < 6}>
+              {isLoading ? 'Buscando...' : 'Buscar jugador'}
+            </button>
+          </div>
+          <label htmlFor="player-region-select" style={{ marginTop: 12 }}>Region (opcional)</label>
+          <select id="player-region-select" className="scanner-region-select" value={region} onChange={(e) => setRegion(e.target.value)}>
+            {REGIONS.map((r) => <option key={r.value || 'auto'} value={r.value}>{r.label}</option>)}
+          </select>
+          <p className="uid-helper">El UID aparece en tu perfil de Free Fire, debajo del nick (6 a 12 digitos). La region se autodetecta.</p>
+        </form>
       </section>
 
-      <section className="scanner-preview">
-        <h2>Que vas a ver</h2>
-        <div className="scanner-preview-grid">
-          {previewItems.map((item) => (
-            <div className="scanner-preview-item" key={item.title}>
-              <strong>{item.title}</strong>
-              <span>{item.text}</span>
-            </div>
-          ))}
-        </div>
-        <p className="scanner-preview-source">
-          El perfil se obtiene de fuentes publicas de Free Fire mediante la capa de proveedores de
-          DaniVex. Los datos ricos (rangos, prime, outfit) aparecen cuando la fuente activa los ofrece;
-          si no, se muestran como no disponibles. DaniVex nunca inventa informacion.
-        </p>
-      </section>
+      {isLoading && <PlayerSkeleton />}
 
-      {isLoading && <LoadingScanner activeStep={activeStep} progress={progress} />}
-
-      {errorMessage && !player?.lookupStatus && (
-        <p className="action-message warning" style={{ maxWidth: 720, margin: '18px auto' }}>{errorMessage}</p>
+      {errorMessage && !isLoading && (!player || player.lookupStatus !== 'real') && (
+        <p className="action-message warning ps-error">{errorMessage}</p>
       )}
 
-      {player && player.lookupStatus === 'real' && (
-        <section className="scanner-results" ref={resultRef}>
-          <PlayerProfileCard player={player} />
+      {player && player.lookupStatus === 'real' && !isLoading && (
+        <div className="ps-result" ref={resultRef}>
+          <PlayerCard player={player} primeLevel={primeLevel} outfit={outfit} changesCount={changes.length} onSeeHistory={() => goToSection('historial')} />
 
           {cacheInfo?.state === 'stale' && (
             <p className="action-message warning">
-              Ultima informacion disponible: los proveedores no respondieron y DaniVex esta mostrando el
-              ultimo perfil guardado{cacheInfo.lastObservedAt ? ` (observado el ${formatDate(cacheInfo.lastObservedAt)})` : ''}.
+              Ultima informacion disponible: los proveedores no respondieron y DaniVex muestra el ultimo perfil guardado
+              {cacheInfo.lastObservedAt ? ` (observado el ${formatDate(cacheInfo.lastObservedAt)})` : ''}.
             </p>
           )}
 
-          {player.prime?.diamonds > 0 && (
-            <div className="scanner-grid two">
-              <PrimeBadge prime={player.prime} />
-              <PrimeProgress prime={player.prime} />
+          <nav className="ps-nav" aria-label="Secciones del perfil">
+            {SECTIONS.map((s) => (
+              <button key={s.id} type="button" className={activeSection === s.id ? 'ps-chip active' : 'ps-chip'} onClick={() => goToSection(s.id)}>
+                {s.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* RESUMEN */}
+          <section id="ps-resumen" className="ps-section">
+            <h3 className="ps-h3">Resumen</h3>
+            <div className="ps-summary-grid">
+              <StatTile label="Nivel" value={player.level || '—'} />
+              <StatTile label="Prime" value={primeLevel ? `Prime ${primeLevel}` : 'No disponible'} accent={Boolean(primeLevel)} />
+              <StatTile label="Rango BR" value={player.rankBR || 'No disponible'} sub={player.rankBRPoints ? `${player.rankBRPoints} pts` : ''} />
+              <StatTile label="Rango CS" value={player.rankCS || 'No disponible'} sub={player.rankCSPoints ? `${player.rankCSPoints} pts` : ''} />
+              <StatTile label="Clan" value={player.clan || 'Sin clan'} />
+              <StatTile label="Me gusta" value={formatNumber(player.likes || 0)} />
+              {player.pet && <StatTile label="Mascota" value={player.pet} sub={player.petLevel ? `Nivel ${player.petLevel}` : ''} />}
+              {changes.length > 0 && <StatTile label="Cambios detectados" value={String(changes.length)} sub="desde el ultimo escaneo" accent onClick={() => goToSection('historial')} />}
             </div>
-          )}
+          </section>
 
-          <MetricGroup title="Cabecera">
-            <Metric label="Nickname" value={player.username} />
-            <Metric label="UID" value={player.uid} />
-            <Metric label="Region" value={player.region || 'No disponible'} />
-            <Metric label="Nivel" value={player.level || 'No disponible'} />
-            <Metric label="Prime Level" value={primeLevelText} />
-            <Metric label="Me gusta" value={formatNumber(player.likes || 0)} />
-          </MetricGroup>
-
-          <MetricGroup title="Cuenta">
-            <Metric label="Experiencia" value={player.exp || 'No disponible'} />
-            <Metric label="Cuenta creada" value={formatDate(player.creationDate)} />
-            <Metric label="Antiguedad exacta" value={player.accountAge || 'No disponible'} />
-            <Metric label="Ultimo login" value={formatDate(player.lastLogin)} />
-            <Metric label="Version del juego" value={player.gameVersion || 'No disponible'} />
-            <Metric label="Pase Booyah" value={player.pass || 'No disponible'} />
-            {player.title && <Metric label="Titulo" value={player.title} />}
-            {player.badgeCount && <Metric label="Insignias" value={player.badgeCount} />}
-          </MetricGroup>
-
-          {(player.rankBR || player.rankCS) && (
-            <MetricGroup title="Rangos">
-              <Metric label="Clasificatoria BR" value={player.rankBR || 'No disponible'} />
-              <Metric label="Puntos BR" value={player.rankBRPoints || 'No disponible'} />
-              <Metric label="Duelo de Escuadras" value={player.rankCS || 'No disponible'} />
-              <Metric label="Puntos CS" value={player.rankCSPoints || 'No disponible'} />
-              {player.season && <Metric label="Temporada" value={player.season} />}
-            </MetricGroup>
-          )}
-
-          {(player.clan || player.clanId) && (
-            <MetricGroup title="Clan">
-              <Metric label="Nombre" value={player.clan || 'No disponible'} />
-              <Metric label="Clan ID" value={player.clanId || 'No disponible'} />
-              <Metric label="Nivel" value={player.clanLevel || 'No disponible'} />
-              <Metric label="Miembros" value={player.clanMembers || 'No disponible'} />
-              {player.clanLeader && <Metric label="Lider" value={player.clanLeader} />}
-            </MetricGroup>
-          )}
-
-          {(player.pet || outfit.length > 0) && (
-            <div className="metrics-group">
-              <h4>Outfit y cosmeticos</h4>
-              {player.pet && (
-                <div className="metrics-grid">
-                  <Metric label="Mascota (ID)" value={player.pet} />
-                  <Metric label="Nivel mascota" value={player.petLevel || 'No disponible'} />
+          {/* OUTFIT */}
+          <section id="ps-outfit" className="ps-section">
+            <h3 className="ps-h3">Outfit actual</h3>
+            {outfit.length > 0 ? (
+              <div className="ps-outfit">
+                <div className="ps-outfit-hero">
+                  {player.avatarUrl && <img className="ps-outfit-avatar" src={player.avatarUrl} alt="Avatar" loading="lazy" onError={hideImg} />}
+                  <span className="ps-outfit-count">{outfit.length} piezas equipadas</span>
                 </div>
-              )}
-              {outfit.length > 0 && (
-                <div className="outfit-grid">
-                  {outfit.map((item, index) => (
-                    <div className="outfit-item" key={`${item.id || index}`}>
-                      {item.image
-                        ? <img src={item.image} alt={`Item ${item.id}`} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                        : <span className="outfit-id">#{item.id}</span>}
+                <div className="ps-loadout">
+                  {outfit.map((item, i) => (
+                    <div className="ps-slot" key={item.id || i} title={`Item ${item.id}`}>
+                      <img src={item.image} alt={`Item equipado ${i + 1}`} loading="lazy" onError={hideSlot} />
                     </div>
                   ))}
                 </div>
-              )}
+              </div>
+            ) : (
+              <p className="ps-muted">Outfit visual no disponible para esta cuenta.</p>
+            )}
+          </section>
+
+          {/* RANGOS */}
+          <section id="ps-rangos" className="ps-section">
+            <h3 className="ps-h3">Rangos</h3>
+            <div className="ps-ranks">
+              <RankCard title="Battle Royale" tier={player.rankBR} points={player.rankBRPoints} season={player.season} />
+              <RankCard title="Clash Squad" tier={player.rankCS} points={player.rankCSPoints} season={player.season} />
             </div>
-          )}
+          </section>
 
-          {timeline.length > 0 && (
-            <MetricGroup title="Historial reciente (cambios detectados por DaniVex)">
-              {timeline.slice(0, 8).map((event, index) => {
-                const short = (s) => (String(s || '').length <= 24 ? String(s || '') : '')
-                const detail = short(event.from) !== '' || short(event.to) !== ''
-                  ? `${short(event.from) || '—'} -> ${short(event.to) || '—'}`
-                  : 'actualizado'
-                return (
-                  <Metric key={`${event.at || index}-${event.type}`} label={EVENT_LABELS[event.type] || event.type} value={detail} />
-                )
-              })}
-            </MetricGroup>
-          )}
+          {/* PERFIL */}
+          <section id="ps-perfil" className="ps-section">
+            <h3 className="ps-h3">Perfil detallado</h3>
+            <div className="ps-detail-grid">
+              <Detail label="UID" value={player.uid} />
+              <Detail label="Region" value={player.region || 'No disponible'} />
+              <Detail label="Nivel" value={player.level || 'No disponible'} />
+              <Detail label="Experiencia" value={player.exp || 'No disponible'} />
+              <Detail label="Me gusta" value={formatNumber(player.likes || 0)} />
+              <Detail label="Cuenta creada" value={formatDate(player.creationDate)} />
+              <Detail label="Antiguedad" value={player.accountAge || 'No disponible'} />
+              <Detail label="Ultimo login" value={formatDate(player.lastLogin)} />
+              <Detail label="Version" value={player.gameVersion || 'No disponible'} />
+              <Detail label="Pase Booyah" value={player.pass || 'No disponible'} />
+              {player.badgeCount && <Detail label="Insignias" value={player.badgeCount} />}
+              {(player.clan || player.clanId) && <Detail label="Clan" value={player.clan || 'No disponible'} />}
+              {player.clanLevel && <Detail label="Nivel clan" value={player.clanLevel} />}
+              {player.clanMembers && <Detail label="Miembros clan" value={player.clanMembers} />}
+              {player.clanLeader && <Detail label="Lider" value={player.clanLeader} />}
+            </div>
+            {player.bio && <div className="ps-bio"><strong>Biografia:</strong> {player.bio}</div>}
+            <div className="ps-ai"><strong>Lectura DaniVex AI:</strong> {buildDaniVexAiRead(player, timeline)}</div>
+            <p className="source-note">Fuente: {player.lookupProvider}. {player.cacheHit ? 'Servido desde la cache privada de DaniVex.' : 'Consulta nueva.'}</p>
+          </section>
 
-          <div className="action-message">
-            <strong>Lectura DaniVex AI:</strong> {buildDaniVexAiRead(player, timeline)}
-          </div>
+          {/* HISTORIAL */}
+          <section id="ps-historial" className="ps-section">
+            <h3 className="ps-h3">¿Que cambio?</h3>
+            {changes.length > 0 ? (
+              <div className="ps-history">
+                {changes.map((event, i) => (
+                  <div className="ps-change" key={`${event.at || i}-${event.type}`}>
+                    <span className="ps-change-label">{EVENT_LABELS[event.type] || event.type}</span>
+                    <span className="ps-change-val">{changeDetail(event)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="ps-muted">Aun no hay cambios registrados. Vuelve a escanear mas adelante para construir el historial de este jugador.</p>
+            )}
+          </section>
 
-          {player.bio && (
-            <div className="action-message"><strong>Biografia:</strong> {player.bio}</div>
-          )}
-
-          <p className="source-note">
-            Fuente del perfil: {player.lookupProvider}. {player.cacheHit ? 'Servido desde la cache privada de DaniVex.' : 'Consulta nueva.'}
-          </p>
-
-          <div className="scanner-actions" aria-label="Acciones del resultado">
+          <div className="scanner-actions ps-actions" aria-label="Acciones del resultado">
             <button type="button" onClick={resetScanner}><PiArrowClockwiseBold aria-hidden="true" /> Buscar otro jugador</button>
             <button type="button" onClick={confirmPrime} disabled={isPrimeLoading}><PiCrownBold aria-hidden="true" /> {isPrimeLoading ? 'Consultando...' : 'Confirmar Prime'}</button>
-            <button type="button" onClick={showShare}><PiShareNetworkBold aria-hidden="true" /> Compartir</button>
+            <button type="button" onClick={showShare}><PiShareNetworkBold aria-hidden="true" /> Compartir tarjeta</button>
           </div>
 
+          {/* COMPARAR */}
           <div className="compare-panel">
             <h4>Comparar con otro jugador</h4>
             <form className="uid-form" onSubmit={runCompare}>
               <div className="uid-input-wrap">
-                <input
-                  inputMode="numeric"
-                  maxLength={12}
-                  placeholder="UID a comparar"
-                  value={compareUid}
-                  onChange={(event) => setCompareUid(event.target.value.replace(/[^\d]/g, '').slice(0, 12))}
-                />
-                <button type="submit" disabled={isComparing || compareUid.length < 6}>
-                  {isComparing ? 'Comparando...' : 'Comparar'}
-                </button>
+                <input inputMode="numeric" maxLength={12} placeholder="UID a comparar" value={compareUid}
+                  onChange={(e) => setCompareUid(e.target.value.replace(/[^\d]/g, '').slice(0, 12))} />
+                <button type="submit" disabled={isComparing || compareUid.length < 6}>{isComparing ? 'Comparando...' : 'Comparar'}</button>
               </div>
             </form>
-
             {comparePlayer && comparePlayer.lookupStatus === 'real' && (
               <div className="compare-table">
                 <div className="compare-row compare-head">
-                  <span>Metrica</span>
-                  <strong>{player.username}</strong>
-                  <strong>{comparePlayer.username}</strong>
+                  <span>Metrica</span><strong>{player.username}</strong><strong>{comparePlayer.username}</strong>
                 </div>
                 {comparePlayers(player, comparePlayer).map((row) => (
                   <div className="compare-row" key={row.label}>
@@ -394,38 +337,170 @@ function PlayerScanner() {
                 </p>
               </div>
             )}
-
             {comparePlayer && comparePlayer.lookupStatus !== 'real' && (
               <p className="action-message warning">No se encontro perfil publico para ese UID.</p>
             )}
           </div>
 
-          {player.aiAnalysis && <AIAnalysisCard analysis={player.aiAnalysis} />}
           {actionMessage && <p className="action-message">{actionMessage}</p>}
           {showShareCard && <ShareCard player={player} events={timeline} />}
-        </section>
+        </div>
       )}
     </main>
   )
 }
 
-const EVENT_LABELS = {
-  NICKNAME_CHANGED: 'Cambio de nick',
-  LEVEL_UP: 'Subio de nivel',
-  LEVEL_CHANGED: 'Cambio de nivel',
-  LIKES_CHANGED: 'Cambiaron los me gusta',
-  GUILD_CHANGED: 'Cambio de gremio',
-  AVATAR_CHANGED: 'Cambio de avatar',
-  BANNER_CHANGED: 'Cambio de banner',
-  BIO_CHANGED: 'Cambio de biografia',
-  PRIME_CHANGED: 'Cambio de nivel Prime',
-  REGION_CHANGED: 'Cambio de region',
-  RANK_BR_CHANGED: 'Cambio de rango BR',
-  RANK_CS_CHANGED: 'Cambio de rango CS',
-  TITLE_CHANGED: 'Cambio de titulo',
-  PET_CHANGED: 'Cambio de mascota',
-  OUTFIT_CHANGED: 'Cambio de outfit',
+/* ---------- Componentes visuales ---------- */
+
+function PlayerCard({ player, primeLevel, outfit, changesCount, onSeeHistory }) {
+  return (
+    <article className="pc">
+      <div className="pc-banner" style={player.bannerUrl ? { backgroundImage: `url(${player.bannerUrl})` } : undefined} aria-hidden="true" />
+      <div className="pc-overlay" aria-hidden="true" />
+      <div className="pc-body">
+        <div className="pc-avatar-wrap">
+          {player.avatarUrl
+            ? <img className="pc-avatar" src={player.avatarUrl} alt={`Avatar de ${player.username}`} onError={hideImg} />
+            : <span className="pc-avatar pc-avatar-fallback">{(player.username || '?').slice(0, 2)}</span>}
+        </div>
+
+        <div className="pc-identity">
+          <h2 className="pc-name">{player.username}</h2>
+          <div className="pc-chips">
+            <span className="pc-chip">UID {player.uid}</span>
+            <span className="pc-chip">{player.region || 'Region ?'}</span>
+            {player.clan && <span className="pc-chip pc-chip-clan">Clan {player.clan}</span>}
+          </div>
+
+          <div className="pc-badges">
+            <div className="pc-badge">
+              <span className="pc-badge-k">Nivel</span>
+              <span className="pc-badge-v">{player.level || '—'}</span>
+            </div>
+            {primeLevel && (
+              <div className="pc-badge pc-badge-prime">
+                <PiCrownSimpleFill aria-hidden="true" />
+                <span className="pc-badge-v">Prime {primeLevel}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="pc-ranks">
+            <div className="pc-rank">
+              <span className="pc-rank-mode">BR</span>
+              <span className="pc-rank-tier">{player.rankBR || 'No disponible'}</span>
+              {player.rankBRPoints && <span className="pc-rank-pts">{player.rankBRPoints} pts</span>}
+            </div>
+            <div className="pc-rank">
+              <span className="pc-rank-mode">CS</span>
+              <span className="pc-rank-tier">{player.rankCS || 'No disponible'}</span>
+              {player.rankCSPoints && <span className="pc-rank-pts">{player.rankCSPoints} pts</span>}
+            </div>
+          </div>
+
+          {changesCount > 0 && (
+            <button type="button" className="pc-changes" onClick={onSeeHistory}>
+              {changesCount} {changesCount === 1 ? 'cambio' : 'cambios'} desde el ultimo escaneo
+            </button>
+          )}
+        </div>
+
+        {outfit.length > 0 && (
+          <div className="pc-loadout" aria-label="Outfit equipado">
+            {outfit.slice(0, 6).map((item, i) => (
+              <div className="pc-slot" key={item.id || i}>
+                <img src={item.image} alt={`Item equipado ${i + 1}`} loading="lazy" onError={hideSlot} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </article>
+  )
 }
+
+function PlayerSkeleton() {
+  return (
+    <div className="ps-result">
+      <div className="pc pc-skeleton">
+        <div className="pc-banner sk" />
+        <div className="pc-body">
+          <div className="pc-avatar-wrap"><div className="pc-avatar sk" /></div>
+          <div className="pc-identity">
+            <div className="sk sk-line" style={{ width: '55%', height: 26 }} />
+            <div className="sk sk-line" style={{ width: '40%' }} />
+            <div className="sk sk-line" style={{ width: '70%', height: 40, marginTop: 10 }} />
+          </div>
+        </div>
+      </div>
+      <div className="ps-summary-grid">
+        {Array.from({ length: 6 }).map((_, i) => <div key={i} className="sk sk-tile" />)}
+      </div>
+    </div>
+  )
+}
+
+function StatTile({ label, value, sub, accent, onClick }) {
+  const Cmp = onClick ? 'button' : 'div'
+  return (
+    <Cmp type={onClick ? 'button' : undefined} className={`ps-tile${accent ? ' ps-tile-accent' : ''}${onClick ? ' ps-tile-btn' : ''}`} onClick={onClick}>
+      <span className="ps-tile-label">{label}</span>
+      <span className="ps-tile-value">{value}</span>
+      {sub && <span className="ps-tile-sub">{sub}</span>}
+    </Cmp>
+  )
+}
+
+function RankCard({ title, tier, points, season }) {
+  const has = Boolean(tier)
+  return (
+    <div className={`ps-rankcard${has ? '' : ' ps-rankcard-empty'}`}>
+      <span className="ps-rankcard-mode">{title}</span>
+      <span className="ps-rankcard-tier">{tier || 'No disponible'}</span>
+      <div className="ps-rankcard-meta">
+        {points && <span>{points} pts</span>}
+        {season && <span>Temporada {season}</span>}
+      </div>
+    </div>
+  )
+}
+
+function Detail({ label, value }) {
+  return (
+    <div className="ps-detail">
+      <span className="ps-detail-k">{label}</span>
+      <span className="ps-detail-v">{value}</span>
+    </div>
+  )
+}
+
+/* ---------- helpers ---------- */
+
+const EVENT_LABELS = {
+  NICKNAME_CHANGED: 'Nickname', LEVEL_UP: 'Subio de nivel', LEVEL_CHANGED: 'Nivel',
+  LIKES_CHANGED: 'Me gusta', GUILD_CHANGED: 'Clan', AVATAR_CHANGED: 'Avatar',
+  BANNER_CHANGED: 'Banner', BIO_CHANGED: 'Biografia', PRIME_CHANGED: 'Prime',
+  REGION_CHANGED: 'Region', RANK_BR_CHANGED: 'Rango BR', RANK_CS_CHANGED: 'Rango CS',
+  TITLE_CHANGED: 'Titulo', PET_CHANGED: 'Mascota', OUTFIT_CHANGED: 'Outfit',
+}
+
+function changeDetail(event) {
+  const short = (s) => (String(s || '').length <= 26 ? String(s || '') : '')
+  const from = short(event.from)
+  const to = short(event.to)
+  if (from || to) return `${from || '—'} → ${to || '—'}`
+  return 'actualizado'
+}
+
+function playerPrimeLevel(player) {
+  if (!player) return ''
+  if (player.providerPrimeLevel) return String(player.providerPrimeLevel).replace(/[^\d]/g, '') || String(player.providerPrimeLevel)
+  if (player.prime?.diamonds > 0) return String(player.prime.level)
+  return ''
+}
+
+function hideImg(e) { e.currentTarget.style.display = 'none' }
+function hideSlot(e) { const p = e.currentTarget.closest('.ps-slot, .pc-slot'); if (p) p.style.display = 'none' }
 
 function cleanErrorMessage(lookup) {
   if (!lookup) return 'No se pudo completar la busqueda. Intenta de nuevo.'
@@ -440,9 +515,7 @@ async function fetchTimeline(uid) {
     if (!response.ok) return []
     const data = await response.json()
     return data.ok ? data.events : []
-  } catch {
-    return []
-  }
+  } catch { return [] }
 }
 
 async function lookupPlayer(uid, region) {
@@ -476,39 +549,9 @@ function applyPrimeToPlayer(player, primeLookup) {
   return {
     ...player,
     providerPrimeLevel: primeLookup.primeLevel || player.providerPrimeLevel,
-    lookupProvider: player.lookupProvider?.includes('FreeFireJornal Prime')
-      ? player.lookupProvider
-      : `${player.lookupProvider || 'Perfil publico'} + FreeFireJornal Prime`,
-    prime: {
-      ...player.prime,
-      level,
-      points: diamonds,
-      diamonds,
-      missing: Number(primeLookup.missingForNextPrime || 0),
-      percent: Number(primeLookup.primeProgressPercent || 0),
-      isMax: level >= 8,
-      source: primeLookup.sourceUrl || 'FreeFireJornal Prime',
-    },
-    aiAnalysis: `Prime confirmado desde FreeFireJornal: ${primeLookup.primeLevel}. Diamantes detectados: ${formatNumber(diamonds)}.`,
+    lookupProvider: player.lookupProvider?.includes('FreeFireJornal Prime') ? player.lookupProvider : `${player.lookupProvider || 'Perfil publico'} + FreeFireJornal Prime`,
+    prime: { ...player.prime, level, points: diamonds, diamonds, isMax: level >= 8, source: primeLookup.sourceUrl || 'FreeFireJornal Prime' },
   }
-}
-
-function Metric({ label, value }) {
-  return (
-    <div className="metric-card">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  )
-}
-
-function MetricGroup({ title, children }) {
-  return (
-    <div className="metrics-group">
-      <h4>{title}</h4>
-      <div className="metrics-grid">{children}</div>
-    </div>
-  )
 }
 
 function formatDate(value) {
@@ -518,8 +561,6 @@ function formatDate(value) {
   return new Intl.DateTimeFormat('es', { day: '2-digit', month: 'short', year: 'numeric' }).format(date)
 }
 
-function wait(ms) {
-  return new Promise((resolve) => { window.setTimeout(resolve, ms) })
-}
+function wait(ms) { return new Promise((resolve) => { window.setTimeout(resolve, ms) }) }
 
 export default PlayerScanner
