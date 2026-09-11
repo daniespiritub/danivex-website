@@ -268,7 +268,7 @@ function HomePage() {
         <div className="menu">
           <a href="#inicio" className={activeSection === 'inicio' ? 'active' : ''}>{text.nav[0]}</a>
           <a href="#sensibilidad" className={activeSection === 'sensibilidad' ? 'active' : ''}>{text.nav[1]}</a>
-          <a href="/free-fire-prime-scanner">{text.primeScanner}</a>
+          <a href="/player-scanner">{text.primeScanner}</a>
           <a href="#mobilador" className={activeSection === 'mobilador' ? 'active' : ''}>{text.nav[2]}</a>
           <a href="#descargas" className={activeSection === 'descargas' ? 'active' : ''}>{text.nav[3]}</a>
           <a href="#comunidad" className={activeSection === 'comunidad' ? 'active' : ''}>{text.nav[4]}</a>
@@ -293,7 +293,7 @@ function HomePage() {
 
           <div className="buttons">
             <a href="#sensibilidad" className="btn primary">{text.primaryCta}</a>
-            <a href="/free-fire-prime-scanner" className="btn secondary">{text.primeScanner}</a>
+            <a href="/player-scanner" className="btn secondary">{text.primeScanner}</a>
             <a href="#comunidad" className="btn secondary">{text.community}</a>
           </div>
         </div>
@@ -618,7 +618,7 @@ function HomePage() {
         <nav className="site-footer-links" aria-label={text.nav[0]}>
           <a href="#inicio">{text.nav[0]}</a>
           <a href="#sensibilidad">{text.nav[1]}</a>
-          <a href="/free-fire-prime-scanner">{text.primeScanner}</a>
+          <a href="/player-scanner">{text.primeScanner}</a>
           <a href="#mobilador">{text.nav[2]}</a>
           <a href="#comunidad">{text.nav[4]}</a>
         </nav>

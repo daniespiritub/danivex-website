@@ -15,11 +15,11 @@ export const SEO = {
       'Elegi tu dispositivo y arma una base de sensibilidad lista para Free Fire, gratis y sin registro.',
     path: '/',
   },
-  primeScanner: {
-    title: 'Free Fire Prime AI Scanner - Analiza tu cuenta por UID | DaniVex',
+  playerScanner: {
+    title: 'Player Scanner - Busca jugadores de Free Fire por UID | DaniVex',
     description:
-      'Consulta el perfil publico de cualquier cuenta de Free Fire por UID: nivel, region, gremio, antiguedad, cambios recientes y comparacion entre jugadores. Gratis y sin registro.',
-    path: '/free-fire-prime-scanner',
+      'Busca cualquier jugador de Free Fire por UID y consulta su informacion publica: nickname, region, nivel, rangos, clan, outfit e historial de cambios. Gratis y sin registro.',
+    path: '/player-scanner',
   },
   notFound: {
     title: 'Pagina no encontrada | DaniVex',
@@ -31,5 +31,5 @@ export const SEO = {
 // Rutas que se prerenderizan a HTML estatico propio en build (excluye home, que
 // ya es el index.html por defecto, y notFound, que no tiene URL fija).
 export const PRERENDER_ROUTES = [
-  { out: 'free-fire-prime-scanner.html', meta: SEO.primeScanner },
+  { out: 'player-scanner.html', meta: SEO.playerScanner },
 ]

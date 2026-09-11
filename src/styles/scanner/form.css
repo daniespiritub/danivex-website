@@ -186,3 +186,21 @@
   cursor: wait;
   opacity: 0.6;
 }
+
+/* Selector de region del Player Scanner */
+.scanner-region-select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.16));
+  background: var(--surface-sunken, #0f1115);
+  color: var(--text, #f2f4f7);
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.scanner-region-select:focus-visible {
+  outline: 2px solid var(--accent-strong, #ff5c53);
+  outline-offset: 2px;
+}

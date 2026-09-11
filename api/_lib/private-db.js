@@ -117,6 +117,29 @@ export async function getCachedProfile(uid) {
   return null
 }
 
+// Campos "ricos" que solo aporta un proveedor con key (SiamBhau). Si el
+// proveedor entrante no los trae, se conservan los del snapshot previo.
+const RICH_PRESERVE_FIELDS = [
+  'primeLevel', 'rankBR', 'rankBRPoints', 'rankCS', 'rankCSPoints', 'season',
+  'title', 'badgeCount', 'pet', 'petLevel', 'clanLeader', 'avatar', 'banner',
+]
+
+export function preserveRichFields(existing, incoming) {
+  if (!existing) return incoming
+  const out = { ...incoming }
+  for (const field of RICH_PRESERVE_FIELDS) {
+    const value = out[field]
+    const empty = value === '' || value === undefined || value === null
+    if (empty && existing[field]) out[field] = existing[field]
+  }
+  // outfit es un array: vacio => conservar el previo si lo habia.
+  const outfitEmpty = !Array.isArray(out.outfit) || out.outfit.length === 0
+  if (outfitEmpty && Array.isArray(existing.outfit) && existing.outfit.length) {
+    out.outfit = existing.outfit
+  }
+  return out
+}
+
 export async function saveCachedProfile(uid, profile) {
   const cleanUid = normalizeUid(uid)
 
@@ -129,10 +152,15 @@ export async function saveCachedProfile(uid, profile) {
 
   const now = new Date().toISOString()
 
-  const normalized = normalizeStoredPlayer(cleanUid, profile)
+  const existing = await getFromKv(cleanUid)
+  // Preserva los datos ricos ya conocidos si el proveedor entrante no los trae
+  // (ej: SiamBhau cae y sirve el keyless, que no da prime/rank/outfit). NUNCA se
+  // sobrescriben campos ricos existentes con vacio. El hash se calcula sobre el
+  // registro ya fusionado, asi un refresh keyless sobre un snapshot rico no
+  // genera un snapshot nuevo espurio ni dispara eventos falsos.
+  const normalized = preserveRichFields(existing, normalizeStoredPlayer(cleanUid, profile))
 
   const contentHash = stableProfileHash(normalized)
-  const existing = await getFromKv(cleanUid)
 
   // Dedup: si el contenido significativo no cambio, NO se reescribe un snapshot
   // nuevo; solo se actualiza lastObservedAt + observedCount.

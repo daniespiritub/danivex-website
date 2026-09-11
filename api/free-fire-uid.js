@@ -88,8 +88,23 @@ export default async function handler(req, res) {
     return res.status(400).json({
       ok: false,
       error: 'UID requerido',
+      message: 'Ingresa un UID de Free Fire (solo numeros).',
     })
   }
+
+  // Validacion de formato: los UID de Free Fire tienen entre 6 y 12 digitos.
+  if (uid.length < 6 || uid.length > 12) {
+    return res.status(400).json({
+      ok: false,
+      uid,
+      error: 'uid_invalido',
+      message: 'El UID debe tener entre 6 y 12 digitos.',
+    })
+  }
+
+  // Region opcional (para proveedores que la requieran, ej: SiamBhau). Se
+  // sanitiza a un codigo corto alfanumerico.
+  const region = String(req.query.region || '').replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase()
 
   // Rate limit por IP: protege el endpoint, aplica a TODA request (incluidos
   // cache hits). El limite por UID se consume mas abajo, SOLO si de verdad se va
@@ -124,7 +139,7 @@ export default async function handler(req, res) {
       uidBlocked = uidRl
       return { ok: false, reason: 'rate_limited' }
     }
-    return fetchFromProviders(uid, testOpts.forceProviderFail)
+    return fetchFromProviders(uid, testOpts.forceProviderFail, region)
   }
 
   const result = await resolveProfile({
@@ -175,13 +190,13 @@ export default async function handler(req, res) {
 
 // Consulta los proveedores (Mania -> Jornal). Devuelve la respuesta ya
 // normalizada por buildResponse, o { ok:false, reason }. Emite ff_uid_provider.
-async function fetchFromProviders(uid, forceFail) {
+async function fetchFromProviders(uid, forceFail, region) {
   if (forceFail) {
     logEvent('ff_uid_provider', { uid, provider: 'test', outcome: 'forced_fail' })
     return { ok: false, reason: 'provider_error' }
   }
 
-  return fetchProfileFromProviders(uid, { logEvent })
+  return fetchProfileFromProviders(uid, { logEvent, region })
 }
 
 // Adjunta metadata de cache aditiva sin tocar campos existentes.
