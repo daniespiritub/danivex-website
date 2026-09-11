@@ -72,15 +72,34 @@ test('CONTRATO: BR = Heroico por RP (ground truth), con RP y temporada', () => {
   assert.equal(r.rankBRConfidence, 'verified')
 })
 
-test('CONTRATO: CS sin datos falsos (sin estrellas/temporada/tier inventados)', () => {
-  const r = fullResponse()
-  assert.equal(r.rankCS, '', 'CS sin rango verificable en la fuente')
-  assert.equal(r.rankCSStars, '', 'NUNCA mostrar 142 ni estrellas fabricadas')
+test('CONTRATO: CS del UID verificado in-game (55 ★ / S38 / Gran Maestro), NUNCA 142/S53', () => {
+  const r = fullResponse() // uid 2196518104 / US => tiene observacion verificada
+  assert.equal(r.rankCS, 'Gran Maestro', 'tier CS observado in-game')
+  assert.equal(r.rankCSStars, '55', 'estrellas CS verificadas in-game')
+  assert.equal(r.rankCSSeason, '38', 'temporada CS verificada (separada de BR)')
+  assert.equal(r.rankCSTierKey, 'grandmaster', 'para resolver el emblema oficial CS')
+  // Prohibiciones explicitas: nunca el raw 142 como estrellas, nunca la season BR.
   assert.notEqual(r.rankCSStars, '142')
-  assert.equal(r.rankCSSeason, '', 'CS no reutiliza la temporada de BR')
   assert.notEqual(r.rankCSSeason, '53')
-  assert.equal(r.rankCSRawValue, '142', 'raw conservado internamente')
-  assert.equal(r.rankCSStarsConfidence, 'unavailable')
+  assert.equal(r.rankCSRawValue, '142', 'raw csRankingPoints conservado internamente')
+  assert.equal(r.rankCSStarsSource, 'in-game-verification', 'provenance explicita, NO API live')
+})
+
+test('CONTRATO: la capa verified es GENERAL — un UID sin observacion NO fabrica CS', () => {
+  const profile = mapSiamBhauProfile({ ...REAL_FIXTURE, basicInfo: { ...REAL_FIXTURE.basicInfo, accountId: '999999999' } })
+  const r = buildResponse('999999999', { ...profile, region: 'US', provider: 'SiamBhau' }, false)
+  assert.equal(r.rankCS, '', 'sin observacion verificada => CS vacio (no leakage)')
+  assert.equal(r.rankCSStars, '')
+  assert.equal(r.rankCSSeason, '')
+})
+
+test('CONTRATO: un proveedor LIVE de CS tiene precedencia sobre la observacion verificada', () => {
+  const profile = mapSiamBhauProfile(REAL_FIXTURE)
+  const withLiveCs = { ...profile, provider: 'SiamBhau', secondaryCs: { stars: '60', season: '39', rank: 'Heroico', source: 'live-provider' } }
+  const r = buildResponse('2196518104', withLiveCs, false)
+  assert.equal(r.rankCSStars, '60', 'live gana a la observacion verificada')
+  assert.equal(r.rankCSSeason, '39')
+  assert.equal(r.rankCSStarsSource, 'live-provider')
 })
 
 test('CONTRATO: stats presentes NO rompen el perfil (co-existen)', () => {

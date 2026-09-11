@@ -5,6 +5,7 @@
 
 import { resolveAvatar, resolveBanner } from './profile-images.js'
 import { enrichRanks } from './rank-enrichment.js'
+import { verifiedSecondaryCs } from './verified-observations.js'
 
 // Placeholders de UI que algunas fuentes (FreeFireMania) filtran como "nombre"
 // de clan cuando el parseo del nombre falla. No son nombres reales => se vacian.
@@ -22,8 +23,12 @@ export function buildResponse(uid, profile, cacheHit) {
   const avatarRes = resolveAvatar(profile)
   const bannerRes = resolveBanner(profile)
   // Enriquecimiento de rangos por-campo (provenance + confidence + tier-key).
-  // secondaryCs: cuando exista un proveedor CS verificado se inyecta aqui.
-  const ranks = enrichRanks(profile, { secondaryCs: profile.secondaryCs })
+  // Precedencia CS: (1) proveedor live inyectado (profile.secondaryCs) GANA ->
+  // (2) observacion in-game verificada (rellena huecos). La observacion es
+  // idempotente y se aplica en cada lectura (fresh o cache) para que el resultado
+  // sea consistente aunque el registro persistido no guarde todos los campos CS.
+  const secondaryCs = profile.secondaryCs || verifiedSecondaryCs(uid, profile.region)
+  const ranks = enrichRanks(profile, { secondaryCs })
 
   return {
     ok: true,
@@ -81,7 +86,7 @@ export function buildResponse(uid, profile, cacheHit) {
     rankBRSource: ranks.brRankSource,
     rankBRConfidence: ranks.brRankConfidence,
     rankBRTierKey: ranks.brTierKey,
-    rankCS: profile.rankCS || '',
+    rankCS: profile.rankCS || ranks.csRankName || '',
     rankCSDivision: profile.rankCSDivision || '',
     rankCSStars: ranks.csStars, // solo con proveedor secundario verificado
     rankCSSeason: ranks.csSeason, // temporada CS separada de BR (si se obtiene)
