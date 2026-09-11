@@ -29,9 +29,16 @@ const SECTIONS = [
   { id: 'resumen', label: 'Resumen' },
   { id: 'outfit', label: 'Outfit' },
   { id: 'rangos', label: 'Rangos' },
+  { id: 'estadisticas', label: 'Estadisticas' },
   { id: 'perfil', label: 'Perfil' },
   { id: 'historial', label: 'Historial' },
 ]
+
+// ¿El jugador trae estadisticas reales de partidas? (BR o CS con datos)
+function hasStats(player) {
+  const s = player?.stats
+  return Boolean(s && ((s.br && (s.br.solo || s.br.duo || s.br.squad)) || s.cs))
+}
 
 function PlayerScanner() {
   const [uid, setUid] = useState('')
@@ -207,7 +214,7 @@ function PlayerScanner() {
           )}
 
           <nav className="ps-nav" aria-label="Secciones del perfil">
-            {SECTIONS.map((s) => (
+            {SECTIONS.filter((s) => s.id !== 'estadisticas' || hasStats(player)).map((s) => (
               <button key={s.id} type="button" className={activeSection === s.id ? 'ps-chip active' : 'ps-chip'} onClick={() => goToSection(s.id)}>
                 {s.label}
               </button>
@@ -271,6 +278,14 @@ function PlayerScanner() {
                 note={player.rankCS ? '' : 'La fuente de datos no expone el rango, las estrellas ni la temporada de Duelo de Escuadras.'} />
             </div>
           </section>
+
+          {/* ESTADISTICAS */}
+          {hasStats(player) && (
+            <section id="ps-estadisticas" className="ps-section">
+              <h3 className="ps-h3">Estadisticas</h3>
+              <StatsPanel stats={player.stats} />
+            </section>
+          )}
 
           {/* PERFIL */}
           <section id="ps-perfil" className="ps-section">
@@ -503,6 +518,80 @@ function RankCard({ title, tier, division, tierKey, metric, metricLabel, season,
         {season && <span>Temporada {season}</span>}
       </div>
       {note && <span className="ps-rankcard-note">{note}</span>}
+    </div>
+  )
+}
+
+// Panel de estadisticas REALES de partidas (BR solo/duo/squad + CS). Solo
+// muestra bloques con datos; nunca campos vacios. Datos verificados de SiamBhau.
+function StatsPanel({ stats }) {
+  if (!stats) return null
+  const br = stats.br || {}
+  const brModes = [
+    ['Solo', br.solo],
+    ['Duo', br.duo],
+    ['Escuadra', br.squad],
+  ].filter(([, m]) => m)
+  return (
+    <div className="ps-stats">
+      {brModes.length > 0 && (
+        <div className="ps-stats-group">
+          <span className="ps-stats-mode-label">Battle Royale</span>
+          <div className="ps-stats-cards">
+            {brModes.map(([label, m]) => (
+              <StatModeCard key={label} title={label} mode="br" m={m} />
+            ))}
+          </div>
+        </div>
+      )}
+      {stats.cs && (
+        <div className="ps-stats-group">
+          <span className="ps-stats-mode-label">Duelo de Escuadras</span>
+          <div className="ps-stats-cards">
+            <StatModeCard title="Clash Squad" mode="cs" m={stats.cs} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function StatModeCard({ title, mode, m }) {
+  const rows = mode === 'cs'
+    ? [
+        ['Partidas', formatNumber(m.matches)],
+        ['Victorias', formatNumber(m.wins)],
+        ['Win rate', `${m.winRate}%`],
+        ['Eliminaciones', formatNumber(m.kills)],
+        ['K/D', m.kd],
+        ['KDA', m.kda],
+        ['MVP', formatNumber(m.mvp)],
+        ['Daño medio', formatNumber(m.avgDamage)],
+        ['Headshots', formatNumber(m.headshotKills)],
+        ['HS %', `${m.hsRate}%`],
+        ['Derribos', formatNumber(m.knockdowns)],
+      ]
+    : [
+        ['Partidas', formatNumber(m.matches)],
+        ['Victorias', formatNumber(m.wins)],
+        ['Win rate', `${m.winRate}%`],
+        ['Eliminaciones', formatNumber(m.kills)],
+        ['K/D', m.kd],
+        ['Daño medio', formatNumber(m.avgDamage)],
+        ['HS %', `${m.hsRate}%`],
+        ['Max kills', formatNumber(m.highestKills)],
+      ]
+  return (
+    <div className="ps-statcard">
+      <span className="ps-statcard-title">{title}</span>
+      <div className="ps-statcard-grid">
+        {rows.map(([k, v]) => (
+          <div className="ps-statcell" key={k}>
+            <span className="ps-statcell-v">{v}</span>
+            <span className="ps-statcell-k">{k}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

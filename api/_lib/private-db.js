@@ -144,6 +144,12 @@ export function preserveRichFields(existing, incoming) {
   if (outfitEmpty && Array.isArray(existing.outfit) && existing.outfit.length) {
     out.outfit = existing.outfit
   }
+  // stats es un objeto: si el fetch entrante no las trajo (endpoint de stats caido
+  // o timeout), se conservan las ultimas stats buenas en vez de perderlas.
+  const statsEmpty = !out.stats || typeof out.stats !== 'object'
+  if (statsEmpty && existing.stats && typeof existing.stats === 'object') {
+    out.stats = existing.stats
+  }
   return out
 }
 

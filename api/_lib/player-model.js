@@ -30,6 +30,8 @@ export const PLAYER_DATA_FIELDS = [
   'rankBR', 'rankBRDivision', 'rankBRPoints', 'rankBRCode',
   'rankCS', 'rankCSDivision', 'rankCSStars', 'rankCSRawValue', 'rankCSPoints', 'rankCSCode', 'season',
   'title', 'badgeCount', 'pet', 'petLevel', 'petId', 'petSkinId', 'petImage', 'outfit',
+  // Estadisticas de partidas (objeto normalizado). Ver stats-model.js.
+  'stats',
 ]
 
 // Significativos para el content-hash. Excluye lo volatil (lastLogin,
@@ -113,6 +115,9 @@ export function normalizeStoredPlayer(uid, profile) {
     petSkinId: profile.petSkinId || '',
     petImage: profile.petImage || '',
     outfit: Array.isArray(profile.outfit) ? profile.outfit : [],
+    // Estadisticas de partidas: se persisten tal cual (o null). NO entran en el
+    // content-hash (MEANINGFUL_FIELDS) para no generar snapshots en cada partida.
+    stats: profile.stats || null,
     sourceUrl: profile.sourceUrl || '',
     provider: profile.provider || 'Public source',
   }

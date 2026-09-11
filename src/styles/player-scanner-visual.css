@@ -212,6 +212,21 @@
 .ps-rankcard-note { display: block; margin-top: 8px; font-size: 0.72rem; color: var(--text-faint, #5c6672); font-style: italic; }
 .ps-rankcard-head { display: flex; align-items: center; gap: 10px; }
 
+/* ---------------- ESTADISTICAS ---------------- */
+.ps-stats { display: flex; flex-direction: column; gap: 20px; }
+.ps-stats-group { display: flex; flex-direction: column; gap: 10px; }
+.ps-stats-mode-label { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-strong, #ff5c53); font-weight: 700; }
+.ps-stats-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.ps-statcard {
+  display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 16px;
+  background: var(--surface-sunken, #0f1115); border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+}
+.ps-statcard-title { font-size: 0.95rem; font-weight: 800; color: var(--text, #f2f4f7); font-family: var(--font-display, sans-serif); }
+.ps-statcard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 8px; }
+.ps-statcell { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+.ps-statcell-v { font-size: 1.05rem; font-weight: 800; color: var(--text, #f2f4f7); line-height: 1.1; }
+.ps-statcell-k { font-size: 0.66rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted, #98a2b0); }
+
 /* Badge de tier (DaniVex; NO es el emblema del juego). Color por rango para
    reconocimiento rapido. Inicial del tier dentro. */
 .ps-emblem {
@@ -313,6 +328,7 @@
   .ps-summary-grid, .ps-detail-grid { grid-template-columns: repeat(2, 1fr); }
   .ps-section { padding: 18px 15px; }
   .ps-pet-card { flex-direction: column; text-align: center; }
+  .ps-stats-cards { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

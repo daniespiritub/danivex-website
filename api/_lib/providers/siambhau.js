@@ -18,6 +18,7 @@
 
 import { classifyFetchError } from '../log.js'
 import { brRankFromPoints } from '../rank-rules.js'
+import { normalizeStats } from '../stats-model.js'
 
 export const name = 'siambhau'
 export const label = 'SiamBhau'
@@ -188,4 +189,41 @@ export async function getProfile(uid, opts = {}) {
   } finally {
     clearTimeout(timeout)
   }
+}
+
+// Fetch de un modo de stats (gamemode + matchmode). Devuelve el objeto `stats`
+// crudo o null. Best-effort: nunca lanza (un fallo de stats no rompe el perfil).
+async function fetchStatsMode(uid, region, key, gamemode, matchmode) {
+  const url = `${BASE_URL}/freefireinfo/stats?uid=${encodeURIComponent(uid)}&region=${encodeURIComponent(region)}&gamemode=${gamemode}&matchmode=${matchmode}&key=${encodeURIComponent(key)}`
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), Number(process.env.SIAMBHAU_STATS_TIMEOUT_MS || 7000))
+  try {
+    const res = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data && data.success && data.stats ? data.stats : null
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+// getStats: estadisticas REALES de partidas (BR solo/duo/squad + CS), del endpoint
+// /freefireinfo/stats de SiamBhau. Se piden BR CAREER + CS CAREER en PARALELO (2
+// requests acotadas). Best-effort: si falla, devuelve { ok:false } y el perfil
+// sigue funcionando sin stats. NO expone la key. Ver stats-model.js.
+export async function getStats(uid, opts = {}) {
+  if (!isEnabled()) return { ok: false, outcome: 'disabled' }
+  const region = (opts.region || process.env.SIAMBHAU_DEFAULT_REGION || '').trim()
+  if (!region) return { ok: false, outcome: 'no_region' }
+  const key = process.env.SIAMBHAU_API_KEY
+
+  const [br, cs] = await Promise.all([
+    fetchStatsMode(uid, region, key, 'br', 'CAREER'),
+    fetchStatsMode(uid, region, key, 'cs', 'CAREER'),
+  ])
+  const stats = normalizeStats({ br, cs })
+  if (!stats) return { ok: false, outcome: 'empty' }
+  return { ok: true, stats }
 }

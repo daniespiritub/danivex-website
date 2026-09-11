@@ -331,6 +331,7 @@ export function generatePlayerFromLookup(uid, lookup) {
     petLevel: lookup?.petLevel || '',
     petImage: lookup?.petImage || '',
     outfit: Array.isArray(lookup?.outfit) ? lookup.outfit : [],
+    stats: lookup?.stats || null,
     clanLeader: lookup?.clanLeader || '',
     providerPrimeLevel: lookup?.primeLevel || '',
     bio: lookup?.bio || '',
