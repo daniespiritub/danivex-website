@@ -3,6 +3,8 @@
 // Los campos ricos (rank/prime/outfit/pet/title) salen del proveedor si existen;
 // si no, quedan vacios (nunca se fabrican).
 
+import { resolveAvatar, resolveBanner } from './profile-images.js'
+
 // Placeholders de UI que algunas fuentes (FreeFireMania) filtran como "nombre"
 // de clan cuando el parseo del nombre falla. No son nombres reales => se vacian.
 const CLAN_PLACEHOLDERS = new Set(['registrar clan', 'register clan', 'cadastrar cla', 'cadastrar clã', 'registrar cla', 'registrar clã'])
@@ -15,6 +17,9 @@ function cleanClanName(value) {
 export function buildResponse(uid, profile, cacheHit) {
   const outfit = Array.isArray(profile.outfit) ? profile.outfit : []
   const providerLabel = profile.provider || 'FreeFireMania Fast'
+  // Avatar/banner por resolvers dedicados (NO el resolver de items del outfit).
+  const avatarRes = resolveAvatar(profile)
+  const bannerRes = resolveBanner(profile)
 
   return {
     ok: true,
@@ -49,8 +54,14 @@ export function buildResponse(uid, profile, cacheHit) {
     bio: profile.bio || '',
     skinStatus: profile.skinStatus || '',
     skinError: profile.skinError || '',
-    avatar: profile.avatar || '',
-    banner: profile.banner || '',
+    avatar: avatarRes.url,
+    banner: bannerRes.url,
+    avatarSource: avatarRes.source,
+    bannerSource: bannerRes.source,
+    // IDs de referencia (para re-resolver dinamicamente y para snapshots):
+    avatarId: profile.avatarId || '',
+    headPic: profile.headPic || '',
+    bannerId: profile.bannerId || '',
 
     emulator: profile.emulator || '',
     elitePass: profile.elitePass || '',

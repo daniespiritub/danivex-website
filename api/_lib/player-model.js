@@ -22,6 +22,7 @@ export const PLAYER_DATA_FIELDS = [
   'gameVersion', 'pass',
   'clan', 'clanId', 'clanLevel', 'clanMembers', 'clanLeader',
   'bio', 'skinStatus', 'skinError', 'avatar', 'banner',
+  'avatarId', 'headPic', 'bannerId',
   'diamonds', 'primeLevel',
   // Campos ricos (rank/temporada/outfit/pet/perfil) — proveedor con key.
   'rankBR', 'rankBRPoints', 'rankCS', 'rankCSPoints', 'season',
@@ -35,7 +36,7 @@ export const PLAYER_DATA_FIELDS = [
 export const MEANINGFUL_FIELDS = [
   'nickname', 'region', 'regionCode', 'level', 'exp', 'likes',
   'gameVersion', 'pass', 'clan', 'clanId', 'clanLevel', 'clanMembers',
-  'bio', 'avatar', 'banner', 'diamonds', 'primeLevel',
+  'bio', 'avatar', 'banner', 'headPic', 'bannerId', 'diamonds', 'primeLevel',
   'rankBR', 'rankBRPoints', 'rankCS', 'rankCSPoints', 'season',
   'title', 'pet', 'petLevel', 'outfit',
 ]
@@ -84,6 +85,9 @@ export function normalizeStoredPlayer(uid, profile) {
     skinError: profile.skinError || '',
     avatar: profile.avatar || '',
     banner: profile.banner || '',
+    avatarId: profile.avatarId || '',
+    headPic: profile.headPic || '',
+    bannerId: profile.bannerId || '',
     diamonds: Number(profile.diamonds || 0),
     primeLevel: profile.primeLevel || '',
     // Ricos (vacios si el proveedor no los da):
