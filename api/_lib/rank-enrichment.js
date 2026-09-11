@@ -61,6 +61,7 @@ export function enrichRanks(profile, opts = {}) {
     brTierKey: tierKey(brName),
 
     // CS (vacio salvo proveedor secundario verificado)
+    csRankName: csName, // nombre de tier CS resuelto (live o secundario/verificado)
     csRankSource: csName ? (sec && sec.source ? sec.source : 'secondary-provider') : '',
     csRankConfidence: csName ? 'verified-secondary' : 'unavailable',
     csStars,
