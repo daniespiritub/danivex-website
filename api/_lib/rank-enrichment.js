@@ -44,8 +44,9 @@ export function enrichRanks(profile, opts = {}) {
   const brSeason = p.season || ''
   const brRankConfidence = brName ? validateBrRank(brName, brPoints) : 'unavailable'
 
-  // --- Clash Squad (tier por codigo; estrellas/temporada solo si hay secundario) ---
-  const csName = p.rankCS || ''
+  // --- Clash Squad (sin datos verificables en la fuente primaria; rango/estrellas/
+  // temporada solo si un proveedor secundario VERIFICADO los aporta) ---
+  const csName = p.rankCS || (sec && sec.rank ? String(sec.rank) : '')
   const csStars = sec && sec.stars != null && String(sec.stars) !== '' ? String(sec.stars) : ''
   const csSeason = sec && sec.season != null && String(sec.season) !== '' ? String(sec.season) : ''
 
@@ -59,9 +60,9 @@ export function enrichRanks(profile, opts = {}) {
     brSeasonConfidence: brSeason ? 'verified' : 'unavailable',
     brTierKey: tierKey(brName),
 
-    // CS
-    csRankSource: csName ? 'siambhau-code' : '',
-    csRankConfidence: csName ? 'derived-code' : 'unavailable',
+    // CS (vacio salvo proveedor secundario verificado)
+    csRankSource: csName ? (sec && sec.source ? sec.source : 'secondary-provider') : '',
+    csRankConfidence: csName ? 'verified-secondary' : 'unavailable',
     csStars,
     csSeason,
     csStarsSource: csStars ? (sec.source || 'secondary-provider') : 'unavailable',

@@ -17,7 +17,7 @@
 */
 
 import { classifyFetchError } from '../log.js'
-import { resolveRankTier, rankLabel } from '../ff-rank.js'
+import { brRankFromPoints } from '../rank-rules.js'
 
 export const name = 'siambhau'
 export const label = 'SiamBhau'
@@ -45,36 +45,37 @@ function iconUrl(id) {
 // Mapea los rangos BR/CS desde basicInfo. Conserva los codigos raw.
 //
 // VERIFICADO contra capturas del juego (UID 2196518104, 2026-09-11):
-//  - BR: rankingPoints (3539) = RP mostrado en el juego; seasonId (53) = temporada
-//    BR. COINCIDE => BR se muestra con RP + temporada (verificado).
+//  - BR: el juego muestra "Heroico" con rankingPoints=3539 y seasonId=53. El
+//    tier se deriva del RP (oficial: Heroico = 3125+), NO del codigo basicInfo.rank
+//    (=321), que NO es fiable para nombrar el tier. seasonId (53) = temporada BR.
+//    => BR se muestra con tier(RP) + RP + temporada (verificado). Ver rank-rules.js.
 //  - CS: el juego muestra 55 estrellas y temporada S38, pero la API devuelve
-//    csRankingPoints=142 y NO trae la temporada CS (seasonId es solo la de BR).
-//    142 != 55 => NO se muestra ese numero como "estrellas" (seria falso). Se
-//    conserva el valor raw internamente (rankCSRawValue) pero rankCSStars queda
-//    vacio. El TIER de CS si sale del codigo csRank (=csMaxRank actual).
+//    csRankingPoints=142 (!= 55), NO trae estrellas, NO trae temporada CS (seasonId
+//    es solo de BR) y el codigo csRank no es fiable para el tier. => CS no tiene
+//    rango/estrellas/temporada verificables en esta fuente: se dejan vacios y solo
+//    se conserva el valor raw internamente (rankCSRawValue). NUNCA se inventan.
 function mapRanks(basic) {
-  const brTier = basic.showBrRank === false ? { name: '', division: '', code: '', confidence: 'hidden' } : resolveRankTier(basic.rank ?? basic.brRank)
-  const csTier = basic.showCsRank === false ? { name: '', division: '', code: '', confidence: 'hidden' } : resolveRankTier(basic.csRank)
   const str = (v) => (v != null ? String(v) : '')
+  const brPoints = str(basic.rankingPoints ?? basic.brRankPoint)
+  // BR: el tier lo determina el RP (fuente de verdad verificada), no el codigo.
+  const br = basic.showBrRank === false ? { name: '', confidence: 'hidden' } : brRankFromPoints(brPoints)
   const csRaw = str(basic.csRankingPoints ?? basic.csRankPoint)
   return {
-    // Battle Royale (RP) — verificado contra el juego:
-    rankBR: rankLabel(brTier),
-    rankBRDivision: brTier.division,
-    rankBRCode: str(basic.rank ?? basic.brRank),
-    rankBRPoints: str(basic.rankingPoints ?? basic.brRankPoint),
-    rankBRConfidence: brTier.confidence,
-    // Clash Squad — tier desde el codigo; el valor raw NO es las estrellas del
-    // juego (142 != 55), asi que no se muestra como estrellas. Se guarda raw.
-    rankCS: rankLabel(csTier),
-    rankCSDivision: csTier.division,
-    rankCSCode: str(basic.csRank),
-    rankCSStars: '', // no se fabrica: la API no da las estrellas reales del juego
-    rankCSRawValue: csRaw, // valor interno csRankingPoints (pendiente de interpretacion)
+    // Battle Royale (RP) — tier derivado del RP oficial:
+    rankBR: br.name,
+    rankBRDivision: '', // el RP no da subdivision fiable => no se inventa
+    rankBRCode: str(basic.rank ?? basic.brRank), // codigo raw (referencia interna)
+    rankBRPoints: brPoints,
+    rankBRConfidence: br.confidence,
+    // Clash Squad — sin datos verificables en esta fuente (estrellas/temporada/tier).
+    rankCS: '',
+    rankCSDivision: '',
+    rankCSCode: str(basic.csRank), // codigo raw (referencia interna)
+    rankCSStars: '', // la API no da las estrellas reales del juego
+    rankCSRawValue: csRaw, // valor interno csRankingPoints (!= estrellas; sin interpretar)
     rankCSPoints: '', // no exponer como puntos (seria falso)
-    rankCSConfidence: csTier.confidence === 'verified' ? 'tier_only' : csTier.confidence,
-    // seasonId es la temporada de BR; CS tiene su propia temporada que la API no
-    // expone, por eso NO se asigna una temporada a CS.
+    rankCSConfidence: basic.showCsRank === false ? 'hidden' : 'unavailable',
+    // seasonId es la temporada de BR; CS tiene su propia temporada que la API no expone.
     season: str(basic.seasonId),
   }
 }
@@ -117,9 +118,8 @@ export function mapSiamBhauProfile(data) {
     creationDate: epochToDate(basic.createAt || basic.createTime || basic.accountCreateTime),
     lastLogin: epochToDate(basic.lastLoginAt || basic.lastLoginTime),
 
-    // Rangos: el CODIGO (rank/csRank) es el tier que el juego ya asigno. Mismo
-    // enum BR/CS. Diferencia: BR se mide en RP (rankingPoints), CS en ESTRELLAS
-    // (csRankingPoints). Se conservan los codigos raw. Ver ff-rank.js.
+    // Rangos: BR se deriva del RP (fuente de verdad, ver rank-rules.js); CS no
+    // tiene datos verificables en esta fuente. Se conservan los codigos raw.
     ...mapRanks(basic),
 
     // Prime (anidado en primeInfo.primeLevel):

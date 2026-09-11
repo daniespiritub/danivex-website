@@ -118,9 +118,16 @@ export async function getCachedProfile(uid) {
 }
 
 // Campos "ricos" que solo aporta un proveedor con key (SiamBhau). Si el
-// proveedor entrante no los trae, se conservan los del snapshot previo.
+// proveedor entrante no los trae (p.ej. SiamBhau cae y sirve el keyless), se
+// conservan los del snapshot previo para no perder un dato verificado.
+//
+// IMPORTANTE: rankCS/rankCSStars/rankCSSeason NO se preservan. El rango de CS no
+// es verificable en ninguna fuente actual (la API no expone estrellas/temporada
+// CS reales y su codigo no es fiable), asi que hoy SIEMPRE llega vacio. Preservar
+// un CS antiguo resucitaria un tier sin verificar (dato falso) => prohibido. Si en
+// el futuro un proveedor secundario VERIFICADO aporta CS, se guardara normalmente.
 const RICH_PRESERVE_FIELDS = [
-  'primeLevel', 'rankBR', 'rankBRPoints', 'rankCS', 'rankCSPoints', 'season',
+  'primeLevel', 'rankBR', 'rankBRPoints', 'season',
   'title', 'badgeCount', 'pet', 'petLevel', 'clanLeader', 'avatar', 'banner',
 ]
 

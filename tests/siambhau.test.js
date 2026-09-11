@@ -53,17 +53,18 @@ test('mapSiamBhauProfile: PRIME desde primeInfo.primeLevel (anidado)', () => {
   assert.equal(p.primeLevel, '8')
 })
 
-test('mapSiamBhauProfile: BR verificado (Maestro/RP) y CS sin estrellas falsas', () => {
+test('mapSiamBhauProfile: BR derivado del RP (Heroico, ground truth) y CS sin datos falsos', () => {
   const p = mapSiamBhauProfile(fixture)
-  // BR: verificado contra el juego (RP + temporada coinciden).
-  assert.equal(p.rankBR, 'Maestro') // codigo 321 = Maestro, NO Gran Maestro
+  // BR: el juego muestra "Heroico" con 3539 RP. El tier sale del RP (3539 >= 3125),
+  // NO del codigo 321. Esto es el GROUND TRUTH del juego (UID 2196518104).
+  assert.equal(p.rankBR, 'Heroico', 'BR debe ser Heroico por RP, NO Maestro por codigo')
   assert.equal(p.rankBRPoints, '3539') // BR se mide en RP
-  assert.equal(p.rankBRCode, '321')
+  assert.equal(p.rankBRCode, '321') // codigo raw conservado (referencia interna)
   assert.equal(p.season, '53')
-  // CS: el valor de la API (142) NO son las estrellas del juego (55) -> NO se
-  // expone como estrellas. Solo se conserva el raw internamente + el tier.
-  assert.equal(p.rankCS, 'Gran Maestro') // tier desde el codigo csRank
-  assert.equal(p.rankCSCode, '323')
+  // CS: el valor de la API (142) NO son las estrellas del juego (55), no hay
+  // temporada CS ni tier fiable -> CS queda vacio. Solo se conserva el raw interno.
+  assert.equal(p.rankCS, '', 'CS sin rango verificable en la fuente')
+  assert.equal(p.rankCSCode, '323') // codigo raw conservado (referencia interna)
   assert.equal(p.rankCSStars, '', 'NO debe fabricar estrellas cuando la API no da el valor real del juego')
   assert.equal(p.rankCSRawValue, '142', 'conserva el valor raw csRankingPoints internamente')
 })
@@ -76,18 +77,20 @@ test('mapSiamBhauProfile: imagen de mascota usa la skin equipada (skinId)', () =
   assert.equal(p.petSkinId, '1310000097')
 })
 
-test('mapSiamBhauProfile: tiers por codigo verificado (301..323)', () => {
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 301 } }).rankBR, 'Bronce I')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 305 } }).rankBR, 'Plata II')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 308 } }).rankBR, 'Oro II')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 313 } }).rankBR, 'Platino III')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 316 } }).rankBR, 'Diamante II')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 319 } }).rankBR, 'Heroico')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 322 } }).rankBR, 'Maestro de Elite')
+test('mapSiamBhauProfile: tier BR por umbral de RP (oficial, verificado)', () => {
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 1000 } }).rankBR, 'Bronce')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 1300 } }).rankBR, 'Plata')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 1700 } }).rankBR, 'Oro')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 2100 } }).rankBR, 'Platino')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 2600 } }).rankBR, 'Diamante')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 3125 } }).rankBR, 'Heroico')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 3539 } }).rankBR, 'Heroico')
+  // Gran Maestro NO se deriva por RP (depende de leaderboard): RP alto sigue Heroico.
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 8000 } }).rankBR, 'Heroico')
 })
 
 test('mapSiamBhauProfile: showBrRank=false oculta el rango', () => {
-  const p = mapSiamBhauProfile({ basicInfo: { rank: 321, showBrRank: false } })
+  const p = mapSiamBhauProfile({ basicInfo: { rankingPoints: 3539, showBrRank: false } })
   assert.equal(p.rankBR, '')
 })
 
