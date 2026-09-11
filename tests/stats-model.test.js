@@ -42,11 +42,27 @@ test('normalizeStats: CS con KDA/MVP/derribos', () => {
   assert.equal(s.cs.knockdowns, 63636)
 })
 
-test('normalizeStats: provenance verificada', () => {
+test('normalizeStats: provenance + scope carrera', () => {
   const s = normalizeStats({ br: BR_CAREER, cs: CS_CAREER })
   assert.equal(s.source, 'siambhau-stats')
   assert.equal(s.confidence, 'verified')
+  assert.equal(s.scope, 'career', 'br/cs representan el scope CARRERA')
+  assert.equal(s.ranked, null, 'sin datos ranked => ranked null')
   assert.ok(s.updatedAt)
+})
+
+test('normalizeStats: CLASIFICATORIA (ranked) va en bloque aparte, sin mezclar', () => {
+  const rankedBr = { solostats: { gamesplayed: 13, kills: 69, detailedstats: { deaths: 13, damage: 20699, headshotkills: 28, highestkills: 10 } } }
+  const rankedCs = { csstats: { gamesplayed: 82, wins: 52, kills: 563, detailedstats: { deaths: 175, assists: 150, damage: 277945, headshotkills: 384, mvpcount: 71, knockdowns: 777 } } }
+  const s = normalizeStats({ br: BR_CAREER, cs: CS_CAREER, rankedBr, rankedCs })
+  // Carrera intacta:
+  assert.equal(s.br.solo.matches, 714)
+  assert.equal(s.cs.matches, 13379)
+  // Clasificatoria separada:
+  assert.ok(s.ranked && s.ranked.br && s.ranked.cs)
+  assert.equal(s.ranked.br.solo.matches, 13)
+  assert.equal(s.ranked.cs.matches, 82)
+  assert.notEqual(s.ranked.cs.matches, s.cs.matches, 'ranked != carrera')
 })
 
 test('normalizeStats: modos sin partidas se omiten (NORMAL vacio)', () => {

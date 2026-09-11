@@ -213,6 +213,10 @@
 .ps-rankcard-head { display: flex; align-items: center; gap: 10px; }
 
 /* ---------------- ESTADISTICAS ---------------- */
+.ps-stats-scopes { display: flex; flex-direction: column; gap: 24px; }
+.ps-stats-scope { display: flex; flex-direction: column; gap: 12px; }
+.ps-stats-scope-label { font-size: 0.95rem; font-weight: 800; color: var(--text, #f2f4f7); font-family: var(--font-display, sans-serif); display: flex; align-items: baseline; gap: 8px; }
+.ps-stats-scope-label em { font-style: normal; font-size: 0.72rem; font-weight: 600; color: var(--text-muted, #98a2b0); letter-spacing: 0.02em; }
 .ps-stats { display: flex; flex-direction: column; gap: 20px; }
 .ps-stats-group { display: flex; flex-direction: column; gap: 10px; }
 .ps-stats-mode-label { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-strong, #ff5c53); font-weight: 700; }

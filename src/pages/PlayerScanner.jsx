@@ -523,16 +523,17 @@ function RankCard({ title, mode, tier, division, tierKey, metric, metricLabel, s
   )
 }
 
-// Panel de estadisticas REALES de partidas (BR solo/duo/squad + CS). Solo
-// muestra bloques con datos; nunca campos vacios. Datos verificados de SiamBhau.
-function StatsPanel({ stats }) {
-  if (!stats) return null
-  const br = stats.br || {}
+// Panel de estadisticas REALES de partidas. Muestra el scope CARRERA (acumulado)
+// y, si existe, CLASIFICATORIA (ranked) por separado y bien etiquetado. Solo
+// bloques con datos; nunca campos vacios. Datos reales de SiamBhau (no son una
+// captura concreta del juego: son acumulados por scope).
+function StatsScope({ br, cs }) {
   const brModes = [
-    ['Solo', br.solo],
-    ['Duo', br.duo],
-    ['Escuadra', br.squad],
+    ['Solo', br?.solo],
+    ['Duo', br?.duo],
+    ['Escuadra', br?.squad],
   ].filter(([, m]) => m)
+  if (brModes.length === 0 && !cs) return null
   return (
     <div className="ps-stats">
       {brModes.length > 0 && (
@@ -545,12 +546,32 @@ function StatsPanel({ stats }) {
           </div>
         </div>
       )}
-      {stats.cs && (
+      {cs && (
         <div className="ps-stats-group">
           <span className="ps-stats-mode-label">Duelo de Escuadras</span>
           <div className="ps-stats-cards">
-            <StatModeCard title="Clash Squad" mode="cs" m={stats.cs} />
+            <StatModeCard title="Clash Squad" mode="cs" m={cs} />
           </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function StatsPanel({ stats }) {
+  if (!stats) return null
+  const ranked = stats.ranked
+  const hasRanked = ranked && ((ranked.br && (ranked.br.solo || ranked.br.duo || ranked.br.squad)) || ranked.cs)
+  return (
+    <div className="ps-stats-scopes">
+      <div className="ps-stats-scope">
+        <span className="ps-stats-scope-label">Carrera <em>(acumulado)</em></span>
+        <StatsScope br={stats.br} cs={stats.cs} />
+      </div>
+      {hasRanked && (
+        <div className="ps-stats-scope">
+          <span className="ps-stats-scope-label">Clasificatoria <em>(ranked)</em></span>
+          <StatsScope br={ranked.br} cs={ranked.cs} />
         </div>
       )}
     </div>
