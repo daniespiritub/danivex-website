@@ -210,6 +210,27 @@
 .ps-rankcard-tier { font-size: 1.5rem; font-weight: 800; font-family: var(--font-display, sans-serif); color: var(--text, #f2f4f7); }
 .ps-rankcard-meta { display: flex; gap: 14px; font-size: 0.82rem; color: var(--text-muted, #98a2b0); }
 .ps-rankcard-note { display: block; margin-top: 8px; font-size: 0.72rem; color: var(--text-faint, #5c6672); font-style: italic; }
+.ps-rankcard-head { display: flex; align-items: center; gap: 10px; }
+
+/* Badge de tier (DaniVex; NO es el emblema del juego). Color por rango para
+   reconocimiento rapido. Inicial del tier dentro. */
+.ps-emblem {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 10px; flex: 0 0 auto;
+  font-family: var(--font-display, sans-serif); font-weight: 800; font-size: 0.8rem;
+  color: #0b0d10; letter-spacing: -0.02em;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 4px 12px -4px rgba(0, 0, 0, 0.6);
+}
+.ps-emblem-sm { width: 20px; height: 20px; border-radius: 6px; font-size: 0.6rem; }
+.ps-emblem-bronze { background: linear-gradient(135deg, #e0955a, #a5642f); }
+.ps-emblem-silver { background: linear-gradient(135deg, #d8dee8, #9aa4b2); }
+.ps-emblem-gold { background: linear-gradient(135deg, #ffd76b, #e0a72c); }
+.ps-emblem-platinum { background: linear-gradient(135deg, #7ef0dd, #35b6a3); }
+.ps-emblem-diamond { background: linear-gradient(135deg, #7ec2ff, #3d7fe0); color: #06121f; }
+.ps-emblem-heroic { background: linear-gradient(135deg, #ff7a5c, #c8322b); color: #fff; }
+.ps-emblem-master { background: linear-gradient(135deg, #ff5c53, #b31f2a); color: #fff; }
+.ps-emblem-grandmaster { background: linear-gradient(135deg, #ffd76b, #d6302b 70%); color: #2a0808; box-shadow: inset 0 0 0 1px rgba(255, 220, 120, 0.55), 0 0 16px -3px rgba(255, 196, 82, 0.55); }
+.pc-rank-top { display: flex; align-items: center; gap: 6px; }
 
 /* ---------------- MASCOTA (compañero de loadout) ---------------- */
 /* En la Player Card: outfit + pet juntos como "loadout". */

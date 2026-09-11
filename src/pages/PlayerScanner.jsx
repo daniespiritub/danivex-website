@@ -266,8 +266,9 @@ function PlayerScanner() {
           <section id="ps-rangos" className="ps-section">
             <h3 className="ps-h3">Rangos</h3>
             <div className="ps-ranks">
-              <RankCard title="Battle Royale" tier={player.rankBR} division={player.rankBRDivision} metric={player.rankBRPoints} metricLabel="RP" season={player.season} />
-              <RankCard title="Duelo de Escuadras" tier={player.rankCS} division={player.rankCSDivision} metric={player.rankCSStars} metricLabel="★" season="" note="Estrellas y temporada de CS no disponibles en la fuente" />
+              <RankCard title="Battle Royale" tier={player.rankBR} division={player.rankBRDivision} tierKey={player.rankBRTierKey} metric={player.rankBRPoints} metricLabel="RP" season={player.season} />
+              <RankCard title="Duelo de Escuadras" tier={player.rankCS} division={player.rankCSDivision} tierKey={player.rankCSTierKey} metric={player.rankCSStars} metricLabel="★" season={player.rankCSSeason}
+                note={player.rankCSStars ? '' : 'Estrellas y temporada de CS no disponibles en la fuente'} />
             </div>
           </section>
 
@@ -408,12 +409,18 @@ function PlayerCard({ player, primeLevel, outfit, changesCount, onSeeHistory }) 
 
           <div className="pc-ranks">
             <div className="pc-rank">
-              <span className="pc-rank-mode">BR</span>
+              <div className="pc-rank-top">
+                {player.rankBRTierKey && <span className={`ps-emblem ps-emblem-sm ps-emblem-${player.rankBRTierKey}`} aria-hidden="true">{emblemInitial(player.rankBRTierKey)}</span>}
+                <span className="pc-rank-mode">BR</span>
+              </div>
               <span className="pc-rank-tier">{rankFull(player.rankBR, player.rankBRDivision) || 'No disponible'}</span>
               {player.rankBRPoints && <span className="pc-rank-pts">{player.rankBRPoints} RP</span>}
             </div>
             <div className="pc-rank">
-              <span className="pc-rank-mode">CS</span>
+              <div className="pc-rank-top">
+                {player.rankCSTierKey && <span className={`ps-emblem ps-emblem-sm ps-emblem-${player.rankCSTierKey}`} aria-hidden="true">{emblemInitial(player.rankCSTierKey)}</span>}
+                <span className="pc-rank-mode">CS</span>
+              </div>
               <span className="pc-rank-tier">{rankFull(player.rankCS, player.rankCSDivision) || 'No disponible'}</span>
               {player.rankCSStars && <span className="pc-rank-pts">{player.rankCSStars} ★</span>}
             </div>
@@ -482,12 +489,15 @@ function StatTile({ label, value, sub, accent, onClick }) {
   )
 }
 
-function RankCard({ title, tier, division, metric, metricLabel, season, note }) {
+function RankCard({ title, tier, division, tierKey, metric, metricLabel, season, note }) {
   const has = Boolean(tier)
   return (
     <div className={`ps-rankcard${has ? '' : ' ps-rankcard-empty'}`}>
       <span className="ps-rankcard-mode">{title}</span>
-      <span className="ps-rankcard-tier">{rankFull(tier, division) || 'No disponible'}</span>
+      <div className="ps-rankcard-head">
+        {tierKey && <span className={`ps-emblem ps-emblem-${tierKey}`} aria-hidden="true">{emblemInitial(tierKey)}</span>}
+        <span className="ps-rankcard-tier">{rankFull(tier, division) || 'No disponible'}</span>
+      </div>
       <div className="ps-rankcard-meta">
         {metric && <span>{metricLabel === '★' ? `${metric} ★` : `${metric} ${metricLabel}`}</span>}
         {season && <span>Temporada {season}</span>}
@@ -495,6 +505,12 @@ function RankCard({ title, tier, division, metric, metricLabel, season, note }) 
       {note && <span className="ps-rankcard-note">{note}</span>}
     </div>
   )
+}
+
+// Inicial para el badge de tier (DaniVex, no es un asset del juego).
+function emblemInitial(key) {
+  const map = { grandmaster: 'GM', master: 'M', heroic: 'H', diamond: 'D', platinum: 'P', gold: 'O', silver: 'S', bronze: 'B' }
+  return map[key] || '?'
 }
 
 // Une tier + division ("Diamante" + "III" -> "Diamante III").
