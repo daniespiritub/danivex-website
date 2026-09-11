@@ -39,8 +39,10 @@ const REGION_ALIASES = { NA: 'US' }
 // Observaciones verificadas in-game. Cada campo lleva su procedencia.
 const OBSERVATIONS = {
   'US:2196518104': {
+    // Solo se observan directamente las ESTRELLAS y la TEMPORADA (ground truth
+    // in-game). El TIER/nombre NO se almacena aqui: se calcula con las reglas
+    // oficiales de CS (star->tier) a partir de las estrellas. Ver cs-rank-rules.js.
     cs: {
-      rank: 'Gran Maestro',
       stars: '55',
       season: '38',
       source: 'in-game-verification',

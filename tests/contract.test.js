@@ -72,12 +72,13 @@ test('CONTRATO: BR = Heroico por RP (ground truth), con RP y temporada', () => {
   assert.equal(r.rankBRConfidence, 'verified')
 })
 
-test('CONTRATO: CS del UID verificado in-game (55 ★ / S38 / Gran Maestro), NUNCA 142/S53', () => {
-  const r = fullResponse() // uid 2196518104 / US => tiene observacion verificada
-  assert.equal(r.rankCS, 'Gran Maestro', 'tier CS observado in-game')
+test('CONTRATO: CS del UID verificado — 55★ => MAESTRO (reglas de estrellas), NO Gran Maestro', () => {
+  const r = fullResponse() // uid 2196518104 / US => estrellas verificadas in-game
+  assert.equal(r.rankCS, 'Maestro', 'tier derivado de 55 estrellas por las reglas CS actuales')
+  assert.notEqual(r.rankCS, 'Gran Maestro', 'Gran Maestro NO se deriva por estrellas (leaderboard)')
   assert.equal(r.rankCSStars, '55', 'estrellas CS verificadas in-game')
   assert.equal(r.rankCSSeason, '38', 'temporada CS verificada (separada de BR)')
-  assert.equal(r.rankCSTierKey, 'grandmaster', 'para resolver el emblema oficial CS')
+  assert.equal(r.rankCSTierKey, 'master', 'para resolver el emblema oficial CS Master')
   // Prohibiciones explicitas: nunca el raw 142 como estrellas, nunca la season BR.
   assert.notEqual(r.rankCSStars, '142')
   assert.notEqual(r.rankCSSeason, '53')

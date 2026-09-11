@@ -6,6 +6,7 @@
 import { resolveAvatar, resolveBanner } from './profile-images.js'
 import { enrichRanks } from './rank-enrichment.js'
 import { verifiedSecondaryCs } from './verified-observations.js'
+import { resolveCsTierFromStars } from './cs-rank-rules.js'
 
 // Placeholders de UI que algunas fuentes (FreeFireMania) filtran como "nombre"
 // de clan cuando el parseo del nombre falla. No son nombres reales => se vacian.
@@ -27,7 +28,14 @@ export function buildResponse(uid, profile, cacheHit) {
   // (2) observacion in-game verificada (rellena huecos). La observacion es
   // idempotente y se aplica en cada lectura (fresh o cache) para que el resultado
   // sea consistente aunque el registro persistido no guarde todos los campos CS.
-  const secondaryCs = profile.secondaryCs || verifiedSecondaryCs(uid, profile.region)
+  let secondaryCs = profile.secondaryCs || verifiedSecondaryCs(uid, profile.region)
+  // El TIER de CS se calcula por las reglas oficiales de estrellas (cs-rank-rules),
+  // NO por el codigo raw. Si hay estrellas pero no un rango live explicito, se
+  // deriva el tier de las estrellas (Gran Maestro nunca por estrellas: leaderboard).
+  if (secondaryCs && secondaryCs.stars && !secondaryCs.rank) {
+    const t = resolveCsTierFromStars(secondaryCs.stars)
+    if (t.name) secondaryCs = { ...secondaryCs, rank: t.name }
+  }
   const ranks = enrichRanks(profile, { secondaryCs })
 
   return {
