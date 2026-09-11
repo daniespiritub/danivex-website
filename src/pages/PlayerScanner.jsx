@@ -220,8 +220,8 @@ function PlayerScanner() {
             <div className="ps-summary-grid">
               <StatTile label="Nivel" value={player.level || '—'} />
               <StatTile label="Prime" value={primeLevel ? `Prime ${primeLevel}` : 'No disponible'} accent={Boolean(primeLevel)} />
-              <StatTile label="Rango BR" value={player.rankBR || 'No disponible'} sub={player.rankBRPoints ? `${player.rankBRPoints} pts` : ''} />
-              <StatTile label="Rango CS" value={player.rankCS || 'No disponible'} sub={player.rankCSPoints ? `${player.rankCSPoints} pts` : ''} />
+              <StatTile label="Rango BR" value={rankFull(player.rankBR, player.rankBRDivision) || 'No disponible'} sub={player.rankBRPoints ? `${player.rankBRPoints} RP` : ''} />
+              <StatTile label="Rango CS" value={rankFull(player.rankCS, player.rankCSDivision) || 'No disponible'} sub={player.rankCSStars ? `${player.rankCSStars} ★` : ''} />
               <StatTile label="Clan" value={player.clan || 'Sin clan'} />
               <StatTile label="Me gusta" value={formatNumber(player.likes || 0)} />
               {player.pet && <StatTile label="Mascota" value={player.pet} sub={player.petLevel ? `Nivel ${player.petLevel}` : ''} />}
@@ -255,8 +255,8 @@ function PlayerScanner() {
           <section id="ps-rangos" className="ps-section">
             <h3 className="ps-h3">Rangos</h3>
             <div className="ps-ranks">
-              <RankCard title="Battle Royale" tier={player.rankBR} points={player.rankBRPoints} season={player.season} />
-              <RankCard title="Clash Squad" tier={player.rankCS} points={player.rankCSPoints} season={player.season} />
+              <RankCard title="Battle Royale" tier={player.rankBR} division={player.rankBRDivision} metric={player.rankBRPoints} metricLabel="RP" season={player.season} />
+              <RankCard title="Clash Squad" tier={player.rankCS} division={player.rankCSDivision} metric={player.rankCSStars} metricLabel="★" season={player.season} />
             </div>
           </section>
 
@@ -398,13 +398,13 @@ function PlayerCard({ player, primeLevel, outfit, changesCount, onSeeHistory }) 
           <div className="pc-ranks">
             <div className="pc-rank">
               <span className="pc-rank-mode">BR</span>
-              <span className="pc-rank-tier">{player.rankBR || 'No disponible'}</span>
-              {player.rankBRPoints && <span className="pc-rank-pts">{player.rankBRPoints} pts</span>}
+              <span className="pc-rank-tier">{rankFull(player.rankBR, player.rankBRDivision) || 'No disponible'}</span>
+              {player.rankBRPoints && <span className="pc-rank-pts">{player.rankBRPoints} RP</span>}
             </div>
             <div className="pc-rank">
               <span className="pc-rank-mode">CS</span>
-              <span className="pc-rank-tier">{player.rankCS || 'No disponible'}</span>
-              {player.rankCSPoints && <span className="pc-rank-pts">{player.rankCSPoints} pts</span>}
+              <span className="pc-rank-tier">{rankFull(player.rankCS, player.rankCSDivision) || 'No disponible'}</span>
+              {player.rankCSStars && <span className="pc-rank-pts">{player.rankCSStars} ★</span>}
             </div>
           </div>
 
@@ -461,18 +461,24 @@ function StatTile({ label, value, sub, accent, onClick }) {
   )
 }
 
-function RankCard({ title, tier, points, season }) {
+function RankCard({ title, tier, division, metric, metricLabel, season }) {
   const has = Boolean(tier)
   return (
     <div className={`ps-rankcard${has ? '' : ' ps-rankcard-empty'}`}>
       <span className="ps-rankcard-mode">{title}</span>
-      <span className="ps-rankcard-tier">{tier || 'No disponible'}</span>
+      <span className="ps-rankcard-tier">{rankFull(tier, division) || 'No disponible'}</span>
       <div className="ps-rankcard-meta">
-        {points && <span>{points} pts</span>}
+        {metric && <span>{metricLabel === '★' ? `${metric} ★` : `${metric} ${metricLabel}`}</span>}
         {season && <span>Temporada {season}</span>}
       </div>
     </div>
   )
+}
+
+// Une tier + division ("Diamante" + "III" -> "Diamante III").
+function rankFull(tier, division) {
+  if (!tier) return ''
+  return division ? `${tier} ${division}` : tier
 }
 
 function Detail({ label, value }) {
@@ -491,6 +497,7 @@ const EVENT_LABELS = {
   LIKES_CHANGED: 'Me gusta', GUILD_CHANGED: 'Clan', AVATAR_CHANGED: 'Avatar',
   BANNER_CHANGED: 'Banner', BIO_CHANGED: 'Biografia', PRIME_CHANGED: 'Prime',
   REGION_CHANGED: 'Region', RANK_BR_CHANGED: 'Rango BR', RANK_CS_CHANGED: 'Rango CS',
+  RANK_BR_RP_CHANGED: 'RP (BR)', RANK_CS_STARS_CHANGED: 'Estrellas (CS)',
   TITLE_CHANGED: 'Titulo', PET_CHANGED: 'Mascota', OUTFIT_CHANGED: 'Outfit',
 }
 

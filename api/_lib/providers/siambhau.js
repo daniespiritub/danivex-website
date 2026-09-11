@@ -17,6 +17,7 @@
 */
 
 import { classifyFetchError } from '../log.js'
+import { resolveRankTier, rankLabel } from '../ff-rank.js'
 
 export const name = 'siambhau'
 export const label = 'SiamBhau'
@@ -36,28 +37,34 @@ export function isEnabled() {
   return Boolean(process.env.SIAMBHAU_API_KEY)
 }
 
-// Nombre de tier a partir del codigo `rank` de Free Fire (enum de 3 digitos,
-// ej. 321). Se deriva por rangos segun la escalera oficial de 8 tiers; el punto
-// de ranking exacto SIEMPRE se muestra aparte, asi el label es orientativo y el
-// dato duro (puntos) es la verdad. Confirmado con datos reales 2026-09-11
-// (UID 2196518104: rank 321 = Gran Maestro con 3539 pts; csRank 323).
-function rankTierName(value) {
-  if (value === undefined || value === null || value === '') return ''
-  const n = Number(value)
-  if (!Number.isFinite(n) || n <= 0) return String(value)
-  if (n < 200) return 'Bronce'
-  if (n < 300) return 'Plata'
-  if (n < 311) return 'Oro'
-  if (n < 315) return 'Platino'
-  if (n < 318) return 'Diamante'
-  if (n < 320) return 'Heroico'
-  if (n < 321) return 'Maestro'
-  return 'Gran Maestro'
-}
-
 function iconUrl(id) {
   if (!id || !ITEM_ICON_BASE) return ''
   return `${ITEM_ICON_BASE.replace(/\/$/, '')}/${id}.${ICON_EXT}`
+}
+
+// Mapea los rangos BR/CS desde basicInfo. BR = RP; CS = ESTRELLAS. Conserva los
+// codigos raw. Si showBrRank/showCsRank es false, el rango se oculta.
+function mapRanks(basic) {
+  const brTier = basic.showBrRank === false ? { name: '', division: '', code: '', confidence: 'hidden' } : resolveRankTier(basic.rank ?? basic.brRank)
+  const csTier = basic.showCsRank === false ? { name: '', division: '', code: '', confidence: 'hidden' } : resolveRankTier(basic.csRank)
+  const str = (v) => (v != null ? String(v) : '')
+  const csStars = str(basic.csRankingPoints ?? basic.csRankPoint)
+  return {
+    // Battle Royale (RP):
+    rankBR: rankLabel(brTier),
+    rankBRDivision: brTier.division,
+    rankBRCode: str(basic.rank ?? basic.brRank),
+    rankBRPoints: str(basic.rankingPoints ?? basic.brRankPoint),
+    rankBRConfidence: brTier.confidence,
+    // Clash Squad (ESTRELLAS):
+    rankCS: rankLabel(csTier),
+    rankCSDivision: csTier.division,
+    rankCSCode: str(basic.csRank),
+    rankCSStars: csStars,
+    rankCSPoints: csStars, // backward-compat de snapshots viejos (mismo valor)
+    rankCSConfidence: csTier.confidence,
+    season: str(basic.seasonId),
+  }
 }
 
 function epochToDate(value) {
@@ -98,12 +105,10 @@ export function mapSiamBhauProfile(data) {
     creationDate: epochToDate(basic.createAt || basic.createTime || basic.accountCreateTime),
     lastLogin: epochToDate(basic.lastLoginAt || basic.lastLoginTime),
 
-    // Rangos BR / CS (codigo de 3 digitos -> tier; puntos exactos aparte):
-    rankBR: basic.showBrRank === false ? '' : rankTierName(basic.rank ?? basic.brRank ?? basic.maxRank),
-    rankBRPoints: basic.rankingPoints != null ? String(basic.rankingPoints) : (basic.brRankPoint != null ? String(basic.brRankPoint) : ''),
-    rankCS: basic.showCsRank === false ? '' : rankTierName(basic.csRank ?? basic.csMaxRank),
-    rankCSPoints: basic.csRankingPoints != null ? String(basic.csRankingPoints) : (basic.csRankPoint != null ? String(basic.csRankPoint) : ''),
-    season: basic.seasonId != null ? String(basic.seasonId) : '',
+    // Rangos: el CODIGO (rank/csRank) es el tier que el juego ya asigno. Mismo
+    // enum BR/CS. Diferencia: BR se mide en RP (rankingPoints), CS en ESTRELLAS
+    // (csRankingPoints). Se conservan los codigos raw. Ver ff-rank.js.
+    ...mapRanks(basic),
 
     // Prime (anidado en primeInfo.primeLevel):
     primeLevel: prime.primeLevel != null && prime.primeLevel !== 0 ? String(prime.primeLevel) : '',

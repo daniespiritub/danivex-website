@@ -47,8 +47,14 @@ export function detectPlayerEvents(prev, next) {
 
   // Campos ricos (solo si el proveedor los da; con la fuente keyless quedan
   // vacios y por tanto nunca disparan un evento espurio).
+  // Tier BR/CS (cambio de rango: ej. Maestro -> Gran Maestro).
   if (changed('rankBR')) events.push(ev('RANK_BR_CHANGED', 'rankBR', prev.rankBR, next.rankBR))
   if (changed('rankCS')) events.push(ev('RANK_CS_CHANGED', 'rankCS', prev.rankCS, next.rankCS))
+  // Metrica: BR en RP, CS en ESTRELLAS (solo si NO cambio el tier, para no
+  // duplicar; el cambio de tier ya es evento propio).
+  if (!changed('rankBR') && changed('rankBRPoints')) events.push(ev('RANK_BR_RP_CHANGED', 'rankBRPoints', prev.rankBRPoints, next.rankBRPoints))
+  const csStars = (p) => norm(p.rankCSStars || p.rankCSPoints)
+  if (!changed('rankCS') && csStars(prev) !== csStars(next)) events.push(ev('RANK_CS_STARS_CHANGED', 'rankCSStars', csStars(prev), csStars(next)))
   if (changed('title')) events.push(ev('TITLE_CHANGED', 'title', prev.title, next.title))
   if (changed('pet')) events.push(ev('PET_CHANGED', 'pet', prev.pet, next.pet))
 

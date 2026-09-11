@@ -25,7 +25,10 @@ export const PLAYER_DATA_FIELDS = [
   'avatarId', 'headPic', 'bannerId',
   'diamonds', 'primeLevel',
   // Campos ricos (rank/temporada/outfit/pet/perfil) — proveedor con key.
-  'rankBR', 'rankBRPoints', 'rankCS', 'rankCSPoints', 'season',
+  // BR = RP (rankBRPoints); CS = ESTRELLAS (rankCSStars). Se guardan los codigos
+  // raw (rankBRCode/rankCSCode) como identidad historica del tier.
+  'rankBR', 'rankBRDivision', 'rankBRPoints', 'rankBRCode',
+  'rankCS', 'rankCSDivision', 'rankCSStars', 'rankCSPoints', 'rankCSCode', 'season',
   'title', 'badgeCount', 'pet', 'petLevel', 'outfit',
 ]
 
@@ -37,7 +40,7 @@ export const MEANINGFUL_FIELDS = [
   'nickname', 'region', 'regionCode', 'level', 'exp', 'likes',
   'gameVersion', 'pass', 'clan', 'clanId', 'clanLevel', 'clanMembers',
   'bio', 'avatar', 'banner', 'headPic', 'bannerId', 'diamonds', 'primeLevel',
-  'rankBR', 'rankBRPoints', 'rankCS', 'rankCSPoints', 'season',
+  'rankBR', 'rankBRCode', 'rankBRPoints', 'rankCS', 'rankCSCode', 'rankCSStars', 'season',
   'title', 'pet', 'petLevel', 'outfit',
 ]
 
@@ -90,11 +93,16 @@ export function normalizeStoredPlayer(uid, profile) {
     bannerId: profile.bannerId || '',
     diamonds: Number(profile.diamonds || 0),
     primeLevel: profile.primeLevel || '',
-    // Ricos (vacios si el proveedor no los da):
+    // Ricos (vacios si el proveedor no los da). BR = RP; CS = ESTRELLAS.
     rankBR: profile.rankBR || '',
+    rankBRDivision: profile.rankBRDivision || '',
     rankBRPoints: profile.rankBRPoints || '',
+    rankBRCode: profile.rankBRCode || '',
     rankCS: profile.rankCS || '',
+    rankCSDivision: profile.rankCSDivision || '',
+    rankCSStars: profile.rankCSStars || profile.rankCSPoints || '',
     rankCSPoints: profile.rankCSPoints || '',
+    rankCSCode: profile.rankCSCode || '',
     season: profile.season || '',
     title: profile.title || '',
     badgeCount: profile.badgeCount || '',
