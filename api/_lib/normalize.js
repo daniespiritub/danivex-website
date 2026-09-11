@@ -93,6 +93,10 @@ export function buildResponse(uid, profile, cacheHit) {
     rankCSStarsConfidence: ranks.csStarsConfidence,
     rankCSTierKey: ranks.csTierKey,
 
+    // Estadisticas REALES de partidas (BR solo/duo/squad + CS). null si el
+    // proveedor de stats no las aporto (nunca se fabrican). Ver stats-model.js.
+    stats: profile.stats || null,
+
     // Perfil visual / cosmeticos:
     title: profile.title || '',
     badgeCount: profile.badgeCount || '',

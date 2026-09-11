@@ -46,3 +46,15 @@ test('preserveRichFields: preserva outfit previo si el entrante llega vacio', ()
   const merged = preserveRichFields(richExisting, { outfit: [] })
   assert.equal(merged.outfit.length, 2)
 })
+
+test('preserveRichFields: preserva stats si el endpoint de stats fallo (incoming sin stats)', () => {
+  const existing = { ...richExisting, stats: { br: { solo: { matches: 714 } }, source: 'siambhau-stats' } }
+  const merged = preserveRichFields(existing, { nickname: 'DaniPepito', stats: null })
+  assert.ok(merged.stats && merged.stats.br.solo.matches === 714, 'stats buenas no se pierden por un fallo transitorio')
+})
+
+test('preserveRichFields: stats nuevas SI reemplazan a las previas', () => {
+  const existing = { ...richExisting, stats: { br: { solo: { matches: 700 } } } }
+  const merged = preserveRichFields(existing, { stats: { br: { solo: { matches: 720 } } } })
+  assert.equal(merged.stats.br.solo.matches, 720)
+})

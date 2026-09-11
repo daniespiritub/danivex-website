@@ -83,6 +83,26 @@ test('CONTRATO: CS sin datos falsos (sin estrellas/temporada/tier inventados)', 
   assert.equal(r.rankCSStarsConfidence, 'unavailable')
 })
 
+test('CONTRATO: stats presentes NO rompen el perfil (co-existen)', () => {
+  const profile = mapSiamBhauProfile(REAL_FIXTURE)
+  const withStats = { ...profile, provider: 'SiamBhau', stats: { br: { solo: { matches: 714, wins: 74, kills: 2004 } }, cs: { matches: 100 }, source: 'siambhau-stats', confidence: 'verified' } }
+  const r = buildResponse('2196518104', withStats, false)
+  // Stats expuestas:
+  assert.ok(r.stats && r.stats.br && r.stats.br.solo, 'stats deben exponerse')
+  assert.equal(r.stats.br.solo.matches, 714)
+  // Y el perfil sigue intacto:
+  assert.equal(r.nickname, 'DaniPepito')
+  assert.ok(r.avatar && r.banner)
+  assert.equal(r.outfit.length, 5)
+  assert.equal(r.rankBR, 'Heroico')
+})
+
+test('CONTRATO: sin stats => stats null, perfil intacto', () => {
+  const r = fullResponse()
+  assert.equal(r.stats, null, 'sin stats => null, nunca objeto fabricado')
+  assert.equal(r.nickname, 'DaniPepito')
+})
+
 test('CONTRATO: una mejora de rangos NO puede vaciar el perfil visual', () => {
   // Simula un perfil sin ningun dato de rango (ej: proveedor futuro) => el resto
   // del perfil (visual/base) debe seguir intacto.

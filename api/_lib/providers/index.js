@@ -53,11 +53,22 @@ export async function fetchProfileFromProviders(uid, { logEvent, region } = {}) 
       logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: 'hit', ms })
       let profile = { ...result.profile, provider: provider.label, sourceUrl: result.sourceUrl }
 
-      // Merge de imagen: un proveedor rico (SiamBhau) devuelve IDs de avatar/
-      // banner pero no URL. Para no perder la foto de perfil (que la fuente
-      // keyless si da como URL), la completamos best-effort. No es fatal.
-      if (optionalProviders.includes(provider) && (!profile.avatar || !profile.banner)) {
-        profile = await mergeImagesFromKeyless(uid, profile, logEvent)
+      // Enriquecimiento del proveedor rico (SiamBhau), best-effort y en PARALELO:
+      //  (a) merge de imagen: SiamBhau da IDs de avatar/banner pero no URL; la
+      //      completamos desde la fuente keyless para no perder la foto de perfil.
+      //  (b) stats: estadisticas REALES de partidas (endpoint /freefireinfo/stats).
+      //      Si fallan, el perfil sigue intacto (no es fatal, nunca rompe el scanner).
+      if (optionalProviders.includes(provider)) {
+        const needImages = !profile.avatar || !profile.banner
+        const [mergedProfile, statsResult] = await Promise.all([
+          needImages ? mergeImagesFromKeyless(uid, profile, logEvent) : Promise.resolve(profile),
+          typeof provider.getStats === 'function' ? provider.getStats(uid, { region }).catch(() => ({ ok: false })) : Promise.resolve({ ok: false }),
+        ])
+        profile = mergedProfile
+        if (statsResult?.ok && statsResult.stats) {
+          profile.stats = statsResult.stats
+        }
+        logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: statsResult?.ok ? 'stats_ok' : 'stats_miss' })
       }
 
       return {

@@ -34,3 +34,29 @@ El detalle de skins/ropa se carga por un endpoint AJAX aparte (`dados-jogador-ap
 | **Prime desconocido** | `ok:false` + `error` | fallo técnico/timeout |
 
 **Regla (PASO 10)**: `primeLevelNumber:0` significa "no confirmado", **NO** "el jugador tiene Prime 0 demostrado". La ausencia de datos nunca se convierte en `Prime = 0` real. La UI ya refleja esto ("Consultar arriba en Prime" / "No confirmado"), y el contrato lo preserva (`API_CONTRACT.md`). Verificado por tests (`tests/free-fire-prime.test.js`: nivel 0 ⇒ `primeConfirmed:false`).
+
+---
+
+## Player Scanner — Matriz multi-fuente por CAMPO (verificado 2026-09-11, UID 2196518104)
+
+DaniVex Player Scanner es un **agregador**: la mejor fuente por campo, no una única API. Todo server-side; ninguna key en el frontend.
+
+| Campo | Fuente elegida | Endpoint | Confidence | Notas |
+|-------|----------------|----------|------------|-------|
+| nickname / level / exp / likes / bio | SiamBhau | `/freefireinfo/bhau` (AccountInfo) | verified | |
+| Prime (nivel) | SiamBhau | `bhau` → `basicInfo.primeInfo.primeLevel` | verified | emblema PNG por-nivel: no hay catálogo verificable → sin emblema real |
+| avatar / banner | SiamBhau IDs + FreeFireMania URL | `bhau` + merge keyless | verified | `headPic`/`bannerId`; jsDelivr para IDs |
+| outfit / pet | SiamBhau + jsDelivr (ShahGCreator/icon) | `bhau` + CDN por ID | verified | pet usa skin equipada |
+| clan (+líder) | SiamBhau | `bhau` (clanBasicInfo/captainBasicInfo) | verified | |
+| **BR rank** | **reglas de RP (rank-rules.js)** | RP de `bhau` | verified | 3539 RP → Heroico. El **código** de rango NO es fiable (era el bug "Maestro") |
+| BR RP / season | SiamBhau | `bhau` (`rankingPoints`/`seasonId`) | verified | |
+| **BR stats (Solo/Duo/Squad)** | **SiamBhau stats** | `/freefireinfo/stats?gamemode=br&matchmode=CAREER` | verified | partidas/wins/kills/K-D/daño/HS%/max kills |
+| **CS stats** | **SiamBhau stats** | `/freefireinfo/stats?gamemode=cs&matchmode=CAREER` | verified | partidas/wins/K-D/KDA/MVP/daño/HS%/derribos |
+| CS rank / stars / season | — (ninguna fuente accesible) | — | unavailable | la API NO expone estrellas/temporada CS; `csRankingPoints`=142 ≠ 55★ del juego. Se muestra "no disponible" (honesto), raw interno |
+| rank/prime emblem PNG | — (sin catálogo verificable/licencia-limpia) | — | fallback CSS | badges de color DaniVex; hook `resolveRankEmblem` no integrado por falta de assets verificables |
+
+### Endpoint de stats de SiamBhau
+- `GET /freefireinfo/stats?uid=&region=&gamemode={br|cs}&matchmode={CAREER|RANKED|NORMAL}&key=` → `{ success, stats }`.
+- BR: `stats.{solostats,duostats,quadstats}` (quad = escuadra). CS: `stats.csstats`. Cada uno con `gamesplayed/wins/kills/detailedstats{...}`.
+- **NO trae season ni stars** en ningún modo (verificado br/cs × CAREER/RANKED). Por eso CS stars/season siguen sin fuente.
+- Integración: `api/_lib/providers/siambhau.js#getStats` (BR+CS CAREER en paralelo, timeout, best-effort) → `api/_lib/stats-model.js#normalizeStats` (métricas derivadas + provenance). Se adjunta como `profile.stats` en `providers/index.js`, se persiste (no entra en el content-hash), se preserva ante fallo transitorio, y se expone en `/api/player`.
