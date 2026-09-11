@@ -7,6 +7,7 @@ import { resolveAvatar, resolveBanner } from './profile-images.js'
 import { enrichRanks } from './rank-enrichment.js'
 import { verifiedSecondaryCs } from './verified-observations.js'
 import { resolveCsTierFromStars } from './cs-rank-rules.js'
+import { resolveBadge } from './badge-resolver.js'
 
 // Placeholders de UI que algunas fuentes (FreeFireMania) filtran como "nombre"
 // de clan cuando el parseo del nombre falla. No son nombres reales => se vacian.
@@ -113,6 +114,9 @@ export function buildResponse(uid, profile, cacheHit) {
     // Perfil visual / cosmeticos:
     title: profile.title || '',
     badgeCount: profile.badgeCount || '',
+    badgeId: profile.badgeId || '',
+    // Insignia / titulo de perfil resuelto (id -> nombre + imagen). null si no hay.
+    badge: resolveBadge(profile.badgeId),
     pet: profile.pet || '',
     petLevel: profile.petLevel || '',
     petImage: profile.petImage || '',

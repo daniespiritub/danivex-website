@@ -132,6 +132,7 @@ export function mapSiamBhauProfile(data) {
     // personaje base, no el avatar equipado). Aqui NO se fija avatar/banner.
     title: basic.title != null ? String(basic.title) : '',
     badgeCount: basic.badgeCnt != null ? String(basic.badgeCnt) : '',
+    badgeId: basic.badgeId != null ? String(basic.badgeId) : '',
     avatarId: avatarId ? String(avatarId) : '',
     bannerId: bannerId ? String(bannerId) : '',
     headPic: headPic ? String(headPic) : '',
