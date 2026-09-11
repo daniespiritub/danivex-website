@@ -68,11 +68,16 @@ export function buildResponse(uid, profile, cacheHit) {
     elitePass: profile.elitePass || '',
     season: profile.season || '',
 
-    // Rangos (pueblan solo con proveedor rico):
+    // Rangos (pueblan solo con proveedor rico). BR = RP; CS = ESTRELLAS.
     rankBR: profile.rankBR || '',
+    rankBRDivision: profile.rankBRDivision || '',
     rankBRPoints: profile.rankBRPoints || '',
+    rankBRCode: profile.rankBRCode || '',
     rankCS: profile.rankCS || '',
+    rankCSDivision: profile.rankCSDivision || '',
+    rankCSStars: profile.rankCSStars || profile.rankCSPoints || '',
     rankCSPoints: profile.rankCSPoints || '',
+    rankCSCode: profile.rankCSCode || '',
 
     // Perfil visual / cosmeticos:
     title: profile.title || '',

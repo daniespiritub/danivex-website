@@ -53,22 +53,25 @@ test('mapSiamBhauProfile: PRIME desde primeInfo.primeLevel (anidado)', () => {
   assert.equal(p.primeLevel, '8')
 })
 
-test('mapSiamBhauProfile: rangos BR/CS por codigo de 3 digitos + puntos', () => {
+test('mapSiamBhauProfile: BR=Maestro(321)/RP y CS=Gran Maestro(323)/estrellas', () => {
   const p = mapSiamBhauProfile(fixture)
-  assert.equal(p.rankBR, 'Gran Maestro') // codigo 321
-  assert.equal(p.rankBRPoints, '3539')
-  assert.equal(p.rankCS, 'Gran Maestro') // codigo 323
-  assert.equal(p.rankCSPoints, '142')
+  assert.equal(p.rankBR, 'Maestro') // codigo 321 = Maestro, NO Gran Maestro
+  assert.equal(p.rankBRPoints, '3539') // BR se mide en RP
+  assert.equal(p.rankBRCode, '321')
+  assert.equal(p.rankCS, 'Gran Maestro') // codigo 323 = Gran Maestro
+  assert.equal(p.rankCSStars, '142') // CS se mide en ESTRELLAS
+  assert.equal(p.rankCSCode, '323')
   assert.equal(p.season, '53')
 })
 
-test('mapSiamBhauProfile: tiers de rango por rango de codigo', () => {
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 102 } }).rankBR, 'Bronce')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 205 } }).rankBR, 'Plata')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 303 } }).rankBR, 'Oro')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 313 } }).rankBR, 'Platino')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 316 } }).rankBR, 'Diamante')
+test('mapSiamBhauProfile: tiers por codigo verificado (301..323)', () => {
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 301 } }).rankBR, 'Bronce I')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 305 } }).rankBR, 'Plata II')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 308 } }).rankBR, 'Oro II')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 313 } }).rankBR, 'Platino III')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 316 } }).rankBR, 'Diamante II')
   assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 319 } }).rankBR, 'Heroico')
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rank: 322 } }).rankBR, 'Maestro de Elite')
 })
 
 test('mapSiamBhauProfile: showBrRank=false oculta el rango', () => {
