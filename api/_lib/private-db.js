@@ -121,16 +121,16 @@ export async function getCachedProfile(uid) {
 // proveedor entrante no los trae (p.ej. SiamBhau cae y sirve el keyless), se
 // conservan los del snapshot previo para no perder un dato verificado.
 //
-// IMPORTANTE: rankCS/rankCSStars/rankCSSeason NO se preservan. El rango de CS no
-// es verificable en ninguna fuente actual (la API no expone estrellas/temporada
-// CS reales y su codigo no es fiable), asi que hoy SIEMPRE llega vacio. Preservar
-// un CS antiguo resucitaria un tier sin verificar (dato falso) => prohibido. Si en
-// el futuro un proveedor secundario VERIFICADO aporta CS, se guardara normalmente.
+// CS: el TIER ahora se deriva del CODIGO autoritativo del juego (rankCSCode via
+// SiamBhau, mapeo verificado por ancla) => es un dato FIABLE y se preserva JUNTO a su
+// codigo ante un fallo transitorio del proveedor (429/timeout), igual que BR. Un dato
+// live nuevo GANA. (Antes NO se preservaba porque el tier no era fiable; ya lo es.)
 const RICH_PRESERVE_FIELDS = [
   // BR: se preservan JUNTOS (RP + su subdivision/estrellas derivadas) para que un
   // fallo transitorio muestre el ultimo BR completo y coherente, nunca RP sin division.
   // OJO: solo se preservan si el valor entrante esta VACIO (un RP live nuevo GANA).
   'primeLevel', 'rankBR', 'rankBRDivision', 'rankBRStarLevel', 'rankBRNextThreshold', 'rankBRPointsToNext', 'rankBRPoints', 'season',
+  'rankCS', 'rankCSDivision', 'rankCSCode', 'rankCSSource', 'rankCSStars', 'rankCSSeason', 'rankCSRawValue',
   'title', 'badgeCount', 'pet', 'petNickname', 'petSkinName', 'petLevel', 'avatar', 'banner',
   // Clan: solo lo aporta el proveedor rico (SiamBhau). Un refresh keyless (sin
   // region) no lo trae => se conserva el ultimo bueno en vez de vaciarlo.
