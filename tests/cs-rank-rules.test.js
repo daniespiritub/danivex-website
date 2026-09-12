@@ -51,12 +51,24 @@ test('cs-rank-rules: tiers inferiores — Oro/Plata/Bronce', () => {
   assert.equal(csTierFromCode(302).tierKey, 'bronze')
 })
 
+test('cs-rank-rules: ROBUSTO A TEMPORADA — mapea por tier-index (code % 100)', () => {
+  // Otra API publica (jinix6) devolvio csRank 219 en un block 2xx => Diamante III.
+  const d = csTierFromCode(219)
+  assert.equal(d.tierKey, 'diamond')
+  assert.equal(d.division, 'III')
+  assert.equal(d.tierIndex, 19)
+  // Un block futuro (4xx) debe seguir resolviendo el mismo tier por el modulo-100.
+  assert.equal(csTierFromCode(423).tierKey, 'master') // 423 % 100 = 23
+  assert.equal(csTierFromCode(415).tierKey, 'platinum') // 415 % 100 = 15
+  assert.equal(csTierFromCode(424).tierKey, 'grandmaster')
+})
+
 test('cs-rank-rules: codigo desconocido/invalido => null (no se inventa)', () => {
   assert.equal(csTierFromCode(0), null)
   assert.equal(csTierFromCode(''), null)
   assert.equal(csTierFromCode(null), null)
-  assert.equal(csTierFromCode(500), null)
-  assert.equal(csTierFromCode(301), null) // por debajo de Bronce IV => sin mapa
+  assert.equal(csTierFromCode(500), null) // %100 = 0 => sin rango
+  assert.equal(csTierFromCode(301), null) // tier-index 1 => sin rango
 })
 
 test('cs-rank-rules: validateCsConsistency detecta mismatch y prefiere el codigo live', () => {

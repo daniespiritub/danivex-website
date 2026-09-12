@@ -11,20 +11,37 @@
    - csRank es el id de rango AUTORITATIVO del juego (mismo para todos): resolverlo
      es GENERAL y no es un hardcode por-cuenta.
 
-  Enumeracion (verificada por anclas + estructura de tiers actual):
-    ANCLA GROUND TRUTH: csRank 323 = Maestro (UID 2196518104, observado in-game S38).
-    CROSS-CHECK:        csRank 315 = Platino (UID 2451868101, FFM tier "Platina").
-    TOP:                csRank 324 = Gran Maestro (asignacion propia del juego).
-  Con 323=Maestro forzado, el modelo de 4 divisiones por tier (Bronce..Diamante) es
-  el UNICO que encaja: con 3 divisiones 323 caeria en Gran Maestro (contradice el
-  ground truth). Diamante=318..321, Platino=314..317 (=> 315=Platino III, coincide
-  con el cross-check). Heroico=322, Maestro=323, Gran Maestro=324 (apex sin division).
-
-  Gran Maestro: NO se deduce de un umbral de estrellas. csRank=324 es la asignacion
-  del propio juego (que ya aplica su logica de leaderboard) => es evidencia valida.
+  Enumeracion por TIER-INDEX (robusta a temporada). El codigo csRank del juego tiene
+  la forma  block*100 + tierIndex  (el block/centena es un contador de version/season
+  que cambia con el tiempo; los DOS ultimos digitos son el tier+division). Por eso el
+  mapeo se hace sobre  code % 100 :
+    tierIndex 24 = Gran Maestro   tierIndex 23 = Maestro   tierIndex 22 = Heroico
+    18..21 = Diamante (I..IV)     14..17 = Platino (I..IV)  10..13 = Oro
+     6..9  = Plata                 2..5  = Bronce           0/1 = sin rango
+  Anclas (multiples, distinto block => confirma el modulo-100):
+    323 (%100=23) = Maestro       -> GROUND TRUTH (UID 2196518104, S38, in-game).
+    315 (%100=15) = Platino III   -> cross-check (control 2451868101, FFM "Platina").
+    324 (%100=24) = Gran Maestro  -> asignacion del propio juego (UID 427951596).
+    219 (%100=19) = Diamante III  -> otra API publica (jinix6), block distinto (2xx).
+  Con 23=Maestro forzado, el modelo de 4 divisiones (Bronce..Diamante) es el UNICO que
+  encaja (con 3, 23 caeria en Gran Maestro). Gran Maestro NO se deduce de estrellas:
+  tierIndex 24 es la asignacion del propio juego (que ya aplica su logica de leaderboard).
 */
 
 import { tierKey } from './rank-enrichment.js'
+
+// Temporada CS ACTUAL (global). La temporada de Clash Squad es un contador global
+// (igual para todas las cuentas en un periodo dado) y NO la expone el AccountInfo por
+// cuenta (seasonId es de BR). Se resuelve desde esta config global actualizable, con
+// procedencia explicita. Verificado in-game el 2026-09-11 (UID 2196518104 => S38).
+// Override con env CS_CURRENT_SEASON si cambia sin desplegar. NUNCA se usa el seasonId
+// de BR como temporada CS.
+export const CURRENT_CS_SEASON = {
+  value: process.env.CS_CURRENT_SEASON || '38',
+  source: 'global-season-config',
+  since: '2026-09',
+  confidence: 'config',
+}
 
 const TIER_ES = {
   bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Platino',
@@ -32,35 +49,38 @@ const TIER_ES = {
 }
 const ROMAN = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV' }
 
-// Apex (sin division). Anclas de alta confianza.
-const APEX = new Map([[322, 'heroic'], [323, 'master'], [324, 'grandmaster']])
+// Apex (sin division), por tier-index.
+const APEX = new Map([[22, 'heroic'], [23, 'master'], [24, 'grandmaster']])
 
-// Tiers con division (I..IV, I = mas alta). `hi` = codigo de la division I.
+// Tiers con division (I..IV, I = mas alta). `hi` = tier-index de la division I.
 const LOWER = [
-  { key: 'diamond', hi: 321 }, // 321..318 = I..IV
-  { key: 'platinum', hi: 317 }, // 317..314 (cross-check: 315 = Platino III)
-  { key: 'gold', hi: 313 }, // 313..310
-  { key: 'silver', hi: 309 }, // 309..306
-  { key: 'bronze', hi: 305 }, // 305..302
+  { key: 'diamond', hi: 21 }, // 21..18 = I..IV
+  { key: 'platinum', hi: 17 }, // 17..14 (cross-check: idx 15 = Platino III)
+  { key: 'gold', hi: 13 }, // 13..10
+  { key: 'silver', hi: 9 }, // 9..6
+  { key: 'bronze', hi: 5 }, // 5..2
 ]
 
-// csTierFromCode(code) -> { tierKey, tier, division, code, confidence, source } | null.
-// Resuelve el tier CS desde el codigo autoritativo del juego. General, sin hardcode
-// por-cuenta. null si el codigo esta fuera del rango conocido (no se inventa).
+// csTierFromCode(code) -> { tierKey, tier, division, code, tierIndex, confidence, source } | null.
+// Resuelve el tier CS desde el codigo autoritativo del juego (general, sin hardcode
+// por-cuenta, robusto a temporada via modulo-100). null si esta fuera del rango
+// conocido (no se inventa).
 export function csTierFromCode(code) {
   const c = Number(code)
   if (!Number.isFinite(c) || c <= 0) return null
-  if (APEX.has(c)) {
-    const key = APEX.get(c)
-    return { tierKey: key, tier: TIER_ES[key], division: '', code: c, confidence: 'verified', source: 'siambhau-csrank' }
+  const idx = c >= 100 ? c % 100 : c // block*100 + tierIndex => tier-index
+  if (idx <= 1) return null // 0/1 = sin rango
+  if (APEX.has(idx)) {
+    const key = APEX.get(idx)
+    return { tierKey: key, tier: TIER_ES[key], division: '', code: c, tierIndex: idx, confidence: 'verified', source: 'siambhau-csrank' }
   }
   for (const t of LOWER) {
-    if (c <= t.hi && c >= t.hi - 3) {
-      const div = t.hi - c + 1
+    if (idx <= t.hi && idx >= t.hi - 3) {
+      const div = t.hi - idx + 1
       // Diamante/Platino cross-checkeados; tiers inferiores extrapolados (still el
       // codigo del juego, solo el limite de tier es menos verificable externamente).
-      const confidence = c >= 314 ? 'verified' : 'high'
-      return { tierKey: t.key, tier: TIER_ES[t.key], division: ROMAN[div] || '', code: c, confidence, source: 'siambhau-csrank' }
+      const confidence = idx >= 14 ? 'verified' : 'high'
+      return { tierKey: t.key, tier: TIER_ES[t.key], division: ROMAN[div] || '', code: c, tierIndex: idx, confidence, source: 'siambhau-csrank' }
     }
   }
   return null
