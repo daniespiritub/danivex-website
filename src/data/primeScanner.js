@@ -332,6 +332,7 @@ export function generatePlayerFromLookup(uid, lookup) {
     badgeCount: lookup?.badgeCount || '',
     badge: lookup?.badge || null,
     passCollection: lookup?.passCollection || null,
+    primeBadge: lookup?.primeBadge || null,
     pet: lookup?.pet || '',
     petNickname: lookup?.petNickname || '',
     petSkinName: lookup?.petSkinName || '',

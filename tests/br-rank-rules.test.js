@@ -17,6 +17,16 @@ test('br-rank: GROUND TRUTH 2196518104 — 3539 RP / S53 => Heroico I / ★1', (
 })
 
 test('br-rank: BOUNDARIES S53 verificados (faltan X para el proximo escalon)', () => {
+  // Diamante III/IV/V (3050 / 3200 / 3350) — 3050 NO es Heroico
+  assert.equal(r(3049).displayName, 'Diamante')
+  assert.equal(r(3050).displayName, 'Diamante III')
+  assert.equal(r(3199).displayName, 'Diamante III')
+  assert.equal(r(3200).displayName, 'Diamante IV')
+  assert.equal(r(3349).displayName, 'Diamante IV')
+  assert.equal(r(3350).displayName, 'Diamante V')
+  // Diamante V -> Heroico I en 3500 (NO 3050 ni 3125)
+  assert.equal(r(3499).displayName, 'Diamante V')
+  assert.equal(r(3500).displayName, 'Heroico I')
   // Heroico I -> II en 3800
   assert.equal(r(3799).displayName, 'Heroico I')
   assert.equal(r(3800).displayName, 'Heroico II')
@@ -50,13 +60,22 @@ test('br-rank: anchors de perfiles publicos S53 => division correcta', () => {
   assert.equal(r(5518).displayName, 'Heroico Élite V')
 })
 
-test('br-rank: BOUNDARY Diamante -> Heroico I en 3050 RP (S53)', () => {
-  assert.equal(r(3049).tier, 'Diamante', 'justo por debajo del umbral = Diamante')
-  assert.equal(r(3049).division, '', 'Diamante se muestra como grupo (sin subdivision)')
-  assert.equal(r(3050).tier, 'Heroico', 'en 3050 empieza Heroico I')
-  assert.equal(r(3050).division, 'I')
-  assert.equal(r(3050).starLevel, 1)
-  assert.equal(r(3050).displayName, 'Heroico I')
+test('br-rank: BOUNDARY Diamante V -> Heroico I en 3500 RP (S53) — 3050 es Diamante III', () => {
+  assert.equal(r(3050).tier, 'Diamante', '3050 = Diamante III, NO Heroico')
+  assert.equal(r(3050).division, 'III')
+  assert.equal(r(3050).starLevel, null, 'Diamante no lleva estrellas Heroicas')
+  assert.equal(r(3499).displayName, 'Diamante V', 'justo antes del umbral = Diamante V')
+  assert.equal(r(3500).tier, 'Heroico', 'en 3500 empieza Heroico I')
+  assert.equal(r(3500).division, 'I')
+  assert.equal(r(3500).starLevel, 1)
+  assert.equal(r(3500).displayName, 'Heroico I')
+})
+
+test('br-rank: control 2451868101 (3291 RP) = Diamante IV, NO Heroico I', () => {
+  const x = r(3291)
+  assert.equal(x.tier, 'Diamante')
+  assert.equal(x.division, 'IV')
+  assert.equal(x.tierKey, 'diamond')
 })
 
 test('br-rank: tiers bajos = grupo sin subdivision (no se inventa)', () => {
