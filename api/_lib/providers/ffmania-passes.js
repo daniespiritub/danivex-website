@@ -46,16 +46,49 @@ export function parsePassAlbum(html) {
   return { owned, notOwned, values }
 }
 
-// getPasses(uid): GET publico + parse. Best-effort: nunca lanza.
-export async function getPasses(uid) {
+// Parsea el RANGO CS del HTML publico (server-rendered, read-only). FFM muestra el
+// tier REAL del juego (no derivado de estrellas) + estrellas + emblema oficial:
+//   <span class="perfil-patente-mode">Clash Squad</span>
+//   <img class="perfil-patente-img" src="...OB48/BR/CSPlatinum.png" alt="Platina V">
+//   <span class="perfil-patente-name">Platina V</span> ... <em>58 estrellas</em>
+// Devuelve { tier, division, stars, emblemUrl } o null. General para cualquier UID
+// cuyo perfil este publicado. NO se deriva el tier de las estrellas (58★ = Platino,
+// 55★ = Maestro: las estrellas NO determinan el tier por si solas).
+export function parseCsRank(html) {
+  if (!html) return null
+  const i = html.indexOf('perfil-patente-mode">Clash Squad')
+  if (i < 0) return null
+  const block = html.slice(i, i + 700)
+  const nameM = block.match(/perfil-patente-name">([^<]+)</) || block.match(/alt="([^"]+)"/)
+  if (!nameM) return null
+  const full = nameM[1].trim()
+  if (!full) return null
+  const starsM = block.match(/<em>\s*(\d+)\s*estrellas?/i)
+  const emblemM = block.match(/perfil-patente-img"\s+src="([^"]+)"/)
+  // Separa "Platina V" -> base "Platina" + division "V".
+  const divM = full.match(/\s+([IVX]+)$/)
+  const division = divM ? divM[1] : ''
+  const base = division ? full.slice(0, full.length - division.length).trim() : full
+  return { tier: base, full, division, stars: starsM ? starsM[1] : '', emblemUrl: emblemM ? emblemM[1] : '' }
+}
+
+// getFfmExtras(uid): UN GET publico -> { album (pases), cs (rango CS) }. Best-effort.
+export async function getFfmExtras(uid) {
   const cleanUid = String(uid || '').replace(/[^\d]/g, '')
   if (!cleanUid) return { ok: false, outcome: 'no_uid' }
   try {
     const html = await getHtmlWithFetch(PROFILE_URL(cleanUid), Number(process.env.FFM_PASS_TIMEOUT_MS || 6000))
     const album = parsePassAlbum(html)
-    if (!album) return { ok: false, outcome: 'empty' }
-    return { ok: true, album }
+    const cs = parseCsRank(html)
+    if (!album && !cs) return { ok: false, outcome: 'empty' }
+    return { ok: true, album, cs }
   } catch (error) {
     return { ok: false, outcome: 'error', error: error.message }
   }
+}
+
+// Compat: getPasses solo el album (usado por tests existentes).
+export async function getPasses(uid) {
+  const r = await getFfmExtras(uid)
+  return r.ok && r.album ? { ok: true, album: r.album } : { ok: false, outcome: r.outcome || 'empty' }
 }

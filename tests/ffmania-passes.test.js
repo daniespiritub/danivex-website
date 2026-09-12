@@ -1,6 +1,26 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { parsePassAlbum } from '../api/_lib/providers/ffmania-passes.js'
+import { parsePassAlbum, parseCsRank } from '../api/_lib/providers/ffmania-passes.js'
+
+const CS_HTML = `<div class="perfil-patente-card"> <span class="perfil-patente-mode">Clash Squad</span>
+  <img class="perfil-patente-img" src="https://dl.dir.freefiremobile.com/common/OB48/BR/CSPlatinum.png" alt="Platina V" loading="lazy">
+  <span class="perfil-patente-name">Platina V</span>
+  <span class="perfil-patente-stars"> <span class="on">★</span> <em>58 estrellas</em> </span> </div>`
+
+test('parseCsRank: extrae tier + division + estrellas + emblema del HTML publico', () => {
+  const cs = parseCsRank(CS_HTML)
+  assert.ok(cs)
+  assert.equal(cs.tier, 'Platina')
+  assert.equal(cs.division, 'V')
+  assert.equal(cs.full, 'Platina V')
+  assert.equal(cs.stars, '58')
+  assert.match(cs.emblemUrl, /CSPlatinum\.png$/)
+})
+
+test('parseCsRank: sin bloque CS => null', () => {
+  assert.equal(parseCsRank('<div>no cs</div>'), null)
+  assert.equal(parseCsRank(''), null)
+})
 
 // Fragmento con la forma REAL del album de FreeFireMania (server-rendered).
 const ALBUM_HTML = `

@@ -39,10 +39,13 @@ const REGION_ALIASES = { NA: 'US' }
 // Observaciones verificadas in-game. Cada campo lleva su procedencia.
 const OBSERVATIONS = {
   'US:2196518104': {
-    // Solo se observan directamente las ESTRELLAS y la TEMPORADA (ground truth
-    // in-game). El TIER/nombre NO se almacena aqui: se calcula con las reglas
-    // oficiales de CS (star->tier) a partir de las estrellas. Ver cs-rank-rules.js.
+    // FIXTURE / fallback (el perfil de este UID no esta publicado en FreeFireMania,
+    // que es la fuente GENERAL de CS). Observado in-game: Maestro / 55★ / S38. El
+    // TIER se guarda directamente (NO se deriva de estrellas: 58★=Platino, 55★=
+    // Maestro; las estrellas no determinan el tier). Cuando FFM publique este
+    // perfil, su dato live tiene prioridad sobre este fixture.
     cs: {
+      rank: 'Maestro',
       stars: '55',
       season: '38',
       source: 'in-game-verification',

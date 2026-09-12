@@ -34,6 +34,8 @@ export const PLAYER_DATA_FIELDS = [
   'stats',
   // Album de posesion de pases (owned/notOwned/values). Ver ffmania-passes.js.
   'passAlbum',
+  // Rango CS crudo de FreeFireMania (tier/division/estrellas). Ver ffmania-passes.js.
+  'csFromFfm',
 ]
 
 // Significativos para el content-hash. Excluye lo volatil (lastLogin,
@@ -123,6 +125,7 @@ export function normalizeStoredPlayer(uid, profile) {
     stats: profile.stats || null,
     // Posesion de pases (compacto: owned/notOwned/values). NO en el content-hash.
     passAlbum: profile.passAlbum || null,
+    csFromFfm: profile.csFromFfm || null,
     sourceUrl: profile.sourceUrl || '',
     provider: profile.provider || 'Public source',
   }
