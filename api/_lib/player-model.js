@@ -20,8 +20,9 @@ import { createHash } from 'node:crypto'
 // Un registro con schemaVersion distinto a este se trata como STALE y se re-consulta
 // automaticamente al proveedor => NO hace falta borrar claves KV a mano tras un deploy.
 // Historial: v1 (implicito, sin sello). v2 = BR subdivisiones + CS codigo + pet especie
-// + prime por nivel + season global (2026-09-12).
-export const CACHE_SCHEMA_VERSION = 2
+// + prime por nivel + season global. v3 = BR S53 corregido (Heroico I=3500) + primeBadge
+// contrato ampliado + passAlbumState/passCollectionState (2026-09-12).
+export const CACHE_SCHEMA_VERSION = 3
 
 // true si el registro persistido tiene la version de esquema ACTUAL. Un registro sin
 // sello (viejo) o con version distinta => false => se re-consulta al proveedor.
@@ -48,7 +49,7 @@ export const PLAYER_DATA_FIELDS = [
   // Estadisticas de partidas (objeto normalizado). Ver stats-model.js.
   'stats',
   // Album de posesion de pases (owned/notOwned/values). Ver ffmania-passes.js.
-  'passAlbum',
+  'passAlbum', 'passAlbumState',
   // Rango CS crudo de FreeFireMania (tier/division/estrellas). Ver ffmania-passes.js.
   'csFromFfm',
 ]
@@ -148,6 +149,7 @@ export function normalizeStoredPlayer(uid, profile) {
     stats: profile.stats || null,
     // Posesion de pases (compacto: owned/notOwned/values). NO en el content-hash.
     passAlbum: profile.passAlbum || null,
+    passAlbumState: profile.passAlbumState || '',
     csFromFfm: profile.csFromFfm || null,
     sourceUrl: profile.sourceUrl || '',
     provider: profile.provider || 'Public source',

@@ -13,13 +13,14 @@ test('prime: nivel 0 / vacio / null => sin insignia (no muestra badge adquirido)
   }
 })
 
-test('prime: niveles 1..8 => activo, emblema DISTINTO por nivel', () => {
+test('prime: niveles 1..8 => activo, emblema DISTINTO por nivel, emblemLevel == level', () => {
   const keys = new Set()
   const colors = new Set()
   for (let n = 1; n <= 8; n += 1) {
     const p = resolvePrime(n)
     assert.equal(p.active, true)
     assert.equal(p.level, n)
+    assert.equal(p.emblemLevel, n, 'emblemLevel SIEMPRE == level (correspondencia garantizada)')
     assert.equal(p.displayName, `Prime ${n}`)
     assert.equal(p.emblemKey, `prime-${n}`)
     assert.ok(p.tier && p.tier.c1, `Prime ${n} debe tener tier de color`)
@@ -28,6 +29,14 @@ test('prime: niveles 1..8 => activo, emblema DISTINTO por nivel', () => {
   }
   assert.equal(keys.size, 8, 'cada nivel tiene emblemKey unico (nunca el mismo badge para todos)')
   assert.equal(colors.size, 8, 'cada nivel tiene color distinto')
+})
+
+test('prime: sin fuente oficial configurada => SVG DaniVex marcado como FALLBACK (no oficial)', () => {
+  const p = resolvePrime(5)
+  assert.equal(p.isVerifiedGameAsset, false, 'el SVG DaniVex NO es asset verificado del juego')
+  assert.equal(p.fallback, true, 'se marca como fallback => la UI no lo presenta como oficial')
+  assert.equal(p.assetType, 'danivex-svg')
+  assert.equal(p.emblemUrl, '', 'sin PNG oficial configurado')
 })
 
 test('prime: nivel fuera de rango => inactivo (no se inventa)', () => {

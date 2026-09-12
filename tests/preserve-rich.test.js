@@ -56,6 +56,26 @@ test('preserveRichFields: BR se preserva COMPLETO (RP + division/estrellas) en f
   assert.equal(merged.rankBRPointsToNext, '240')
 })
 
+test('preserveRichFields: proveedor RICO caido (429) => se conservan prime/BR/pet del ultimo snapshot bueno', () => {
+  // Escenario real: SiamBhau agota su quota diaria (429) y solo responde el keyless
+  // (nick/level/region/avatar/banner). El perfil servido NO debe degradar prime/BR/pet.
+  const goodSnap = {
+    nickname: 'X', level: '77', region: 'IND', avatar: 'a', banner: 'b',
+    primeLevel: '7', rankBR: 'Diamante', rankBRDivision: 'IV', rankBRPoints: '3256',
+    pet: 'Dreki', petNickname: '', petSkinName: '', clan: 'Survivors',
+  }
+  const keylessDegraded = {
+    nickname: 'X', level: '77', region: 'IND', avatar: 'a', banner: 'b',
+    primeLevel: '', rankBR: '', rankBRDivision: '', rankBRPoints: '', pet: '', clan: '',
+  }
+  const served = preserveRichFields(goodSnap, keylessDegraded)
+  assert.equal(served.primeLevel, '7', 'Prime no se pierde por la caida del proveedor rico')
+  assert.equal(served.rankBR, 'Diamante')
+  assert.equal(served.rankBRDivision, 'IV')
+  assert.equal(served.pet, 'Dreki')
+  assert.equal(served.clan, 'Survivors')
+})
+
 test('preserveRichFields: sin snapshot previo devuelve el entrante tal cual', () => {
   const incoming = { primeLevel: '', outfit: [] }
   assert.deepEqual(preserveRichFields(null, incoming), incoming)

@@ -317,6 +317,7 @@
 .ps-pet-label { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted, #98a2b0); }
 .ps-pet-name-lg { font-size: 1.1rem; font-weight: 800; color: var(--text, #f2f4f7); }
 .ps-pet-sub { font-size: 0.78rem; color: var(--text-muted, #98a2b0); }
+.ps-pass-note { font-size: 0.85rem; color: var(--text-muted, #98a2b0); line-height: 1.5; margin: 4px 0 0; }
 .ps-pet-lvl { font-size: 0.8rem; color: var(--text-faint, #5c6672); }
 
 /* ---------------- PERFIL DETALLE ---------------- */

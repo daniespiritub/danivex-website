@@ -25,20 +25,37 @@ const PRIME_TIERS = {
 
 const MAX_PRIME_LEVEL = 8
 
-// resolvePrime(level) -> { level, active, displayName, emblemKey, tier, source, confidence }.
-// level 0 / vacio / fuera de rango => inactivo (sin insignia adquirida). GENERAL por nivel.
+// URL del PNG oficial por nivel, SOLO si se configura una fuente legitima (env
+// PRIME_BADGE_BASE => `${base}/prime-${n}.png`). Si no hay base, no hay asset oficial
+// y se usa el emblema DaniVex (fallback, claramente marcado). El asset oficial del juego
+// (FF_UI_PrimeBadage) no tiene fuente publica no-gated conocida (Referer-gate ffinfo, que
+// NO se evada; Mobileverso captcha-gated y sin el dato) => hoy no hay emblemUrl oficial.
+const PRIME_BADGE_BASE = process.env.PRIME_BADGE_BASE || ''
+
+// resolvePrime(level) — GENERAL por NIVEL (nunca por uid). Contrato:
+//   { level, active, displayName, emblemLevel, emblemUrl, assetType, tier,
+//     isVerifiedGameAsset, fallback, source, confidence }
+// emblemLevel === level SIEMPRE (garantia: el badge corresponde al nivel; "Prime 3 con
+// badge 8" es imposible). isVerifiedGameAsset=false + fallback=true cuando se usa el SVG
+// DaniVex => la UI NO lo presenta como oficial. level 0 / fuera de rango => inactivo.
 export function resolvePrime(level, opts = {}) {
   const raw = level == null || level === '' ? 0 : Number(level)
   const n = Number.isFinite(raw) ? Math.trunc(raw) : 0
   const active = n >= 1 && n <= MAX_PRIME_LEVEL
   const tier = active ? PRIME_TIERS[n] : null
+  const officialUrl = active && PRIME_BADGE_BASE ? `${PRIME_BADGE_BASE.replace(/\/$/, '')}/prime-${n}.png` : ''
+  const hasOfficial = Boolean(officialUrl)
   return {
     level: n > 0 ? n : 0,
     active,
     displayName: active ? `Prime ${n}` : 'Sin Prime',
+    emblemLevel: active ? n : 0, // == level (garantia de correspondencia)
     emblemKey: active ? `prime-${n}` : '',
+    emblemUrl: officialUrl, // '' si no hay fuente oficial legitima configurada
+    assetType: !active ? '' : (hasOfficial ? 'game-asset' : 'danivex-svg'),
+    isVerifiedGameAsset: hasOfficial, // el SVG DaniVex NO es un asset verificado del juego
+    fallback: active && !hasOfficial, // true => la UI debe marcarlo como emblema DaniVex
     tier, // colores para el emblema DaniVex (frontend)
-    emblemUrl: '', // reservado para el PNG oficial cuando exista fuente legitima
     source: opts.source || (n > 0 ? 'siambhau' : ''),
     confidence: n === 0 ? 'verified' : (active ? 'verified' : 'unavailable'),
   }

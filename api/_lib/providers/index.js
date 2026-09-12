@@ -23,6 +23,7 @@ import * as freefiremania from './freefiremania.js'
 import * as freefirejornal from './freefirejornal.js'
 import { buildResponse } from '../normalize.js'
 import { getFfmExtras } from './ffmania-passes.js'
+import { preserveRichFields } from '../private-db.js'
 
 // Base de proveedores keyless (siempre disponibles).
 export const profileProviders = [freefiremania, freefirejornal]
@@ -43,7 +44,7 @@ const SKIP_OUTCOMES = new Set(['disabled', 'no_region', 'no_key'])
 // proveedor rico (SiamBhau) enriquece best-effort y EN PARALELO: (a) completa la
 // URL de avatar/banner desde la fuente keyless; (b) adjunta las stats reales de
 // partidas. Si el enriquecimiento falla, el perfil base sigue intacto.
-async function buildProviderResponse(provider, result, uid, region, logEvent, fallback) {
+async function buildProviderResponse(provider, result, uid, region, logEvent, fallback, stored) {
   let profile = { ...result.profile, provider: provider.label, sourceUrl: result.sourceUrl }
   // Extras de FreeFireMania (read-only, HTML publico): coleccion de pases + rango
   // CS real (tier/estrellas/emblema, GENERAL para cualquier UID publicado).
@@ -64,11 +65,23 @@ async function buildProviderResponse(provider, result, uid, region, logEvent, fa
     if (ffmExtras.album) profile.passAlbum = ffmExtras.album
     if (ffmExtras.cs) profile.csFromFfm = ffmExtras.cs
   }
+  // Estado HONESTO de la coleccion de pases (para diferenciar en la UI y evitar falsos
+  // negativos): album publicado vs no publicado vs proveedor caido. album_not_published
+  // NO significa 0 pases; provider_unavailable NO significa que la cuenta no tenga pases.
+  profile.passAlbumState = ffmExtras?.album
+    ? 'available'
+    : (ffmExtras?.ok ? 'not_published' : 'provider_unavailable')
   logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: ffmExtras?.ok ? 'ffm_extras_ok' : 'ffm_extras_miss' })
+  // ROBUSTEZ ante caida del proveedor RICO (ej: SiamBhau 429 quota): si se sirvio el
+  // keyless degradado (sin prime/BR/pet/stats) pero hay un snapshot previo BUENO del
+  // MISMO UID, se rellenan SOLO los campos vacios con el ultimo dato bueno (preserve-
+  // rich a nivel de servido, no solo persistido). Un dato live nuevo GANA (no vacio =>
+  // no se pisa). Evita mostrar un perfil degradado cuando ya conociamos el rico.
+  if (stored) profile = preserveRichFields(stored, profile)
   return { ok: true, provider: provider.name, fallback, response: buildResponse(uid, profile, false) }
 }
 
-export async function fetchProfileFromProviders(uid, { logEvent, region } = {}) {
+export async function fetchProfileFromProviders(uid, { logEvent, region, stored } = {}) {
   const providers = resolveProviders()
   let lastOutcome = 'empty'
   const firstDataProviderIndex = providers.findIndex((p) => !optionalProviders.includes(p))
@@ -95,12 +108,12 @@ export async function fetchProfileFromProviders(uid, { logEvent, region } = {}) 
           const rich = await opt.getProfile(uid, { region: detected }).catch(() => ({ ok: false }))
           if (rich.ok) {
             logEvent?.('ff_uid_provider', { uid, provider: opt.name, outcome: 'region_recovered', region: detected })
-            return await buildProviderResponse(opt, rich, uid, detected, logEvent, false)
+            return await buildProviderResponse(opt, rich, uid, detected, logEvent, false, stored)
           }
         }
       }
 
-      return await buildProviderResponse(provider, result, uid, region, logEvent, i > firstDataProviderIndex)
+      return await buildProviderResponse(provider, result, uid, region, logEvent, i > firstDataProviderIndex, stored)
     }
 
     if (SKIP_OUTCOMES.has(result.outcome)) {

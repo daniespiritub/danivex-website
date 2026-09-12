@@ -48,6 +48,12 @@ function hasPasses(player) {
   return Boolean(p && ((p.elitePass && p.elitePass.length) || (p.booyahPass && p.booyahPass.length)))
 }
 
+// ¿Mostrar la seccion de Pases? Con coleccion, o con una nota honesta si el album no
+// esta publicado / la fuente no responde (NUNCA se muestra como "0 pases" falso).
+function showPassesSection(player) {
+  return hasPasses(player) || player?.passCollectionState === 'not_published' || player?.passCollectionState === 'provider_unavailable'
+}
+
 function PlayerScanner() {
   const [uid, setUid] = useState('')
   const [region, setRegion] = useState('')
@@ -229,7 +235,7 @@ function PlayerScanner() {
           )}
 
           <nav className="ps-nav" aria-label="Secciones del perfil">
-            {SECTIONS.filter((s) => (s.id !== 'estadisticas' || hasStats(player)) && (s.id !== 'pases' || hasPasses(player))).map((s) => (
+            {SECTIONS.filter((s) => (s.id !== 'estadisticas' || hasStats(player)) && (s.id !== 'pases' || showPassesSection(player))).map((s) => (
               <button key={s.id} type="button" className={activeSection === s.id ? 'ps-chip active' : 'ps-chip'} onClick={() => goToSection(s.id)}>
                 {s.label}
               </button>
@@ -305,10 +311,18 @@ function PlayerScanner() {
           )}
 
           {/* PASES */}
-          {hasPasses(player) && (
+          {showPassesSection(player) && (
             <section id="ps-pases" className="ps-section">
               <h3 className="ps-h3">Coleccion de Pases</h3>
-              <PassCollection collection={player.passCollection} />
+              {hasPasses(player) ? (
+                <PassCollection collection={player.passCollection} />
+              ) : (
+                <p className="ps-pass-note">
+                  {player.passCollectionState === 'provider_unavailable'
+                    ? 'La colección de pases no está disponible ahora mismo (la fuente pública no responde). Esto no significa que la cuenta no tenga pases.'
+                    : 'Esta cuenta aún no tiene su álbum de pases publicado en la fuente pública, así que no se puede mostrar su posesión. No implica que no tenga pases.'}
+                </p>
+              )}
             </section>
           )}
 
