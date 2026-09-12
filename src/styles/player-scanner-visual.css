@@ -215,6 +215,8 @@
 .ps-rankcard-meta { display: flex; gap: 14px; font-size: 0.82rem; color: var(--text-muted, #98a2b0); }
 .ps-rankcard-note { display: block; margin-top: 8px; font-size: 0.72rem; color: var(--text-faint, #5c6672); font-style: italic; }
 .ps-rankcard-head { display: flex; align-items: center; gap: 10px; }
+.ps-rankcard-stars { display: block; margin: 2px 0 6px; font-size: 0.95rem; letter-spacing: 2px; color: #ffb43a; }
+.ps-rankcard-stars-off { color: var(--text-faint, #3a424e); }
 
 /* ---------------- ESTADISTICAS ---------------- */
 .ps-stats-scopes { display: flex; flex-direction: column; gap: 24px; }
@@ -311,6 +313,7 @@
 .ps-pet-info { display: flex; flex-direction: column; gap: 2px; }
 .ps-pet-label { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted, #98a2b0); }
 .ps-pet-name-lg { font-size: 1.1rem; font-weight: 800; color: var(--text, #f2f4f7); }
+.ps-pet-sub { font-size: 0.78rem; color: var(--text-muted, #98a2b0); }
 .ps-pet-lvl { font-size: 0.8rem; color: var(--text-faint, #5c6672); }
 
 /* ---------------- PERFIL DETALLE ---------------- */

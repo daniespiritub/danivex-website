@@ -24,13 +24,13 @@ test('rank-rules: grupo por RP y validacion BR', () => {
   assert.equal(validateBrRank('', '3539'), 'unavailable')
 })
 
-test('rank-rules: brRankFromPoints deriva el tier por RP (Heroico = ground truth)', () => {
+test('rank-rules: brRankFromPoints deriva el grupo de tier por RP', () => {
   assert.equal(brRankFromPoints(3539).name, 'Heroico') // GROUND TRUTH del juego
   assert.equal(brRankFromPoints(3539).confidence, 'verified')
   assert.equal(brRankFromPoints(1000).name, 'Bronce')
   assert.equal(brRankFromPoints(2600).name, 'Diamante')
-  // Gran Maestro NO se deriva por RP (leaderboard): RP altisimo sigue Heroico.
-  assert.equal(brRankFromPoints(9999).name, 'Heroico')
+  assert.equal(brRankFromPoints(4500).name, 'Heroico Élite') // 4300-4899 = Heroico Elite
+  assert.equal(brRankFromPoints(9999).name, 'Maestro') // 6300+ = Maestro (NO "Heroico")
   assert.equal(brRankFromPoints(500).name, '') // por debajo de Bronce => sin dato
   assert.equal(brRankFromPoints('').confidence, 'unavailable')
 })

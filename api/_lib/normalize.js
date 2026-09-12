@@ -146,6 +146,9 @@ export function buildResponse(uid, profile, cacheHit) {
     // si un proveedor secundario verificado las aporta; si no, vacio).
     rankBR: profile.rankBR || '',
     rankBRDivision: profile.rankBRDivision || '',
+    rankBRStarLevel: profile.rankBRStarLevel || '',
+    rankBRNextThreshold: profile.rankBRNextThreshold || '',
+    rankBRPointsToNext: profile.rankBRPointsToNext || '',
     rankBRPoints: profile.rankBRPoints || '',
     rankBRCode: profile.rankBRCode || '',
     rankBRSource: ranks.brRankSource,
@@ -185,6 +188,9 @@ export function buildResponse(uid, profile, cacheHit) {
     // rango CS en lecturas cacheadas sin re-consultar FreeFireMania.
     csFromFfm: profile.csFromFfm || null,
     pet: profile.pet || '',
+    petNickname: profile.petNickname || '',
+    petSkinName: profile.petSkinName || '',
+    petNameSource: profile.petNameSource || '',
     petLevel: profile.petLevel || '',
     petImage: profile.petImage || '',
     petId: profile.petId || '',
