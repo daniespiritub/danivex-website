@@ -13,7 +13,22 @@ const ELITE_NAMES = { 1: 'Sakura', 2: 'Hip-hop', 3: 'Skull', 4: 'Royal', 5: "Pir
 
 // Nombres de temporada de BOOYAH PASS (systemSeason). Verificados con fuentes
 // publicas. Las temporadas sin nombre confirmado se etiquetan "Pase Booyah S{n}".
-const BOOYAH_NAMES = { 1: 'Fumes on Fire', 2: 'Fatal Fauna', 3: 'The Biotroopers', 4: 'Wave Watchers', 5: 'Neon Drifterz', 6: 'Comic Chaos', 7: 'T.R.A.P. City', 8: 'Synthetic Strike', 9: 'Jelly Assault', 10: 'Fishing Frenzy', 11: 'Rise of the Puppets', 12: 'Frostfire', 13: 'Electri City', 14: 'Rage Reverie', 15: 'Tales of Pond', 16: 'Lustrous Nightfall', 17: 'Pixel Reality', 18: "Twilight's End", 19: 'Lucky Goosy', 20: 'Majestic Roar', 21: 'Ocean Outlaws', 22: 'Last Laugh', 23: 'Ding Ding', 24: 'Giddy Runaway', 25: 'Mad Stitcher', 26: 'Wrapped and Ready', 27: 'Inkredible Duo', 28: 'Moonlit Venture', 29: 'NOODLICIOUS', 42: 'Interstellar', 43: 'Baaast Friends', 44: 'An Apple a Day', 45: 'Stellar Spica' }
+const BOOYAH_NAMES = {
+  1: 'Fumes on Fire', 2: 'Fatal Fauna', 3: 'The Biotroopers', 4: 'Wave Watchers',
+  5: 'Neon Drifterz', 6: 'Comic Chaos', 7: 'T.R.A.P. City', 8: 'Synthetic Strike',
+  9: 'Jelly Assault', 10: 'Fishing Frenzy', 11: 'Rise of the Puppets', 12: 'Frostfire',
+  13: 'Electri City', 14: 'Rage Reverie', 15: 'Tales of Pond', 16: 'Lustrous Nightfall',
+  17: 'Pixel Reality', 18: "Twilight's End", 19: 'Lucky Goosy', 20: 'Majestic Roar',
+  21: 'Ocean Outlaws', 22: 'Last Laugh', 23: 'Ding Ding', 24: 'Giddy Runaway',
+  25: 'Mad Stitcher', 26: 'Wrapped and Ready', 27: 'Inkredible Duo', 28: 'Moonlit Venture',
+  29: 'NOODLICIOUS',
+  // S30..S41: nombres oficiales PT-BR verificados (Garena Brasil).
+  30: 'Nascidos das Chamas', 31: 'Ao Vivaço', 32: 'Domínio das Chamas',
+  33: 'Eclipse do Deserto', 34: 'Clima Nebuloso', 35: 'Hora Fantasmagórica',
+  36: 'Guerreiros Estelares', 37: 'Era uma Vez', 38: 'Maré Celestial',
+  39: 'Jornada Dourada', 40: 'Febre de Emoji', 41: 'Sonho Lapidado',
+  42: 'Interstellar', 43: 'Baaast Friends', 44: 'An Apple a Day', 45: 'Stellar Spica',
+}
 
 // Tope solo para getPassCatalog() (listado/tests). El pipeline usa passEntry(n)
 // dinamicamente para cualquier N que aparezca en el album (P99, P100, ...).

@@ -8,6 +8,7 @@ import { enrichRanks } from './rank-enrichment.js'
 import { verifiedSecondaryCs } from './verified-observations.js'
 import { resolveBadge } from './badge-resolver.js'
 import { passEntry } from './pass-catalog.js'
+import { CURRENT_CS_SEASON } from './cs-rank-rules.js'
 
 // Construye la coleccion de pases: catalogo historico + POSESION real (del album
 // publico de FreeFireMania). Solo incluye los pases que aparecen en el album (con
@@ -88,6 +89,11 @@ export function buildResponse(uid, profile, cacheHit) {
   }
   const ranks = enrichRanks(profile, { secondaryCs })
   const csDivision = (secondaryCs && secondaryCs.division) || profile.rankCSDivision || ''
+  // Temporada CS: observacion verificada (por-cuenta) > temporada global actual (config).
+  // Solo se rellena si hay un tier CS resuelto (no inventamos temporada sin rango).
+  const hasCsTier = Boolean(ranks.csRankName)
+  const csSeason = ranks.csSeason || (hasCsTier ? CURRENT_CS_SEASON.value : '')
+  const csSeasonSource = ranks.csSeason ? ranks.csSeasonSource : (hasCsTier ? CURRENT_CS_SEASON.source : 'unavailable')
 
   return {
     ok: true,
@@ -148,7 +154,8 @@ export function buildResponse(uid, profile, cacheHit) {
     rankCS: profile.rankCS || ranks.csRankName || '',
     rankCSDivision: csDivision,
     rankCSStars: ranks.csStars, // solo con proveedor secundario verificado
-    rankCSSeason: ranks.csSeason, // temporada CS separada de BR (si se obtiene)
+    rankCSSeason: csSeason, // temporada CS (observacion verificada o temporada global actual)
+    rankCSSeasonSource: csSeasonSource,
     rankCSRawValue: profile.rankCSRawValue || '', // valor interno csRankingPoints (no es estrellas)
     rankCSPoints: '', // no exponer como puntos
     rankCSCode: profile.rankCSCode || '',
@@ -157,6 +164,7 @@ export function buildResponse(uid, profile, cacheHit) {
     rankCSStarsSource: ranks.csStarsSource,
     rankCSStarsConfidence: ranks.csStarsConfidence,
     rankCSTierKey: ranks.csTierKey,
+    rankCSFetchedAt: new Date().toISOString(), // frescura: la lectura del codigo CS es live
 
     // Estadisticas REALES de partidas (BR solo/duo/squad + CS). null si el
     // proveedor de stats no las aporto (nunca se fabrican). Ver stats-model.js.

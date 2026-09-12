@@ -32,11 +32,22 @@ test('pass-catalog: Booyah muestra NOMBRE real, nunca el numero global crudo', (
   }
 })
 
-test('pass-catalog: temporada sin nombre => etiqueta por TEMPORADA (S{n}), no por global', () => {
-  // S30 (P85) aun sin nombre publico confirmado => "Pase Booyah S30".
-  const p85 = passEntry(85)
-  assert.equal(p85.systemSeason, 30)
-  assert.equal(p85.name, 'Pase Booyah S30')
+test('pass-catalog: S30..S41 con nombre oficial PT-BR (ya NO fallback generico)', () => {
+  assert.equal(passEntry(85).systemSeason, 30)
+  assert.equal(passEntry(85).name, 'Nascidos das Chamas') // S30 / P85
+  assert.equal(passEntry(90).name, 'Hora Fantasmagórica') // S35 / P90
+  assert.equal(passEntry(96).name, 'Sonho Lapidado') // S41 / P96
+  // Ninguno de S30..S41 debe caer en el fallback por temporada.
+  for (let n = 85; n <= 96; n += 1) {
+    assert.doesNotMatch(passEntry(n).name, /^Pase Booyah S\d+$/, `P${n} debe tener nombre real`)
+  }
+})
+
+test('pass-catalog: temporada sin nombre aun => etiqueta por TEMPORADA (S{n}), no por global', () => {
+  // S46 (P101) aun sin nombre publico confirmado => "Pase Booyah S46" (no el numero global).
+  const p101 = passEntry(101)
+  assert.equal(p101.systemSeason, 46)
+  assert.equal(p101.name, 'Pase Booyah S46')
 })
 
 test('pass-catalog: DINAMICO — acepta P99, P100+ sin romper', () => {

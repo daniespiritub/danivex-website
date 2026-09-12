@@ -78,11 +78,14 @@ test('CONTRATO: CS GENERAL desde el codigo del juego (csRank) — tier live por 
   const control = mapSiamBhauProfile({ ...REAL_FIXTURE, basicInfo: { ...REAL_FIXTURE.basicInfo, accountId: '2451868101', csRank: 315, csRankingPoints: 58, csMaxRank: 315 } })
   const r = buildResponse('2451868101', { ...control, region: 'US', provider: 'SiamBhau' }, false)
   assert.equal(r.rankCS, 'Platino', 'tier del codigo autoritativo del juego (315 = Platino)')
+  assert.equal(r.rankCSDivision, 'III', '315 % 100 = 15 => Platino III')
   assert.equal(r.rankCSTierKey, 'platinum', 'emblema oficial CS Platinum')
-  // Sin leakage: este UID NO recibe el 55/Maestro/S38 del fixture 2196518104.
+  // Sin leakage: este UID NO recibe el 55/Maestro del fixture 2196518104.
   assert.notEqual(r.rankCS, 'Maestro')
   assert.equal(r.rankCSStars, '', 'ninguna fuente live expone estrellas => no se inventan')
-  assert.equal(r.rankCSSeason, '')
+  // La temporada es la GLOBAL actual (config), no la del fixture verificado.
+  assert.equal(r.rankCSSeason, '38')
+  assert.equal(r.rankCSSeasonSource, 'global-season-config')
 })
 
 test('CONTRATO: csRank 324 => Gran Maestro (asignacion del propio juego), general', () => {
@@ -172,8 +175,10 @@ test('CONTRATO: sin observacion, el TIER sale del codigo propio del UID y NO hay
   const r = buildResponse('999999999', { ...profile, region: 'US', provider: 'SiamBhau' }, false)
   assert.equal(r.rankCS, 'Diamante', 'tier del codigo propio (318 = Diamante IV)')
   assert.equal(r.rankCSStars, '', 'sin observacion => sin estrellas (no leakage)')
-  assert.equal(r.rankCSSeason, '', 'sin temporada CS fabricada (no leakage)')
-  assert.notEqual(r.rankCSStars, '55')
+  assert.notEqual(r.rankCSStars, '55', 'NUNCA hereda las 55 estrellas del fixture')
+  // La temporada CS es la GLOBAL actual (config), NO la observacion verificada de otro UID.
+  assert.equal(r.rankCSSeason, '38', 'temporada CS global actual (config)')
+  assert.equal(r.rankCSSeasonSource, 'global-season-config', 'source config, NO in-game-verification')
 })
 
 test('CONTRATO: un proveedor LIVE de CS tiene precedencia sobre la observacion verificada', () => {
