@@ -18,7 +18,7 @@ export const RANK_RULES_META = {
   game: 'Free Fire / Free Fire MAX',
   source: 'Guias publicas de rangos FF + datos reales de la API',
   verifiedAt: '2026-09-11',
-  note: 'Umbrales BR fiables hasta Heroico (3125). Por encima de Heroico el tier lo determina el codigo del juego, no un umbral de RP.',
+  note: 'BR por RP con subdivisiones Heroico verificadas S53 (ver BR_RANK_RULES_BY_SEASON). Entrada a Heroico = 3050 RP. Maestro por grupo (subdivisiones sin umbral publico). Gran Maestro = leaderboard, no por RP.',
 }
 
 // Umbrales de RP de Battle Royale (piso de cada grupo de tier). Verificados
@@ -29,7 +29,7 @@ export const BR_RP_BANDS = [
   { min: 1550, tier: 'Oro' },
   { min: 2038, tier: 'Platino' },
   { min: 2538, tier: 'Diamante' },
-  { min: 3125, tier: 'Heroico+' }, // Heroico y superiores: el tier exacto lo da el codigo
+  { min: 3050, tier: 'Heroico+' }, // Heroico y superiores (entrada a Heroico = 3050 RP)
 ]
 
 // Grupo de tier esperado por RP (para BR). Devuelve el nombre de grupo o ''.
@@ -51,13 +51,22 @@ export function brTierGroupFromPoints(points) {
 // INTERNAS de Maestro/Maestro Elite y Gran Maestro NO tienen umbral publico verificable
 // (GM = leaderboard top ~300, dinamico) => se muestra el grupo "Maestro" sin inventar
 // division. Para actualizar en S54: anadir otra entrada a BR_RANK_RULES_BY_SEASON.
+// Diamante->Heroico I (3050): entrada a Heroico. Multiples guias actuales coinciden
+// (Diamante IV ~2975, Heroico 3050); el cambio de S53 endurecio MAESTRO, no la entrada
+// a Heroico (art. FFM "makes it harder to reach Master"). Los cortes superiores del
+// grupo Heroico (3800/4300/4900/5500/6300) estan VERIFICADOS con el mensaje del juego
+// "faltan X para el proximo escalon" en perfiles publicos S53 (y FFM: emblema H5 =
+// 5500-6299, faltam->6300 = entrada a Maestro). MAESTRO (6300+): sus subdivisiones
+// internas (Maestro I/II, Maestro Elite III/IV/V) NO tienen umbral publico verificable
+// en S53 => se resuelve el GRUPO "Maestro" (no se inventan cortes). Gran Maestro NO se
+// deriva por RP (leaderboard top ~300, umbral dinamico).
 const S53_BANDS = [
   { min: 1000, tier: 'Bronce', tierKey: 'bronze' },
   { min: 1250, tier: 'Plata', tierKey: 'silver' },
   { min: 1550, tier: 'Oro', tierKey: 'gold' },
   { min: 2038, tier: 'Platino', tierKey: 'platinum' },
   { min: 2538, tier: 'Diamante', tierKey: 'diamond' },
-  { min: 3125, tier: 'Heroico', division: 'I', starLevel: 1, tierKey: 'heroic' },
+  { min: 3050, tier: 'Heroico', division: 'I', starLevel: 1, tierKey: 'heroic' },
   { min: 3800, tier: 'Heroico', division: 'II', starLevel: 2, tierKey: 'heroic' },
   { min: 4300, tier: 'Heroico Élite', division: 'III', starLevel: 3, tierKey: 'heroic' },
   { min: 4900, tier: 'Heroico Élite', division: 'IV', starLevel: 4, tierKey: 'heroic' },
@@ -75,11 +84,15 @@ function brRulesForSeason(season) {
   return BR_RANK_RULES_BY_SEASON[key] || BR_RANK_RULES_BY_SEASON[DEFAULT_BR_SEASON]
 }
 
-// resolveBrRankFromPoints({points, season, region}) — resolver GENERAL por RP (fuente
-// de verdad). Devuelve tier + division + starLevel + displayName + emblema + progreso
-// al siguiente escalon + provenance. NO inventa: Gran Maestro es leaderboard (no por
-// RP) y las subdivisiones de Maestro no tienen umbral publico => grupo "Maestro".
-export function resolveBrRankFromPoints({ points, season } = {}) {
+// resolveBrRankFromPoints({points, season, region, leaderboardContext}) — resolver
+// GENERAL por RP (fuente de verdad). Devuelve tier + division + starLevel + displayName
+// + emblema + progreso al siguiente escalon + provenance. NO inventa: Gran Maestro es
+// leaderboard (no por RP) y las subdivisiones de Maestro no tienen umbral publico =>
+// grupo "Maestro". `region`/`leaderboardContext` se aceptan para un futuro modelado de
+// Gran Maestro (top-N regional); hoy no alteran el resultado (GM no se deriva por RP).
+export function resolveBrRankFromPoints({ points, season, region, leaderboardContext } = {}) {
+  void region
+  void leaderboardContext
   const rp = Number(points)
   const rules = brRulesForSeason(season)
   if (!Number.isFinite(rp) || rp < 1000) {

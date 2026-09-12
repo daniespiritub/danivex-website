@@ -50,6 +50,15 @@ test('br-rank: anchors de perfiles publicos S53 => division correcta', () => {
   assert.equal(r(5518).displayName, 'Heroico Élite V')
 })
 
+test('br-rank: BOUNDARY Diamante -> Heroico I en 3050 RP (S53)', () => {
+  assert.equal(r(3049).tier, 'Diamante', 'justo por debajo del umbral = Diamante')
+  assert.equal(r(3049).division, '', 'Diamante se muestra como grupo (sin subdivision)')
+  assert.equal(r(3050).tier, 'Heroico', 'en 3050 empieza Heroico I')
+  assert.equal(r(3050).division, 'I')
+  assert.equal(r(3050).starLevel, 1)
+  assert.equal(r(3050).displayName, 'Heroico I')
+})
+
 test('br-rank: tiers bajos = grupo sin subdivision (no se inventa)', () => {
   assert.equal(r(1000).tier, 'Bronce')
   assert.equal(r(1300).tier, 'Plata')
@@ -57,6 +66,13 @@ test('br-rank: tiers bajos = grupo sin subdivision (no se inventa)', () => {
   assert.equal(r(2100).tier, 'Platino')
   assert.equal(r(2600).tier, 'Diamante')
   assert.equal(r(1000).division, '')
+})
+
+test('br-rank: acepta region/leaderboardContext sin alterar el resultado por RP', () => {
+  const a = resolveBrRankFromPoints({ points: 3539, season: 53 })
+  const b = resolveBrRankFromPoints({ points: 3539, season: 53, region: 'US', leaderboardContext: { top: 300 } })
+  assert.equal(a.displayName, b.displayName)
+  assert.equal(b.displayName, 'Heroico I')
 })
 
 test('br-rank: Maestro (6300+) = grupo (subdivisiones internas sin umbral verificado)', () => {

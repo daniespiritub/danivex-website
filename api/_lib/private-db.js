@@ -127,8 +127,11 @@ export async function getCachedProfile(uid) {
 // un CS antiguo resucitaria un tier sin verificar (dato falso) => prohibido. Si en
 // el futuro un proveedor secundario VERIFICADO aporta CS, se guardara normalmente.
 const RICH_PRESERVE_FIELDS = [
-  'primeLevel', 'rankBR', 'rankBRPoints', 'season',
-  'title', 'badgeCount', 'pet', 'petLevel', 'avatar', 'banner',
+  // BR: se preservan JUNTOS (RP + su subdivision/estrellas derivadas) para que un
+  // fallo transitorio muestre el ultimo BR completo y coherente, nunca RP sin division.
+  // OJO: solo se preservan si el valor entrante esta VACIO (un RP live nuevo GANA).
+  'primeLevel', 'rankBR', 'rankBRDivision', 'rankBRStarLevel', 'rankBRNextThreshold', 'rankBRPointsToNext', 'rankBRPoints', 'season',
+  'title', 'badgeCount', 'pet', 'petNickname', 'petSkinName', 'petLevel', 'avatar', 'banner',
   // Clan: solo lo aporta el proveedor rico (SiamBhau). Un refresh keyless (sin
   // region) no lo trae => se conserva el ultimo bueno en vez de vaciarlo.
   'clan', 'clanId', 'clanLevel', 'clanMembers', 'clanLeader',
