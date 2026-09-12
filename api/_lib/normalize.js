@@ -7,7 +7,7 @@ import { resolveAvatar, resolveBanner } from './profile-images.js'
 import { enrichRanks } from './rank-enrichment.js'
 import { verifiedSecondaryCs } from './verified-observations.js'
 import { resolveBadge } from './badge-resolver.js'
-import { getPassCatalog } from './pass-catalog.js'
+import { passEntry } from './pass-catalog.js'
 
 // Construye la coleccion de pases: catalogo historico + POSESION real (del album
 // publico de FreeFireMania). Solo incluye los pases que aparecen en el album (con
@@ -22,10 +22,13 @@ function buildPassCollection(album) {
   const booyahPass = []
   let eliteOwned = 0
   let booyahOwned = 0
-  for (const p of getPassCatalog()) {
-    if (!ownedSet.has(p.num) && !notOwnedSet.has(p.num)) continue // sin dato de posesion
-    const owned = ownedSet.has(p.num)
-    const entry = { num: p.num, id: p.id, system: p.system, name: p.name, image: p.image, owned, ownershipValue: values[p.num] ?? null }
+  // DINAMICO: el album decide QUE pases aparecen (union owned+notOwned), y passEntry
+  // resuelve nombre/imagen para CUALQUIER numero (incluye P99, P100+ sin tope).
+  const nums = [...new Set([...ownedSet, ...notOwnedSet])].sort((a, b) => a - b)
+  for (const num of nums) {
+    const p = passEntry(num)
+    const owned = ownedSet.has(num)
+    const entry = { num: p.num, id: p.id, system: p.system, name: p.name, image: p.image, owned, ownershipValue: values[num] ?? null }
     if (p.system === 'elite-pass') { elitePass.push(entry); if (owned) eliteOwned += 1 } else { booyahPass.push(entry); if (owned) booyahOwned += 1 }
   }
   if (!elitePass.length && !booyahPass.length) return null
