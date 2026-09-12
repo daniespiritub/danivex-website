@@ -62,16 +62,30 @@ export function buildResponse(uid, profile, cacheHit) {
   // (2) observacion in-game verificada (rellena huecos). La observacion es
   // idempotente y se aplica en cada lectura (fresh o cache) para que el resultado
   // sea consistente aunque el registro persistido no guarde todos los campos CS.
-  // CS por-campo. Prioridad: (1) proveedor live inyectado -> (2) FreeFireMania
-  // (tier REAL del juego, GENERAL para cualquier UID publicado) -> (3) observacion
-  // verificada in-game (fixture/fallback). El TIER NUNCA se deriva de las estrellas
-  // (58★=Platino, 55★=Maestro: no es funcion de ellas). El tier lo da la fuente.
+  // CS por-campo. Prioridad del TIER:
+  //   (1) proveedor live inyectado (profile.secondaryCs)
+  //   (2) codigo autoritativo del juego (profile.rankCS, de siambhau csRank) — GENERAL/live
+  //   (3) FreeFireMania SOLO como fallback si NO hay tier live y no esta stale
+  //   (4) observacion verificada in-game (fixture) — completa estrellas/temporada
+  // Las ESTRELLAS/temporada CS solo vienen de la observacion verificada: ninguna
+  // fuente live las expone (csRankingPoints != estrellas; FFM las sirve stale). FFM
+  // es validacion/fallback, nunca source of truth. El TIER no se deriva de estrellas.
   let secondaryCs = profile.secondaryCs || null
-  if (!secondaryCs && profile.csFromFfm && profile.csFromFfm.tier) {
-    const f = profile.csFromFfm
-    secondaryCs = { rank: f.tier, division: f.division || '', stars: f.stars || '', source: 'freefiremania' }
+  const ffm = profile.csFromFfm || null
+  const hasLiveTier = Boolean((secondaryCs && secondaryCs.rank) || profile.rankCS)
+  if (!hasLiveTier && ffm && ffm.tier && !ffm.stale) {
+    secondaryCs = { rank: ffm.tier, division: ffm.division || '', source: 'freefiremania' }
   }
-  if (!secondaryCs) secondaryCs = verifiedSecondaryCs(uid, profile.region)
+  const observation = verifiedSecondaryCs(uid, profile.region)
+  if (observation) {
+    // La observacion completa ESTRELLAS/temporada (que ninguna fuente live expone).
+    // El TIER solo lo aporta si no hay ninguno (ni live inyectado, ni codigo, ni FFM).
+    secondaryCs = { ...(secondaryCs || {}) }
+    secondaryCs.stars = secondaryCs.stars || observation.stars
+    secondaryCs.season = secondaryCs.season || observation.season
+    if (!secondaryCs.rank && !profile.rankCS) secondaryCs.rank = observation.rank
+    if (!secondaryCs.source) secondaryCs.source = observation.source
+  }
   const ranks = enrichRanks(profile, { secondaryCs })
   const csDivision = (secondaryCs && secondaryCs.division) || profile.rankCSDivision || ''
 
@@ -139,6 +153,7 @@ export function buildResponse(uid, profile, cacheHit) {
     rankCSPoints: '', // no exponer como puntos
     rankCSCode: profile.rankCSCode || '',
     rankCSSource: ranks.csRankSource,
+    rankCSConfidence: ranks.csRankConfidence,
     rankCSStarsSource: ranks.csStarsSource,
     rankCSStarsConfidence: ranks.csStarsConfidence,
     rankCSTierKey: ranks.csTierKey,

@@ -72,7 +72,35 @@ export function parseCsRank(html) {
   return { tier: base, full, division, stars: starsM ? starsM[1] : '', emblemUrl: emblemM ? emblemM[1] : '' }
 }
 
+// Meses ES/PT para parsear la fecha "actualizado el:" que FFM publica en el perfil.
+const MONTHS = {
+  enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5, julio: 6, agosto: 7,
+  septiembre: 8, setiembre: 8, octubre: 9, noviembre: 10, diciembre: 11,
+  janeiro: 0, fevereiro: 1, março: 2, marco: 2, abril_pt: 3, maio: 4, junho: 5,
+  julho: 6, setembro: 8, outubro: 9, novembro: 10, dezembro: 11,
+}
+
+// parseUpdatedAt(html): fecha del snapshot de FFM ("actualizado el: <dia> de <mes> de
+// <anio>...") -> { iso, ageDays } o null. Sirve para marcar datos STALE (FFM sirve
+// snapshots de semanas atras que no coinciden con el estado live => validacion, no verdad).
+export function parseUpdatedAt(html, now = Date.now()) {
+  if (!html) return null
+  const m = html.match(/actualizado el:[^<]*?(\d{1,2})\s+de\s+([a-zç]+)\s+de\s+(\d{4})/i)
+  if (!m) return null
+  const day = Number(m[1])
+  const month = MONTHS[m[2].toLowerCase()]
+  const year = Number(m[3])
+  if (!Number.isFinite(day) || month == null || !Number.isFinite(year)) return null
+  const d = new Date(Date.UTC(year, month, day))
+  if (Number.isNaN(d.getTime())) return null
+  const ageDays = Math.floor((now - d.getTime()) / 86400000)
+  return { iso: d.toISOString().slice(0, 10), ageDays }
+}
+
 // getFfmExtras(uid): UN GET publico -> { album (pases), cs (rango CS) }. Best-effort.
+// Adjunta procedencia de frescura (sourceUpdatedAt/ageDays/stale) al bloque cs, para
+// que la capa de normalizacion trate FFM como validacion/fallback y no como verdad
+// cuando el snapshot esta viejo. stale si el snapshot tiene mas de FFM_STALE_DAYS dias.
 export async function getFfmExtras(uid) {
   const cleanUid = String(uid || '').replace(/[^\d]/g, '')
   if (!cleanUid) return { ok: false, outcome: 'no_uid' }
@@ -81,6 +109,13 @@ export async function getFfmExtras(uid) {
     const album = parsePassAlbum(html)
     const cs = parseCsRank(html)
     if (!album && !cs) return { ok: false, outcome: 'empty' }
+    if (cs) {
+      const upd = parseUpdatedAt(html)
+      const staleDays = Number(process.env.FFM_STALE_DAYS || 14)
+      cs.sourceUpdatedAt = upd ? upd.iso : ''
+      cs.ageDays = upd ? upd.ageDays : null
+      cs.stale = upd ? upd.ageDays > staleDays : false
+    }
     return { ok: true, album, cs }
   } catch (error) {
     return { ok: false, outcome: 'error', error: error.message }
