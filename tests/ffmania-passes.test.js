@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { parsePassAlbum, parseCsRank } from '../api/_lib/providers/ffmania-passes.js'
+import { parsePassAlbum, parseCsRank, parseUpdatedAt } from '../api/_lib/providers/ffmania-passes.js'
 
 const CS_HTML = `<div class="perfil-patente-card"> <span class="perfil-patente-mode">Clash Squad</span>
   <img class="perfil-patente-img" src="https://dl.dir.freefiremobile.com/common/OB48/BR/CSPlatinum.png" alt="Platina V" loading="lazy">
@@ -50,4 +50,17 @@ test('parsePassAlbum: sin album publicado => null (no se inventa)', () => {
   assert.equal(parsePassAlbum('<div class="perfil-pass-panel"><button>Ver pases</button></div>'), null)
   assert.equal(parsePassAlbum(''), null)
   assert.equal(parsePassAlbum(null), null)
+})
+
+test('parseUpdatedAt: parsea la fecha del snapshot y calcula antiguedad (stale detection)', () => {
+  const html = '<p>actualizado el: sábado, 15 de agosto de 2026, 14:00:31</p>'
+  const upd = parseUpdatedAt(html, Date.UTC(2026, 8, 12)) // hoy = 2026-09-12
+  assert.ok(upd)
+  assert.equal(upd.iso, '2026-08-15')
+  assert.equal(upd.ageDays, 28) // ~4 semanas => stale
+})
+
+test('parseUpdatedAt: sin fecha => null', () => {
+  assert.equal(parseUpdatedAt('<p>sin fecha</p>'), null)
+  assert.equal(parseUpdatedAt(''), null)
 })

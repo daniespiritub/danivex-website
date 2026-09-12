@@ -72,26 +72,41 @@ test('CONTRATO: BR = Heroico por RP (ground truth), con RP y temporada', () => {
   assert.equal(r.rankBRConfidence, 'verified')
 })
 
-test('CONTRATO: CS GENERAL desde FreeFireMania (cualquier UID) — tier de FFM, NO derivado', () => {
-  // Otro UID cualquiera: CS viene del HTML publico de FFM (tier real, estrellas).
-  const profile = mapSiamBhauProfile({ ...REAL_FIXTURE, basicInfo: { ...REAL_FIXTURE.basicInfo, accountId: '2451868101' } })
-  const withFfm = { ...profile, region: 'BR', provider: 'SiamBhau', csFromFfm: { tier: 'Platina', division: 'V', stars: '58', emblemUrl: 'x' } }
-  const r = buildResponse('2451868101', withFfm, false)
-  assert.equal(r.rankCS, 'Platina', 'tier real de FFM (58★ = Platino, NO Maestro por regla de estrellas)')
-  assert.equal(r.rankCSDivision, 'V')
-  assert.equal(r.rankCSStars, '58')
+test('CONTRATO: CS GENERAL desde el codigo del juego (csRank) — tier live por UID, sin leakage', () => {
+  // Control real: csRank 315 => Platino (cross-check con el tier de FFM). Otro UID,
+  // otro codigo, otro tier: el pipeline es general, no un caso por-cuenta.
+  const control = mapSiamBhauProfile({ ...REAL_FIXTURE, basicInfo: { ...REAL_FIXTURE.basicInfo, accountId: '2451868101', csRank: 315, csRankingPoints: 58, csMaxRank: 315 } })
+  const r = buildResponse('2451868101', { ...control, region: 'US', provider: 'SiamBhau' }, false)
+  assert.equal(r.rankCS, 'Platino', 'tier del codigo autoritativo del juego (315 = Platino)')
   assert.equal(r.rankCSTierKey, 'platinum', 'emblema oficial CS Platinum')
-  // Sin fabricar ni filtrar entre UID: este UID NO recibe el 55/Maestro del fixture.
-  assert.notEqual(r.rankCSStars, '55')
+  // Sin leakage: este UID NO recibe el 55/Maestro/S38 del fixture 2196518104.
+  assert.notEqual(r.rankCS, 'Maestro')
+  assert.equal(r.rankCSStars, '', 'ninguna fuente live expone estrellas => no se inventan')
+  assert.equal(r.rankCSSeason, '')
 })
 
-test('CONTRATO: FFM CS tiene prioridad sobre el fixture verificado (mismo UID)', () => {
-  // Si el UID del fixture (2196518104) tuviera FFM publicado, FFM gana.
-  const profile = mapSiamBhauProfile(REAL_FIXTURE)
-  const withFfm = { ...profile, region: 'US', provider: 'SiamBhau', csFromFfm: { tier: 'Diamante', division: 'II', stars: '40' } }
-  const r = buildResponse('2196518104', withFfm, false)
-  assert.equal(r.rankCS, 'Diamante')
-  assert.equal(r.rankCSStars, '40')
+test('CONTRATO: csRank 324 => Gran Maestro (asignacion del propio juego), general', () => {
+  const gm = mapSiamBhauProfile({ ...REAL_FIXTURE, basicInfo: { ...REAL_FIXTURE.basicInfo, accountId: '427951596', csRank: 324, csRankingPoints: 298, csMaxRank: 324 } })
+  const r = buildResponse('427951596', { ...gm, region: 'SAC', provider: 'SiamBhau' }, false)
+  assert.equal(r.rankCS, 'Gran Maestro')
+  assert.equal(r.rankCSTierKey, 'grandmaster')
+})
+
+test('CONTRATO: FFM stale NO sobreescribe el tier live del codigo (validacion, no verdad)', () => {
+  // El codigo live dice Maestro (323). FFM sirve un snapshot viejo (Platina). Gana el codigo.
+  const profile = mapSiamBhauProfile(REAL_FIXTURE) // csRank 323 => Maestro
+  const withStaleFfm = { ...profile, region: 'US', provider: 'SiamBhau', csFromFfm: { tier: 'Platina', division: 'V', stars: '58', stale: true, ageDays: 28 } }
+  const r = buildResponse('2196518104', withStaleFfm, false)
+  assert.equal(r.rankCS, 'Maestro', 'el codigo autoritativo del juego gana sobre FFM stale')
+  assert.notEqual(r.rankCSStars, '58', 'no se muestran las estrellas stale de FFM')
+})
+
+test('CONTRATO: FFM como fallback de tier SOLO si no hay codigo live y no esta stale', () => {
+  // Proveedor keyless (sin csRank): FFM FRESCO aporta el tier como fallback.
+  const keyless = { region: 'BR', provider: 'FreeFireMania', csFromFfm: { tier: 'Diamante', division: 'II', stale: false } }
+  const r = buildResponse('999000111', keyless, false)
+  assert.equal(r.rankCS, 'Diamante', 'FFM fresco es fallback cuando no hay codigo live')
+  assert.equal(r.rankCSTierKey, 'diamond')
 })
 
 test('CONTRATO: CS del UID (fixture verificado) — Maestro / 55★ / S38, NO Gran Maestro', () => {
@@ -150,12 +165,15 @@ test('CONTRATO: resolver de insignia GENERAL — sin badgeId => badge null (no s
   assert.equal(r.badge, null)
 })
 
-test('CONTRATO: la capa verified es GENERAL — un UID sin observacion NO fabrica CS', () => {
-  const profile = mapSiamBhauProfile({ ...REAL_FIXTURE, basicInfo: { ...REAL_FIXTURE.basicInfo, accountId: '999999999' } })
+test('CONTRATO: sin observacion, el TIER sale del codigo propio del UID y NO hay leakage de estrellas/temporada', () => {
+  // UID distinto con su PROPIO codigo (318 = Diamante IV). El tier es general (del
+  // codigo), pero NO hereda las 55★/S38 del fixture 2196518104 (eso seria leakage).
+  const profile = mapSiamBhauProfile({ ...REAL_FIXTURE, basicInfo: { ...REAL_FIXTURE.basicInfo, accountId: '999999999', csRank: 318 } })
   const r = buildResponse('999999999', { ...profile, region: 'US', provider: 'SiamBhau' }, false)
-  assert.equal(r.rankCS, '', 'sin observacion verificada => CS vacio (no leakage)')
-  assert.equal(r.rankCSStars, '')
-  assert.equal(r.rankCSSeason, '')
+  assert.equal(r.rankCS, 'Diamante', 'tier del codigo propio (318 = Diamante IV)')
+  assert.equal(r.rankCSStars, '', 'sin observacion => sin estrellas (no leakage)')
+  assert.equal(r.rankCSSeason, '', 'sin temporada CS fabricada (no leakage)')
+  assert.notEqual(r.rankCSStars, '55')
 })
 
 test('CONTRATO: un proveedor LIVE de CS tiene precedencia sobre la observacion verificada', () => {

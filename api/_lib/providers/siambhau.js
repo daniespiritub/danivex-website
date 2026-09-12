@@ -18,6 +18,7 @@
 
 import { classifyFetchError } from '../log.js'
 import { brRankFromPoints } from '../rank-rules.js'
+import { csTierFromCode } from '../cs-rank-rules.js'
 import { normalizeStats } from '../stats-model.js'
 
 export const name = 'siambhau'
@@ -61,6 +62,12 @@ function mapRanks(basic) {
   // BR: el tier lo determina el RP (fuente de verdad verificada), no el codigo.
   const br = basic.showBrRank === false ? { name: '', confidence: 'hidden' } : brRankFromPoints(brPoints)
   const csRaw = str(basic.csRankingPoints ?? basic.csRankPoint)
+  // CS tier GENERAL desde el codigo autoritativo del juego (csRank). Live para
+  // cualquier UID, anclado al ground truth (323=Maestro). Las ESTRELLAS del display
+  // in-game NO las expone la API (csRankingPoints != estrellas) => rankCSStars vacio
+  // salvo observacion verificada; nunca se inventan.
+  const csHidden = basic.showCsRank === false
+  const csTier = csHidden ? null : csTierFromCode(basic.csRank)
   return {
     // Battle Royale (RP) — tier derivado del RP oficial:
     rankBR: br.name,
@@ -68,14 +75,16 @@ function mapRanks(basic) {
     rankBRCode: str(basic.rank ?? basic.brRank), // codigo raw (referencia interna)
     rankBRPoints: brPoints,
     rankBRConfidence: br.confidence,
-    // Clash Squad — sin datos verificables en esta fuente (estrellas/temporada/tier).
-    rankCS: '',
-    rankCSDivision: '',
-    rankCSCode: str(basic.csRank), // codigo raw (referencia interna)
+    // Clash Squad — TIER desde el codigo del juego (general/live); estrellas/temporada
+    // no las da esta fuente (se completan con observacion verificada si existe).
+    rankCS: csTier ? csTier.tier : '',
+    rankCSDivision: csTier ? csTier.division : '',
+    rankCSCode: str(basic.csRank), // codigo raw (id de rango autoritativo)
     rankCSStars: '', // la API no da las estrellas reales del juego
     rankCSRawValue: csRaw, // valor interno csRankingPoints (!= estrellas; sin interpretar)
     rankCSPoints: '', // no exponer como puntos (seria falso)
-    rankCSConfidence: basic.showCsRank === false ? 'hidden' : 'unavailable',
+    rankCSSource: csTier ? csTier.source : '',
+    rankCSConfidence: csHidden ? 'hidden' : (csTier ? csTier.confidence : 'unavailable'),
     // seasonId es la temporada de BR; CS tiene su propia temporada que la API no expone.
     season: str(basic.seasonId),
   }

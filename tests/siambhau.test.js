@@ -53,7 +53,7 @@ test('mapSiamBhauProfile: PRIME desde primeInfo.primeLevel (anidado)', () => {
   assert.equal(p.primeLevel, '8')
 })
 
-test('mapSiamBhauProfile: BR derivado del RP (Heroico, ground truth) y CS sin datos falsos', () => {
+test('mapSiamBhauProfile: BR por RP (Heroico) y CS TIER por el codigo del juego (323 = Maestro)', () => {
   const p = mapSiamBhauProfile(fixture)
   // BR: el juego muestra "Heroico" con 3539 RP. El tier sale del RP (3539 >= 3125),
   // NO del codigo 321. Esto es el GROUND TRUTH del juego (UID 2196518104).
@@ -61,12 +61,20 @@ test('mapSiamBhauProfile: BR derivado del RP (Heroico, ground truth) y CS sin da
   assert.equal(p.rankBRPoints, '3539') // BR se mide en RP
   assert.equal(p.rankBRCode, '321') // codigo raw conservado (referencia interna)
   assert.equal(p.season, '53')
-  // CS: el valor de la API (142) NO son las estrellas del juego (55), no hay
-  // temporada CS ni tier fiable -> CS queda vacio. Solo se conserva el raw interno.
-  assert.equal(p.rankCS, '', 'CS sin rango verificable en la fuente')
+  // CS: el TIER se resuelve del codigo autoritativo del juego (csRank 323 = Maestro),
+  // GENERAL para cualquier UID. Las ESTRELLAS del display in-game NO las expone la
+  // API (142 != 55) => rankCSStars vacio (nunca se inventan). Raw conservado interno.
+  assert.equal(p.rankCS, 'Maestro', 'CS tier desde el codigo del juego (323 = Maestro)')
   assert.equal(p.rankCSCode, '323') // codigo raw conservado (referencia interna)
+  assert.equal(p.rankCSSource, 'siambhau-csrank')
   assert.equal(p.rankCSStars, '', 'NO debe fabricar estrellas cuando la API no da el valor real del juego')
   assert.equal(p.rankCSRawValue, '142', 'conserva el valor raw csRankingPoints internamente')
+})
+
+test('mapSiamBhauProfile: showCsRank=false => CS oculto (no se resuelve tier)', () => {
+  const p = mapSiamBhauProfile({ basicInfo: { csRank: 323, showCsRank: false } })
+  assert.equal(p.rankCS, '')
+  assert.equal(p.rankCSConfidence, 'hidden')
 })
 
 test('mapSiamBhauProfile: imagen de mascota usa la skin equipada (skinId)', () => {

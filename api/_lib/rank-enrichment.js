@@ -45,9 +45,16 @@ export function enrichRanks(profile, opts = {}) {
   const brSeason = p.season || ''
   const brRankConfidence = brName ? validateBrRank(brName, brPoints) : 'unavailable'
 
-  // --- Clash Squad (sin datos verificables en la fuente primaria; rango/estrellas/
-  // temporada solo si un proveedor secundario VERIFICADO los aporta) ---
-  const csName = p.rankCS || (sec && sec.rank ? String(sec.rank) : '')
+  // --- Clash Squad ---
+  // TIER: preferentemente el codigo autoritativo del juego (p.rankCS, resuelto por
+  // csTierFromCode en el provider) — GENERAL y live. Si no hay, un proveedor
+  // secundario verificado (sec.rank). ESTRELLAS/temporada: solo de una observacion
+  // verificada (sec); ninguna fuente live las expone => nunca se inventan.
+  // Precedencia del TIER: proveedor live inyectado (sec.rank) > codigo del juego
+  // (p.rankCS). csFromCode = el tier viene del codigo autoritativo (no de un inyectado).
+  const injectedRank = sec && sec.rank ? String(sec.rank) : ''
+  const csName = injectedRank || p.rankCS || ''
+  const csFromCode = !injectedRank && Boolean(p.rankCS)
   const csStars = sec && sec.stars != null && String(sec.stars) !== '' ? String(sec.stars) : ''
   const csSeason = sec && sec.season != null && String(sec.season) !== '' ? String(sec.season) : ''
 
@@ -61,14 +68,14 @@ export function enrichRanks(profile, opts = {}) {
     brSeasonConfidence: brSeason ? 'verified' : 'unavailable',
     brTierKey: tierKey(brName),
 
-    // CS (vacio salvo proveedor secundario verificado)
-    csRankName: csName, // nombre de tier CS resuelto (live o secundario/verificado)
-    csRankSource: csName ? (sec && sec.source ? sec.source : 'secondary-provider') : '',
-    csRankConfidence: csName ? 'verified-secondary' : 'unavailable',
+    // CS — tier del codigo del juego (general/live) o de proveedor secundario.
+    csRankName: csName, // nombre de tier CS resuelto
+    csRankSource: csName ? (csFromCode ? (p.rankCSSource || 'game-csrank') : (sec && sec.source ? sec.source : 'secondary-provider')) : '',
+    csRankConfidence: csName ? (csFromCode ? (p.rankCSConfidence || 'verified') : 'verified-secondary') : 'unavailable',
     csStars,
     csSeason,
-    csStarsSource: csStars ? (sec.source || 'secondary-provider') : 'unavailable',
-    csSeasonSource: csSeason ? (sec.source || 'secondary-provider') : 'unavailable',
+    csStarsSource: csStars ? (sec && sec.source ? sec.source : 'secondary-provider') : 'unavailable',
+    csSeasonSource: csSeason ? (sec && sec.source ? sec.source : 'secondary-provider') : 'unavailable',
     csStarsConfidence: csStars ? 'verified-secondary' : 'unavailable',
     csTierKey: tierKey(csName),
   }
