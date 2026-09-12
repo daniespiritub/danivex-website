@@ -72,10 +72,32 @@ test('CONTRATO: BR = Heroico por RP (ground truth), con RP y temporada', () => {
   assert.equal(r.rankBRConfidence, 'verified')
 })
 
-test('CONTRATO: CS del UID verificado — 55★ => MAESTRO (reglas de estrellas), NO Gran Maestro', () => {
-  const r = fullResponse() // uid 2196518104 / US => estrellas verificadas in-game
-  assert.equal(r.rankCS, 'Maestro', 'tier derivado de 55 estrellas por las reglas CS actuales')
-  assert.notEqual(r.rankCS, 'Gran Maestro', 'Gran Maestro NO se deriva por estrellas (leaderboard)')
+test('CONTRATO: CS GENERAL desde FreeFireMania (cualquier UID) — tier de FFM, NO derivado', () => {
+  // Otro UID cualquiera: CS viene del HTML publico de FFM (tier real, estrellas).
+  const profile = mapSiamBhauProfile({ ...REAL_FIXTURE, basicInfo: { ...REAL_FIXTURE.basicInfo, accountId: '2451868101' } })
+  const withFfm = { ...profile, region: 'BR', provider: 'SiamBhau', csFromFfm: { tier: 'Platina', division: 'V', stars: '58', emblemUrl: 'x' } }
+  const r = buildResponse('2451868101', withFfm, false)
+  assert.equal(r.rankCS, 'Platina', 'tier real de FFM (58★ = Platino, NO Maestro por regla de estrellas)')
+  assert.equal(r.rankCSDivision, 'V')
+  assert.equal(r.rankCSStars, '58')
+  assert.equal(r.rankCSTierKey, 'platinum', 'emblema oficial CS Platinum')
+  // Sin fabricar ni filtrar entre UID: este UID NO recibe el 55/Maestro del fixture.
+  assert.notEqual(r.rankCSStars, '55')
+})
+
+test('CONTRATO: FFM CS tiene prioridad sobre el fixture verificado (mismo UID)', () => {
+  // Si el UID del fixture (2196518104) tuviera FFM publicado, FFM gana.
+  const profile = mapSiamBhauProfile(REAL_FIXTURE)
+  const withFfm = { ...profile, region: 'US', provider: 'SiamBhau', csFromFfm: { tier: 'Diamante', division: 'II', stars: '40' } }
+  const r = buildResponse('2196518104', withFfm, false)
+  assert.equal(r.rankCS, 'Diamante')
+  assert.equal(r.rankCSStars, '40')
+})
+
+test('CONTRATO: CS del UID (fixture verificado) — Maestro / 55★ / S38, NO Gran Maestro', () => {
+  const r = fullResponse() // uid 2196518104 / US => sin FFM publicado => fixture verificado
+  assert.equal(r.rankCS, 'Maestro', 'tier observado in-game (no derivado de estrellas)')
+  assert.notEqual(r.rankCS, 'Gran Maestro')
   assert.equal(r.rankCSStars, '55', 'estrellas CS verificadas in-game')
   assert.equal(r.rankCSSeason, '38', 'temporada CS verificada (separada de BR)')
   assert.equal(r.rankCSTierKey, 'master', 'para resolver el emblema oficial CS Master')

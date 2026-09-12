@@ -15,18 +15,19 @@
 
 import { validateBrRank } from './rank-rules.js'
 
-// Clave de tier para el badge visual (color/estilo en el front). No es un asset.
+// Clave de tier para el emblema/badge (ES + PT, porque FreeFireMania usa PT/ES:
+// Platina/Platino, Mestre/Maestro, Prata/Plata, Ouro/Oro, Bronze/Bronce, ...).
 export function tierKey(rankName) {
   const n = String(rankName || '').toLowerCase()
   if (!n) return ''
-  if (n.includes('gran maestro')) return 'grandmaster'
-  if (n.includes('maestro')) return 'master'
-  if (n.includes('heroico')) return 'heroic'
-  if (n.includes('diamante')) return 'diamond'
-  if (n.includes('platino')) return 'platinum'
-  if (n.includes('oro')) return 'gold'
-  if (n.includes('plata')) return 'silver'
-  if (n.includes('bronce')) return 'bronze'
+  if (/gran\s*maestro|gr[ãa]o?\s*-?\s*mestre|grand\s*master/.test(n)) return 'grandmaster'
+  if (/maestro|mestre|master/.test(n)) return 'master'
+  if (/heroico|heroic|her[oó]i/.test(n)) return 'heroic'
+  if (/diamante|diamond/.test(n)) return 'diamond'
+  if (/platino|platina|platinum/.test(n)) return 'platinum'
+  if (/\boro\b|ouro|gold/.test(n)) return 'gold'
+  if (/plata|prata|silver/.test(n)) return 'silver'
+  if (/bronce|bronze/.test(n)) return 'bronze'
   return ''
 }
 

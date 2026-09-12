@@ -6,7 +6,6 @@
 import { resolveAvatar, resolveBanner } from './profile-images.js'
 import { enrichRanks } from './rank-enrichment.js'
 import { verifiedSecondaryCs } from './verified-observations.js'
-import { resolveCsTierFromStars } from './cs-rank-rules.js'
 import { resolveBadge } from './badge-resolver.js'
 import { getPassCatalog } from './pass-catalog.js'
 
@@ -60,15 +59,18 @@ export function buildResponse(uid, profile, cacheHit) {
   // (2) observacion in-game verificada (rellena huecos). La observacion es
   // idempotente y se aplica en cada lectura (fresh o cache) para que el resultado
   // sea consistente aunque el registro persistido no guarde todos los campos CS.
-  let secondaryCs = profile.secondaryCs || verifiedSecondaryCs(uid, profile.region)
-  // El TIER de CS se calcula por las reglas oficiales de estrellas (cs-rank-rules),
-  // NO por el codigo raw. Si hay estrellas pero no un rango live explicito, se
-  // deriva el tier de las estrellas (Gran Maestro nunca por estrellas: leaderboard).
-  if (secondaryCs && secondaryCs.stars && !secondaryCs.rank) {
-    const t = resolveCsTierFromStars(secondaryCs.stars)
-    if (t.name) secondaryCs = { ...secondaryCs, rank: t.name }
+  // CS por-campo. Prioridad: (1) proveedor live inyectado -> (2) FreeFireMania
+  // (tier REAL del juego, GENERAL para cualquier UID publicado) -> (3) observacion
+  // verificada in-game (fixture/fallback). El TIER NUNCA se deriva de las estrellas
+  // (58★=Platino, 55★=Maestro: no es funcion de ellas). El tier lo da la fuente.
+  let secondaryCs = profile.secondaryCs || null
+  if (!secondaryCs && profile.csFromFfm && profile.csFromFfm.tier) {
+    const f = profile.csFromFfm
+    secondaryCs = { rank: f.tier, division: f.division || '', stars: f.stars || '', source: 'freefiremania' }
   }
+  if (!secondaryCs) secondaryCs = verifiedSecondaryCs(uid, profile.region)
   const ranks = enrichRanks(profile, { secondaryCs })
+  const csDivision = (secondaryCs && secondaryCs.division) || profile.rankCSDivision || ''
 
   return {
     ok: true,
@@ -127,7 +129,7 @@ export function buildResponse(uid, profile, cacheHit) {
     rankBRConfidence: ranks.brRankConfidence,
     rankBRTierKey: ranks.brTierKey,
     rankCS: profile.rankCS || ranks.csRankName || '',
-    rankCSDivision: profile.rankCSDivision || '',
+    rankCSDivision: csDivision,
     rankCSStars: ranks.csStars, // solo con proveedor secundario verificado
     rankCSSeason: ranks.csSeason, // temporada CS separada de BR (si se obtiene)
     rankCSRawValue: profile.rankCSRawValue || '', // valor interno csRankingPoints (no es estrellas)
@@ -153,6 +155,9 @@ export function buildResponse(uid, profile, cacheHit) {
     // Album crudo (owned/notOwned/values) — se persiste para reconstruir la
     // coleccion en lecturas cacheadas sin re-consultar FreeFireMania.
     passAlbum: profile.passAlbum || null,
+    // CS crudo de FFM (tier/division/estrellas) — se persiste para reconstruir el
+    // rango CS en lecturas cacheadas sin re-consultar FreeFireMania.
+    csFromFfm: profile.csFromFfm || null,
     pet: profile.pet || '',
     petLevel: profile.petLevel || '',
     petImage: profile.petImage || '',

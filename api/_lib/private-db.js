@@ -158,6 +158,11 @@ export function preserveRichFields(existing, incoming) {
   if (passEmpty && existing.passAlbum && typeof existing.passAlbum === 'object') {
     out.passAlbum = existing.passAlbum
   }
+  // csFromFfm: idem, conservar el ultimo rango CS bueno ante fallo transitorio.
+  const csEmpty = !out.csFromFfm || typeof out.csFromFfm !== 'object'
+  if (csEmpty && existing.csFromFfm && typeof existing.csFromFfm === 'object') {
+    out.csFromFfm = existing.csFromFfm
+  }
   return out
 }
 

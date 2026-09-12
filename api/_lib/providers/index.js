@@ -22,7 +22,7 @@ import * as siambhau from './siambhau.js'
 import * as freefiremania from './freefiremania.js'
 import * as freefirejornal from './freefirejornal.js'
 import { buildResponse } from '../normalize.js'
-import { getPasses } from './ffmania-passes.js'
+import { getFfmExtras } from './ffmania-passes.js'
 
 // Base de proveedores keyless (siempre disponibles).
 export const profileProviders = [freefiremania, freefirejornal]
@@ -45,9 +45,10 @@ const SKIP_OUTCOMES = new Set(['disabled', 'no_region', 'no_key'])
 // partidas. Si el enriquecimiento falla, el perfil base sigue intacto.
 async function buildProviderResponse(provider, result, uid, region, logEvent, fallback) {
   let profile = { ...result.profile, provider: provider.label, sourceUrl: result.sourceUrl }
-  // Coleccion de pases (read-only, HTML publico de FreeFireMania). Independiente
-  // del proveedor de perfil, best-effort y en paralelo: si falla, el perfil sigue.
-  const passesPromise = getPasses(uid).catch(() => ({ ok: false }))
+  // Extras de FreeFireMania (read-only, HTML publico): coleccion de pases + rango
+  // CS real (tier/estrellas/emblema, GENERAL para cualquier UID publicado).
+  // Independiente del proveedor de perfil, best-effort y en paralelo.
+  const passesPromise = getFfmExtras(uid).catch(() => ({ ok: false }))
   if (optionalProviders.includes(provider)) {
     const needImages = !profile.avatar || !profile.banner
     const [mergedProfile, statsResult] = await Promise.all([
@@ -58,9 +59,12 @@ async function buildProviderResponse(provider, result, uid, region, logEvent, fa
     if (statsResult?.ok && statsResult.stats) profile.stats = statsResult.stats
     logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: statsResult?.ok ? 'stats_ok' : 'stats_miss' })
   }
-  const passesResult = await passesPromise
-  if (passesResult?.ok && passesResult.album) profile.passAlbum = passesResult.album
-  logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: passesResult?.ok ? 'passes_ok' : 'passes_miss' })
+  const ffmExtras = await passesPromise
+  if (ffmExtras?.ok) {
+    if (ffmExtras.album) profile.passAlbum = ffmExtras.album
+    if (ffmExtras.cs) profile.csFromFfm = ffmExtras.cs
+  }
+  logEvent?.('ff_uid_provider', { uid, provider: provider.name, outcome: ffmExtras?.ok ? 'ffm_extras_ok' : 'ffm_extras_miss' })
   return { ok: true, provider: provider.name, fallback, response: buildResponse(uid, profile, false) }
 }
 
