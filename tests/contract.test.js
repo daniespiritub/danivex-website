@@ -129,6 +129,22 @@ test('CONTRATO: CS del UID (fixture verificado) — Maestro / 55★ / S38, NO Gr
   assert.equal(r.rankCSStarsSource, 'in-game-verification', 'provenance explicita, NO API live')
 })
 
+test('CONTRATO: passCollectionState diferencia estados (sin falsos negativos)', () => {
+  const base = mapSiamBhauProfile(REAL_FIXTURE)
+  // Con album => available
+  const withAlbum = buildResponse('2196518104', { ...base, provider: 'SiamBhau', passAlbum: { owned: [55], notOwned: [98], values: {} }, passAlbumState: 'available' }, false)
+  assert.equal(withAlbum.passCollectionState, 'available')
+  assert.ok(withAlbum.passCollection)
+  // Sin album pero FFM ok => not_published (NO "0 pases"; passCollection null, no todo not-owned)
+  const notPub = buildResponse('999000222', { ...base, provider: 'SiamBhau', passAlbum: null, passAlbumState: 'not_published' }, false)
+  assert.equal(notPub.passCollectionState, 'not_published')
+  assert.equal(notPub.passCollection, null, 'sin album => null, NUNCA todo not-owned')
+  // FFM caido => provider_unavailable (no implica que la cuenta no tenga pases)
+  const unavail = buildResponse('999000333', { ...base, provider: 'SiamBhau', passAlbum: null, passAlbumState: 'provider_unavailable' }, false)
+  assert.equal(unavail.passCollectionState, 'provider_unavailable')
+  assert.equal(unavail.passCollection, null)
+})
+
 test('CONTRATO: passCollection desde el album (posesion real), NO por existir en catalogo', () => {
   const profile = mapSiamBhauProfile(REAL_FIXTURE)
   const withAlbum = { ...profile, provider: 'SiamBhau', passAlbum: { owned: [55, 97], notOwned: [98, 29], values: { 55: 334, 97: 110 } } }

@@ -182,6 +182,10 @@ export function buildResponse(uid, profile, cacheHit) {
     badge: resolveBadge(profile.badgeId),
     // Coleccion de Pases (Elite + Booyah) con posesion real. null si no publicado.
     passCollection: buildPassCollection(profile.passAlbum),
+    // Estado HONESTO: 'available' (album publicado) | 'not_published' (FFM ok, sin album:
+    // NO implica 0 pases) | 'provider_unavailable' (FFM caido) | 'unknown'. Evita falsos
+    // negativos: un album ausente nunca se muestra como "0 pases" ni "todo no adquirido".
+    passCollectionState: profile.passAlbum ? 'available' : (profile.passAlbumState || 'unknown'),
     // Album crudo (owned/notOwned/values) — se persiste para reconstruir la
     // coleccion en lecturas cacheadas sin re-consultar FreeFireMania.
     passAlbum: profile.passAlbum || null,

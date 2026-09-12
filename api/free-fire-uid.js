@@ -145,7 +145,7 @@ export default async function handler(req, res) {
       uidBlocked = uidRl
       return { ok: false, reason: 'rate_limited' }
     }
-    return fetchFromProviders(uid, testOpts.forceProviderFail, region)
+    return fetchFromProviders(uid, testOpts.forceProviderFail, region, stored)
   }
 
   const result = await resolveProfile({
@@ -196,13 +196,13 @@ export default async function handler(req, res) {
 
 // Consulta los proveedores (Mania -> Jornal). Devuelve la respuesta ya
 // normalizada por buildResponse, o { ok:false, reason }. Emite ff_uid_provider.
-async function fetchFromProviders(uid, forceFail, region) {
+async function fetchFromProviders(uid, forceFail, region, stored) {
   if (forceFail) {
     logEvent('ff_uid_provider', { uid, provider: 'test', outcome: 'forced_fail' })
     return { ok: false, reason: 'provider_error' }
   }
 
-  return fetchProfileFromProviders(uid, { logEvent, region })
+  return fetchProfileFromProviders(uid, { logEvent, region, stored })
 }
 
 // Adjunta metadata de cache aditiva sin tocar campos existentes.
