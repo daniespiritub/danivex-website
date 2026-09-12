@@ -27,10 +27,10 @@ export const PLAYER_DATA_FIELDS = [
   // Campos ricos (rank/temporada/outfit/pet/perfil) — proveedor con key.
   // BR = RP (rankBRPoints); CS = ESTRELLAS (rankCSStars). Se guardan los codigos
   // raw (rankBRCode/rankCSCode) como identidad historica del tier.
-  'rankBR', 'rankBRDivision', 'rankBRPoints', 'rankBRCode',
+  'rankBR', 'rankBRDivision', 'rankBRStarLevel', 'rankBRNextThreshold', 'rankBRPointsToNext', 'rankBRPoints', 'rankBRCode',
   'rankCS', 'rankCSDivision', 'rankCSStars', 'rankCSRawValue', 'rankCSPoints', 'rankCSCode',
   'rankCSSource', 'rankCSConfidence', 'season',
-  'title', 'badgeCount', 'badgeId', 'pet', 'petLevel', 'petId', 'petSkinId', 'petImage', 'outfit',
+  'title', 'badgeCount', 'badgeId', 'pet', 'petNickname', 'petSkinName', 'petNameSource', 'petLevel', 'petId', 'petSkinId', 'petImage', 'outfit',
   // Estadisticas de partidas (objeto normalizado). Ver stats-model.js.
   'stats',
   // Album de posesion de pases (owned/notOwned/values). Ver ffmania-passes.js.
@@ -103,6 +103,9 @@ export function normalizeStoredPlayer(uid, profile) {
     // Ricos (vacios si el proveedor no los da). BR = RP; CS = ESTRELLAS.
     rankBR: profile.rankBR || '',
     rankBRDivision: profile.rankBRDivision || '',
+    rankBRStarLevel: profile.rankBRStarLevel || '',
+    rankBRNextThreshold: profile.rankBRNextThreshold || '',
+    rankBRPointsToNext: profile.rankBRPointsToNext || '',
     rankBRPoints: profile.rankBRPoints || '',
     rankBRCode: profile.rankBRCode || '',
     rankCS: profile.rankCS || '',
@@ -118,6 +121,9 @@ export function normalizeStoredPlayer(uid, profile) {
     badgeCount: profile.badgeCount || '',
     badgeId: profile.badgeId || '',
     pet: profile.pet || '',
+    petNickname: profile.petNickname || '',
+    petSkinName: profile.petSkinName || '',
+    petNameSource: profile.petNameSource || '',
     petLevel: profile.petLevel || '',
     petId: profile.petId || '',
     petSkinId: profile.petSkinId || '',

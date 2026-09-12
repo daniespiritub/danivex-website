@@ -77,24 +77,33 @@ test('mapSiamBhauProfile: showCsRank=false => CS oculto (no se resuelve tier)', 
   assert.equal(p.rankCSConfidence, 'hidden')
 })
 
-test('mapSiamBhauProfile: imagen de mascota usa la skin equipada (skinId)', () => {
+test('mapSiamBhauProfile: mascota resuelve ESPECIE (no apodo ni id) + skin equipada', () => {
   const p = mapSiamBhauProfile({ basicInfo: { nickname: 'X' }, petInfo: { id: 1300000091, name: 'Palomita', level: 7, skinId: 1310000097 } })
-  assert.equal(p.pet, 'Palomita')
+  assert.equal(p.pet, 'Falco', 'especie (petId), NO el apodo')
+  assert.equal(p.petNickname, 'Palomita', 'apodo del jugador separado')
+  assert.equal(p.petSkinName, 'Blooming Falco')
   assert.equal(p.petLevel, '7')
   assert.match(p.petImage, /1310000097/, 'usa la skin equipada, no el id base')
   assert.equal(p.petSkinId, '1310000097')
 })
 
-test('mapSiamBhauProfile: tier BR por umbral de RP (oficial, verificado)', () => {
+test('mapSiamBhauProfile: tier BR por RP con subdivisiones (S53 verificado)', () => {
   assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 1000 } }).rankBR, 'Bronce')
   assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 1300 } }).rankBR, 'Plata')
   assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 1700 } }).rankBR, 'Oro')
   assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 2100 } }).rankBR, 'Platino')
   assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 2600 } }).rankBR, 'Diamante')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 3125 } }).rankBR, 'Heroico')
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 3539 } }).rankBR, 'Heroico')
-  // Gran Maestro NO se deriva por RP (depende de leaderboard): RP alto sigue Heroico.
-  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 8000 } }).rankBR, 'Heroico')
+  // Grupo Heroico con subdivision + estrellas (ground truth 3539 => Heroico I / ★1):
+  const h = mapSiamBhauProfile({ basicInfo: { rankingPoints: 3539, seasonId: 53 } })
+  assert.equal(h.rankBR, 'Heroico')
+  assert.equal(h.rankBRDivision, 'I')
+  assert.equal(h.rankBRStarLevel, '1')
+  assert.equal(h.rankBRPointsToNext, '261')
+  const he = mapSiamBhauProfile({ basicInfo: { rankingPoints: 4500, seasonId: 53 } })
+  assert.equal(he.rankBR, 'Heroico Élite')
+  assert.equal(he.rankBRDivision, 'III')
+  // 6300+ = Maestro (ya NO todo "Heroico"); GM sigue sin derivarse por RP.
+  assert.equal(mapSiamBhauProfile({ basicInfo: { rankingPoints: 8000, seasonId: 53 } }).rankBR, 'Maestro')
 })
 
 test('mapSiamBhauProfile: showBrRank=false oculta el rango', () => {
@@ -106,7 +115,8 @@ test('mapSiamBhauProfile: outfit (IDs), pet con nombre, badges', () => {
   const p = mapSiamBhauProfile(fixture)
   assert.equal(p.outfit.length, 5)
   assert.equal(p.outfit[0].id, '211000253')
-  assert.equal(p.pet, 'Palomita')
+  assert.equal(p.pet, 'Falco') // especie resuelta desde petId (no el apodo "Palomita")
+  assert.equal(p.petNickname, 'Palomita')
   assert.equal(p.petLevel, '7')
   assert.equal(p.badgeCount, '145')
   assert.equal(p.avatarId, '102000004')

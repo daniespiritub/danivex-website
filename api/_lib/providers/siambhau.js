@@ -17,8 +17,9 @@
 */
 
 import { classifyFetchError } from '../log.js'
-import { brRankFromPoints } from '../rank-rules.js'
+import { resolveBrRankFromPoints } from '../rank-rules.js'
 import { csTierFromCode } from '../cs-rank-rules.js'
+import { resolvePet } from '../pet-catalog.js'
 import { normalizeStats } from '../stats-model.js'
 
 export const name = 'siambhau'
@@ -59,8 +60,10 @@ function iconUrl(id) {
 function mapRanks(basic) {
   const str = (v) => (v != null ? String(v) : '')
   const brPoints = str(basic.rankingPoints ?? basic.brRankPoint)
-  // BR: el tier lo determina el RP (fuente de verdad verificada), no el codigo.
-  const br = basic.showBrRank === false ? { name: '', confidence: 'hidden' } : brRankFromPoints(brPoints)
+  // BR: el RP es la fuente de verdad. Resolver detallado -> tier + division + estrellas
+  // + progreso al siguiente escalon (subdivisiones Heroico verificadas S53).
+  const brHidden = basic.showBrRank === false
+  const br = brHidden ? null : resolveBrRankFromPoints({ points: brPoints, season: str(basic.seasonId) })
   const csRaw = str(basic.csRankingPoints ?? basic.csRankPoint)
   // CS tier GENERAL desde el codigo autoritativo del juego (csRank). Live para
   // cualquier UID, anclado al ground truth (323=Maestro). Las ESTRELLAS del display
@@ -69,12 +72,15 @@ function mapRanks(basic) {
   const csHidden = basic.showCsRank === false
   const csTier = csHidden ? null : csTierFromCode(basic.csRank)
   return {
-    // Battle Royale (RP) — tier derivado del RP oficial:
-    rankBR: br.name,
-    rankBRDivision: '', // el RP no da subdivision fiable => no se inventa
+    // Battle Royale (RP) — tier + subdivision + estrellas + progreso, derivado del RP.
+    rankBR: br ? br.tier : '',
+    rankBRDivision: br ? br.division : '', // Heroico I/II, Heroico Elite III/IV/V (verificado S53)
+    rankBRStarLevel: br && br.starLevel != null ? String(br.starLevel) : '',
+    rankBRNextThreshold: br && br.nextThreshold != null ? String(br.nextThreshold) : '',
+    rankBRPointsToNext: br && br.pointsToNext != null ? String(br.pointsToNext) : '',
     rankBRCode: str(basic.rank ?? basic.brRank), // codigo raw (referencia interna)
     rankBRPoints: brPoints,
-    rankBRConfidence: br.confidence,
+    rankBRConfidence: brHidden ? 'hidden' : (br ? br.confidence : 'unavailable'),
     // Clash Squad — TIER desde el codigo del juego (general/live); estrellas/temporada
     // no las da esta fuente (se completan con observacion verificada si existe).
     rankCS: csTier ? csTier.tier : '',
@@ -149,14 +155,22 @@ export function mapSiamBhauProfile(data) {
     // Outfit: lista de IDs (+ url si hay CDN configurado).
     outfit: (Array.isArray(clothes) ? clothes : []).map((id) => ({ id: String(id), image: iconUrl(id) })),
 
-    // Pet (con nombre real + imagen). Se usa la skin equipada (skinId) para la
-    // imagen: coincide con lo que muestra el juego (ej: aguila teal). Fallback al
-    // id base del pet. Verificado 2026-09-11 con el pet real del UID de prueba.
-    pet: pet.name || (pet.id != null ? String(pet.id) : ''),
-    petLevel: pet.level != null ? String(pet.level) : '',
-    petId: pet.id != null ? String(pet.id) : '',
-    petSkinId: pet.skinId != null ? String(pet.skinId) : '',
-    petImage: iconUrl(pet.skinId || pet.id),
+    // Pet: nombre de ESPECIE (petId -> catalogo), NUNCA el id numerico. `pet.name`
+    // de la API es el APODO del jugador (se separa como petNickname). Skin (skinId)
+    // -> nombre del aspecto. Imagen = skin equipada (coincide con el juego), fallback id.
+    ...(() => {
+      const r = resolvePet(pet)
+      return {
+        pet: r.name, // especie (o apodo no-numerico); '' si desconocido (nunca el id)
+        petNickname: r.nickname, // apodo personalizado del jugador (si difiere)
+        petSkinName: r.skinName, // nombre del aspecto equipado
+        petNameSource: r.nameSource,
+        petLevel: r.level,
+        petId: r.id,
+        petSkinId: r.skinId,
+        petImage: iconUrl(pet.skinId || pet.id),
+      }
+    })(),
 
     // Bio / social:
     bio: social.signature || basic.signature || '',

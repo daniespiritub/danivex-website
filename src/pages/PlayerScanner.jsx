@@ -239,7 +239,7 @@ function PlayerScanner() {
               <StatTile label="Rango CS" value={rankFull(player.rankCS, player.rankCSDivision) || 'No disponible'} sub={player.rankCSStars ? `${player.rankCSStars} ★` : ''} />
               <StatTile label="Clan" value={player.clan || 'Sin clan'} />
               <StatTile label="Me gusta" value={formatNumber(player.likes || 0)} />
-              {player.pet && <StatTile label="Mascota" value={player.pet} sub={player.petLevel ? `Nivel ${player.petLevel}` : ''} />}
+              {(player.pet || player.petId) && <StatTile label="Mascota" value={player.pet || 'Mascota desconocida'} sub={player.petLevel ? `Nivel ${player.petLevel}` : ''} />}
               {changes.length > 0 && <StatTile label="Cambios detectados" value={String(changes.length)} sub="desde el ultimo escaneo" accent onClick={() => goToSection('historial')} />}
             </div>
           </section>
@@ -270,7 +270,9 @@ function PlayerScanner() {
                 <img className="ps-pet-img" src={player.petImage} alt={player.pet || 'Mascota'} loading="lazy" onError={hideImg} />
                 <div className="ps-pet-info">
                   <span className="ps-pet-label">Mascota</span>
-                  <span className="ps-pet-name-lg">{player.pet || 'Mascota equipada'}</span>
+                  <span className="ps-pet-name-lg">{player.pet || 'Mascota desconocida'}</span>
+                  {player.petNickname && <span className="ps-pet-sub">Apodo: {player.petNickname}</span>}
+                  {player.petSkinName && <span className="ps-pet-sub">Aspecto: {player.petSkinName}</span>}
                   {player.petLevel && <span className="ps-pet-lvl">Nivel {player.petLevel}</span>}
                 </div>
               </div>
@@ -281,7 +283,7 @@ function PlayerScanner() {
           <section id="ps-rangos" className="ps-section">
             <h3 className="ps-h3">Rangos</h3>
             <div className="ps-ranks">
-              <RankCard title="Battle Royale" mode="br" tier={player.rankBR} division={player.rankBRDivision} tierKey={player.rankBRTierKey} metric={player.rankBRPoints} metricLabel="RP" season={player.season} />
+              <RankCard title="Battle Royale" mode="br" tier={player.rankBR} division={player.rankBRDivision} tierKey={player.rankBRTierKey} metric={player.rankBRPoints} metricLabel="RP" season={player.season} stars={player.rankBRStarLevel} toNext={player.rankBRPointsToNext} />
               <RankCard title="Duelo de Escuadras" mode="cs" tier={player.rankCS} division={player.rankCSDivision} tierKey={player.rankCSTierKey} metric={player.rankCSStars} metricLabel="★" season={player.rankCSSeason}
                 note={player.rankCS ? '' : 'La fuente de datos no expone el rango, las estrellas ni la temporada de Duelo de Escuadras.'} />
             </div>
@@ -520,8 +522,9 @@ function StatTile({ label, value, sub, accent, onClick }) {
   )
 }
 
-function RankCard({ title, mode, tier, division, tierKey, metric, metricLabel, season, note }) {
+function RankCard({ title, mode, tier, division, tierKey, metric, metricLabel, season, note, stars, toNext }) {
   const has = Boolean(tier)
+  const starCount = Number(stars) || 0
   return (
     <div className={`ps-rankcard${has ? '' : ' ps-rankcard-empty'}`}>
       <span className="ps-rankcard-mode">{title}</span>
@@ -529,11 +532,16 @@ function RankCard({ title, mode, tier, division, tierKey, metric, metricLabel, s
         {tierKey && <RankEmblem mode={mode} tierKey={tierKey} size="lg" />}
         <span className="ps-rankcard-tier">{rankFull(tier, division) || 'No disponible'}</span>
       </div>
+      {starCount > 0 && (
+        <span className="ps-rankcard-stars" aria-label={`${starCount} de 5 estrellas`}>
+          {'★'.repeat(starCount)}<span className="ps-rankcard-stars-off">{'★'.repeat(Math.max(0, 5 - starCount))}</span>
+        </span>
+      )}
       <div className="ps-rankcard-meta">
         {metric && <span>{metricLabel === '★' ? `${metric} ★` : `${metric} ${metricLabel}`}</span>}
         {season && <span>Temporada {season}</span>}
       </div>
-      {note && <span className="ps-rankcard-note">{note}</span>}
+      {toNext ? <span className="ps-rankcard-note">Faltan {toNext} RP para el próximo escalón</span> : note && <span className="ps-rankcard-note">{note}</span>}
     </div>
   )
 }
