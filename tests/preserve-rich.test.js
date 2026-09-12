@@ -37,6 +37,25 @@ test('preserveRichFields: un valor rico NUEVO SI reemplaza al anterior', () => {
   assert.equal(merged.rankBR, 'Heroico')
 })
 
+test('preserveRichFields: RP LIVE mas nuevo GANA sobre el fixture/snapshot antiguo', () => {
+  // El RP es dinamico: un valor live nuevo (3560) NUNCA es sobrescrito por el
+  // snapshot antiguo (3539). Las observaciones antiguas son solo para regression.
+  const oldSnap = { ...richExisting, rankBRPoints: '3539', rankBR: 'Heroico', rankBRDivision: 'I' }
+  const liveNew = { ...richExisting, rankBRPoints: '3560', rankBR: 'Heroico', rankBRDivision: 'I', rankBRStarLevel: '1' }
+  const merged = preserveRichFields(oldSnap, liveNew)
+  assert.equal(merged.rankBRPoints, '3560', 'el RP live nuevo gana')
+})
+
+test('preserveRichFields: BR se preserva COMPLETO (RP + division/estrellas) en fallo transitorio', () => {
+  const existing = { ...richExisting, rankBRPoints: '3560', rankBR: 'Heroico', rankBRDivision: 'I', rankBRStarLevel: '1', rankBRPointsToNext: '240' }
+  const keylessFail = { nickname: 'DaniPepito', rankBR: '', rankBRPoints: '', rankBRDivision: '', rankBRStarLevel: '', rankBRPointsToNext: '' }
+  const merged = preserveRichFields(existing, keylessFail)
+  assert.equal(merged.rankBRPoints, '3560')
+  assert.equal(merged.rankBRDivision, 'I', 'la division se preserva junto al RP (snapshot coherente)')
+  assert.equal(merged.rankBRStarLevel, '1')
+  assert.equal(merged.rankBRPointsToNext, '240')
+})
+
 test('preserveRichFields: sin snapshot previo devuelve el entrante tal cual', () => {
   const incoming = { primeLevel: '', outfit: [] }
   assert.deepEqual(preserveRichFields(null, incoming), incoming)

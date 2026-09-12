@@ -49,7 +49,7 @@ function iconUrl(id) {
 //
 // VERIFICADO contra capturas del juego (UID 2196518104, 2026-09-11):
 //  - BR: el juego muestra "Heroico" con rankingPoints=3539 y seasonId=53. El
-//    tier se deriva del RP (oficial: Heroico = 3125+), NO del codigo basicInfo.rank
+//    tier se deriva del RP (Heroico = 3050+ con subdivisiones S53), NO del codigo basicInfo.rank
 //    (=321), que NO es fiable para nombrar el tier. seasonId (53) = temporada BR.
 //    => BR se muestra con tier(RP) + RP + temporada (verificado). Ver rank-rules.js.
 //  - CS: el juego muestra 55 estrellas y temporada S38, pero la API devuelve
