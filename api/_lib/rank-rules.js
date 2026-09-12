@@ -18,7 +18,7 @@ export const RANK_RULES_META = {
   game: 'Free Fire / Free Fire MAX',
   source: 'Guias publicas de rangos FF + datos reales de la API',
   verifiedAt: '2026-09-11',
-  note: 'BR por RP con subdivisiones Heroico verificadas S53 (ver BR_RANK_RULES_BY_SEASON). Entrada a Heroico = 3050 RP. Maestro por grupo (subdivisiones sin umbral publico). Gran Maestro = leaderboard, no por RP.',
+  note: 'BR por RP con subdivisiones S53 verificadas (ver BR_RANK_RULES_BY_SEASON). Diamante III=3050, IV=3200, V=3350; HEROICO I=3500. Maestro por grupo (subdivisiones sin umbral publico). Gran Maestro = leaderboard, no por RP.',
 }
 
 // Umbrales de RP de Battle Royale (piso de cada grupo de tier). Verificados
@@ -29,7 +29,7 @@ export const BR_RP_BANDS = [
   { min: 1550, tier: 'Oro' },
   { min: 2038, tier: 'Platino' },
   { min: 2538, tier: 'Diamante' },
-  { min: 3050, tier: 'Heroico+' }, // Heroico y superiores (entrada a Heroico = 3050 RP)
+  { min: 3500, tier: 'Heroico+' }, // Heroico y superiores (entrada a Heroico I = 3500 RP en S53)
 ]
 
 // Grupo de tier esperado por RP (para BR). Devuelve el nombre de grupo o ''.
@@ -51,22 +51,25 @@ export function brTierGroupFromPoints(points) {
 // INTERNAS de Maestro/Maestro Elite y Gran Maestro NO tienen umbral publico verificable
 // (GM = leaderboard top ~300, dinamico) => se muestra el grupo "Maestro" sin inventar
 // division. Para actualizar en S54: anadir otra entrada a BR_RANK_RULES_BY_SEASON.
-// Diamante->Heroico I (3050): entrada a Heroico. Multiples guias actuales coinciden
-// (Diamante IV ~2975, Heroico 3050); el cambio de S53 endurecio MAESTRO, no la entrada
-// a Heroico (art. FFM "makes it harder to reach Master"). Los cortes superiores del
-// grupo Heroico (3800/4300/4900/5500/6300) estan VERIFICADOS con el mensaje del juego
-// "faltan X para el proximo escalon" en perfiles publicos S53 (y FFM: emblema H5 =
-// 5500-6299, faltam->6300 = entrada a Maestro). MAESTRO (6300+): sus subdivisiones
-// internas (Maestro I/II, Maestro Elite III/IV/V) NO tienen umbral publico verificable
-// en S53 => se resuelve el GRUPO "Maestro" (no se inventan cortes). Gran Maestro NO se
-// deriva por RP (leaderboard top ~300, umbral dinamico).
+// Tabla BR de S53 (cortes VERIFICADOS con el mensaje del juego "faltan X para el
+// proximo escalon" en perfiles publicos):
+//   Diamante III 3050-3199 | Diamante IV 3200-3349 | Diamante V 3350-3499 |
+//   Heroico I 3500-3799 (★1) | Heroico II 3800-4299 (★2) | Heroico Elite III 4300-4899
+//   (★3) | Heroico Elite IV 4900-5499 (★4) | Heroico Elite V 5500-6299 (★5) | Maestro 6300+.
+// IMPORTANTE: 3050 = DIAMANTE III (no Heroico); HEROICO I empieza en 3500. Las estrellas
+// (★1..5) son del grupo Heroico. MAESTRO (6300+): subdivisiones internas (Maestro I/II,
+// Maestro Elite III/IV/V) SIN umbral publico verificable => grupo "Maestro" (no se
+// inventan). Gran Maestro NO por RP (leaderboard top ~300, dinamico).
 const S53_BANDS = [
   { min: 1000, tier: 'Bronce', tierKey: 'bronze' },
   { min: 1250, tier: 'Plata', tierKey: 'silver' },
   { min: 1550, tier: 'Oro', tierKey: 'gold' },
   { min: 2038, tier: 'Platino', tierKey: 'platinum' },
-  { min: 2538, tier: 'Diamante', tierKey: 'diamond' },
-  { min: 3050, tier: 'Heroico', division: 'I', starLevel: 1, tierKey: 'heroic' },
+  { min: 2538, tier: 'Diamante', tierKey: 'diamond' }, // Diamante I/II (bajo) = grupo
+  { min: 3050, tier: 'Diamante', division: 'III', tierKey: 'diamond' },
+  { min: 3200, tier: 'Diamante', division: 'IV', tierKey: 'diamond' },
+  { min: 3350, tier: 'Diamante', division: 'V', tierKey: 'diamond' },
+  { min: 3500, tier: 'Heroico', division: 'I', starLevel: 1, tierKey: 'heroic' },
   { min: 3800, tier: 'Heroico', division: 'II', starLevel: 2, tierKey: 'heroic' },
   { min: 4300, tier: 'Heroico Élite', division: 'III', starLevel: 3, tierKey: 'heroic' },
   { min: 4900, tier: 'Heroico Élite', division: 'IV', starLevel: 4, tierKey: 'heroic' },

@@ -113,8 +113,11 @@
   background: linear-gradient(135deg, rgba(255, 196, 82, 0.22), rgba(214, 48, 43, 0.22));
   border-color: rgba(255, 196, 82, 0.5);
 }
-.pc-badge-prime svg { color: #ffcf5c; font-size: 1.25rem; filter: drop-shadow(0 0 6px rgba(255, 196, 82, 0.6)); }
 .pc-badge-prime .pc-badge-v { font-size: 1.05rem; }
+/* Emblema de Prime por nivel (SVG DaniVex, distinto por nivel). */
+.ps-prime-emblem { display: block; filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.45)); }
+.ps-prime-sm { width: 26px; height: 29px; }
+.ps-prime-md { width: 40px; height: 44px; }
 /* Insignia de perfil (Pase Elite / titulo): imagen oficial + nombre. */
 .pc-badge-insignia { flex-direction: row; align-items: center; gap: 8px; }
 .pc-badge-insignia .pc-badge-img { width: 26px; height: 26px; object-fit: contain; flex: 0 0 auto; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); }

@@ -9,6 +9,7 @@ import { verifiedSecondaryCs } from './verified-observations.js'
 import { resolveBadge } from './badge-resolver.js'
 import { passEntry } from './pass-catalog.js'
 import { CURRENT_CS_SEASON } from './cs-rank-rules.js'
+import { resolvePrime } from './prime.js'
 
 // Construye la coleccion de pases: catalogo historico + POSESION real (del album
 // publico de FreeFireMania). Solo incluye los pases que aparecen en el album (con
@@ -214,5 +215,8 @@ export function buildResponse(uid, profile, cacheHit) {
     diamondsConfirmed: Boolean(profile.diamonds),
     primeLevel: profile.primeLevel || '',
     primeConfirmed: Boolean(profile.primeLevel),
+    // Prime resuelto por NIVEL (emblema distinto por nivel; Prime 0 => sin insignia).
+    // Derivado del nivel live => sin hardcode ni leakage por cuenta.
+    primeBadge: resolvePrime(profile.primeLevel),
   }
 }

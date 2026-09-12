@@ -2,6 +2,7 @@ import { enforceIpRateLimit, enforceUidRateLimit, getClientIp } from './_lib/rat
 import { logEvent } from './_lib/log.js'
 import { getStoredProfile, saveCachedProfile } from './_lib/private-db.js'
 import { classifyFreshness } from './_lib/cache-policy.js'
+import { isCurrentSchema } from './_lib/player-model.js'
 import { resolveProfile } from './_lib/read-through.js'
 import { envNamespace } from './_lib/env-namespace.js'
 import { buildResponse } from './_lib/normalize.js'
@@ -129,8 +130,13 @@ export default async function handler(req, res) {
   const testOpts = readTestOverrides(req)
 
   const stored = await getStoredProfile(uid)
-  const freshness = classifyFreshness(stored?.lastObservedAt, Date.now(), testOpts.freshness)
-  logEvent('ff_uid_cache', { uid, state: stored ? freshness : 'miss' })
+  let freshness = classifyFreshness(stored?.lastObservedAt, Date.now(), testOpts.freshness)
+  // Migracion de esquema: un registro con schemaVersion vieja (o sin sello) se trata
+  // como STALE => se re-consulta al proveedor y se re-persiste con la forma actual.
+  // Asi un deploy que cambia el modelo NO requiere borrar claves KV a mano.
+  const schemaStale = Boolean(stored) && !isCurrentSchema(stored)
+  if (schemaStale && freshness === 'fresh') freshness = 'stale'
+  logEvent('ff_uid_cache', { uid, state: stored ? freshness : 'miss', schemaStale })
 
   let uidBlocked = null
   const refresh = async () => {

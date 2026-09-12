@@ -12,7 +12,7 @@
 */
 
 import { nsKey } from './env-namespace.js'
-import { normalizeStoredPlayer, stableProfileHash } from './player-model.js'
+import { normalizeStoredPlayer, stableProfileHash, CACHE_SCHEMA_VERSION } from './player-model.js'
 import { detectPlayerEvents } from './change-detection.js'
 import { appendPlayerEvents } from './timeline.js'
 
@@ -193,9 +193,10 @@ export async function saveCachedProfile(uid, profile) {
 
   // Dedup: si el contenido significativo no cambio, NO se reescribe un snapshot
   // nuevo; solo se actualiza lastObservedAt + observedCount.
-  if (existing && existing.contentHash === contentHash) {
+  if (existing && existing.contentHash === contentHash && existing.schemaVersion === CACHE_SCHEMA_VERSION) {
     const touched = {
       ...existing,
+      schemaVersion: CACHE_SCHEMA_VERSION,
       lastObservedAt: now,
       observedCount: (Number(existing.observedCount) || 1) + 1,
     }
@@ -207,6 +208,7 @@ export async function saveCachedProfile(uid, profile) {
 
   const record = {
     ...normalized,
+    schemaVersion: CACHE_SCHEMA_VERSION,
     contentHash,
     firstObservedAt: existing?.firstObservedAt || now,
     lastObservedAt: now,

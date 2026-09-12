@@ -15,6 +15,20 @@
 
 import { createHash } from 'node:crypto'
 
+// Version del ESQUEMA de cache. Se incrementa cuando cambia la FORMA del perfil
+// persistido (nuevos campos ricos que el resolver deriva, cambios de mapeo, etc.).
+// Un registro con schemaVersion distinto a este se trata como STALE y se re-consulta
+// automaticamente al proveedor => NO hace falta borrar claves KV a mano tras un deploy.
+// Historial: v1 (implicito, sin sello). v2 = BR subdivisiones + CS codigo + pet especie
+// + prime por nivel + season global (2026-09-12).
+export const CACHE_SCHEMA_VERSION = 2
+
+// true si el registro persistido tiene la version de esquema ACTUAL. Un registro sin
+// sello (viejo) o con version distinta => false => se re-consulta al proveedor.
+export function isCurrentSchema(record) {
+  return Boolean(record) && record.schemaVersion === CACHE_SCHEMA_VERSION
+}
+
 export const PLAYER_DATA_FIELDS = [
   'nickname', 'region', 'regionCode', 'regionCountry',
   'creationDate', 'lastLogin', 'accountAge',

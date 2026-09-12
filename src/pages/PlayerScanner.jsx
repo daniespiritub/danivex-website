@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { PiArrowClockwiseBold, PiCrownSimpleFill, PiShareNetworkBold, PiCrownBold } from 'react-icons/pi'
+import { PiArrowClockwiseBold, PiShareNetworkBold, PiCrownBold } from 'react-icons/pi'
 import ShareCard from '../components/prime-scanner/ShareCard'
 import logo from '../assets/logo.webp'
 import fondo from '../assets/fondo-gamer.webp'
@@ -64,6 +64,9 @@ function PlayerScanner() {
   const [isComparing, setIsComparing] = useState(false)
   const [activeSection, setActiveSection] = useState('resumen')
   const resultRef = useRef(null)
+  // Token de secuencia: latest-request-wins. Evita que una busqueda lenta de A
+  // sobrescriba el resultado de una busqueda posterior de B (leakage/stale UI).
+  const requestSeqRef = useRef(0)
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -76,6 +79,8 @@ function PlayerScanner() {
       setErrorMessage('El UID debe tener entre 6 y 12 digitos.')
       return
     }
+
+    const seq = (requestSeqRef.current += 1) // esta busqueda es ahora la vigente
 
     setUid(cleanUid)
     setIsLoading(true)
@@ -93,6 +98,8 @@ function PlayerScanner() {
     await wait(120)
 
     const lookup = await lookupPlayer(cleanUid, region)
+    // Si el usuario ya lanzo otra busqueda, descartar este resultado (no pisar B con A).
+    if (seq !== requestSeqRef.current) return
     const nextPlayer = generatePlayerFromLookup(cleanUid, lookup)
 
     setPlayer(nextPlayer)
@@ -102,7 +109,7 @@ function PlayerScanner() {
     if (nextPlayer.lookupStatus !== 'real') {
       setErrorMessage(cleanErrorMessage(lookup))
     } else {
-      fetchTimeline(cleanUid).then(setTimeline)
+      fetchTimeline(cleanUid).then((t) => { if (seq === requestSeqRef.current) setTimeline(t) })
     }
 
     window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
@@ -212,7 +219,7 @@ function PlayerScanner() {
 
       {player && player.lookupStatus === 'real' && !isLoading && (
         <div className="ps-result" ref={resultRef}>
-          <PlayerCard player={player} primeLevel={primeLevel} outfit={outfit} changesCount={changes.length} onSeeHistory={() => goToSection('historial')} />
+          <PlayerCard player={player} outfit={outfit} changesCount={changes.length} onSeeHistory={() => goToSection('historial')} />
 
           {cacheInfo?.state === 'stale' && (
             <p className="action-message warning">
@@ -397,7 +404,7 @@ function PlayerScanner() {
 
 /* ---------- Componentes visuales ---------- */
 
-function PlayerCard({ player, primeLevel, outfit, changesCount, onSeeHistory }) {
+function PlayerCard({ player, outfit, changesCount, onSeeHistory }) {
   return (
     <article className="pc">
       <div className="pc-banner-wrap" aria-hidden="true">
@@ -432,10 +439,10 @@ function PlayerCard({ player, primeLevel, outfit, changesCount, onSeeHistory }) 
               <span className="pc-badge-k">Nivel</span>
               <span className="pc-badge-v">{player.level || '—'}</span>
             </div>
-            {primeLevel && (
+            {player.primeBadge && player.primeBadge.active && (
               <div className="pc-badge pc-badge-prime">
-                <PiCrownSimpleFill aria-hidden="true" />
-                <span className="pc-badge-v">Prime {primeLevel}</span>
+                <PrimeEmblem prime={player.primeBadge} size="sm" />
+                <span className="pc-badge-v">Prime {player.primeBadge.level}</span>
               </div>
             )}
           </div>
@@ -708,6 +715,32 @@ function RankEmblem({ mode, tierKey, size = 'sm' }) {
   }
   const imgCls = `ps-emblem-img${size === 'sm' ? ' ps-emblem-img-sm' : ''}`
   return <img className={imgCls} src={src} alt="" aria-hidden="true" loading="lazy" onError={() => setFailed(true)} />
+}
+
+// Emblema de Prime por NIVEL (DaniVex, SVG). Distinto por nivel (gradiente de tier +
+// numero). El asset oficial FF_UI_PrimeBadage no tiene fuente publica no-gated; si
+// prime.emblemUrl llega (fuente futura), se usa la imagen oficial. Nivel 0 => nada.
+function PrimeEmblem({ prime, size = 'md' }) {
+  if (!prime || !prime.active) return null
+  if (prime.emblemUrl) {
+    return <img className={`ps-prime-emblem ps-prime-${size}`} src={prime.emblemUrl} alt="" aria-hidden="true" loading="lazy" />
+  }
+  const t = prime.tier || {}
+  const gid = `pg-${prime.level}`
+  return (
+    <svg className={`ps-prime-emblem ps-prime-${size}`} viewBox="0 0 40 44" role="img" aria-label={`Prime ${prime.level}`}>
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={t.c1 || '#f2c230'} />
+          {t.c3 && <stop offset="50%" stopColor={t.c3} />}
+          <stop offset="100%" stopColor={t.c2 || '#b8890c'} />
+        </linearGradient>
+      </defs>
+      <path d="M20 1.5 L37 9 V24.5 C37 33.5 29 39.5 20 42.5 C11 39.5 3 33.5 3 24.5 V9 Z" fill={`url(#${gid})`} stroke="rgba(255,255,255,0.55)" strokeWidth="1.2" />
+      <text x="20" y="26" textAnchor="middle" fontSize="16" fontWeight="800" fill="#fff">{prime.level}</text>
+      <text x="20" y="36" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="rgba(255,255,255,0.92)" letterSpacing="0.6">PRIME</text>
+    </svg>
+  )
 }
 
 // Inicial para el badge de tier (DaniVex, fallback cuando no hay PNG oficial).
