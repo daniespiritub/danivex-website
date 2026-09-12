@@ -26,8 +26,9 @@ test('preserveRichFields: keyless (rico vacio) NO borra los ricos previos', () =
   assert.equal(merged.rankBRPoints, '3539')
   assert.equal(merged.pet, 'Palomita')
   assert.equal(merged.outfit.length, 2)
-  // CS NO se preserva: un CS antiguo sin verificar no debe resucitar (dato falso).
-  assert.equal(merged.rankCS, '', 'rankCS NO debe preservarse desde el snapshot previo')
+  // CS SI se preserva ahora: el tier viene del codigo autoritativo del juego (fiable),
+  // asi que un fallo transitorio del proveedor NO debe degradar el CS conocido.
+  assert.equal(merged.rankCS, 'Gran Maestro', 'rankCS (code-derived) se preserva ante fallo transitorio')
 })
 
 test('preserveRichFields: un valor rico NUEVO SI reemplaza al anterior', () => {
