@@ -102,6 +102,31 @@ export const PROVIDER_REGISTRY = {
     integrationStatus: 'internal',
     fallbackPriority: 3,
   },
+  'garena-official': {
+    label: 'Garena / Free Fire (official)',
+    accessType: 'partner-api',
+    // PENDIENTE: solicitada una via oficial de integracion (ticket #835889, 2026-09-13).
+    // Hasta que exista API/endpoint autorizado, accessMode 'unavailable' => NO entra al
+    // merge. Si Garena concede acceso gratuito/autorizado, se sube a 'automatic' y toma
+    // prioridad ALTA (fallbackPriority 0) para los campos que realmente exponga, SIN
+    // eliminar el resto de providers.
+    accessMode: 'unavailable',
+    authRequired: true,
+    regions: 'global/regional (por confirmar con Garena)',
+    // Campos POTENCIALES si se concede (aun no disponibles):
+    fields: ['profile', 'ranks:BR/CS', 'stats', 'passHistory:elite/booyah', 'primeBadge:1-8', 'assets:emblems/icons/banners'],
+    freshness: 'oficial-live (si se concede)',
+    quality: 'authoritative',
+    confidence: 'official',
+    attributionRequired: true,
+    attributionType: 'per-garena-terms',
+    contentReuseStatus: 'UNKNOWN_PERMISSION',
+    technicalAccessStatus: 'inquiry-sent-pending', // ticket #835889 OPEN
+    thirdPartyAssetStatus: 'first-party-if-granted',
+    terms: 'Se solicito via oficial (developer/partner API); respetar ToS/copyright/rate-limits/attribution',
+    integrationStatus: 'official-integration-pending',
+    fallbackPriority: null, // no entra al merge hasta que se conceda
+  },
   mobileverso: {
     label: 'Mobileverso',
     accessType: 'turnstile-gated-html',
@@ -199,6 +224,20 @@ export function getAttributionMeta(providerKey, uid) {
     label: p.label,
     sourceUrl: src && cleanUid ? src.urlTemplate(cleanUid) : '',
   }
+}
+
+// Registro de la GESTIÓN de integración oficial con Garena (solo estado, SIN secretos:
+// nada de passwords/cookies/tokens/sesiones). Ver docs/integrations/garena-official-inquiry.md.
+export const GARENA_INTEGRATION = {
+  status: 'contacted-pending',
+  contactDate: '2026-09-13',
+  channel: 'Free Fire Support (EU) — ticket portal',
+  channelUrl: 'https://support-freefiresg.garena.com/europe/tickets',
+  ticketId: '835889',
+  ticketUrl: 'https://support-freefiresg.garena.com/europe/my-tickets/835889',
+  requestType: 'developer/partner/read-only player API (routed via Question/Feedback/Suggestion)',
+  requestedCapabilities: ['player-profile-api', 'historical-pass-ownership', 'prime-1-8-badges', 'official-assets', 'attribution/rate-limit/region policy'],
+  lastStatus: 'OPEN',
 }
 
 // Fuentes de ENRIQUECIMIENTO: complementarias que el USUARIO puede abrir para ver MÁS datos.

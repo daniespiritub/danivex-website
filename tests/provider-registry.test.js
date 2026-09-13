@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import {
   PROVIDER_REGISTRY, buildSources, getEnrichmentSources, ENRICHMENT_SOURCES,
   ACCESS_MODES, CONTENT_REUSE, MOBILEVERSO_FIELD_RIGHTS,
-  classifyMobileversoField, canEnterDataMerge, getAttributionMeta,
+  classifyMobileversoField, canEnterDataMerge, getAttributionMeta, GARENA_INTEGRATION,
 } from '../api/_lib/provider-registry.js'
 
 test('provider-registry: SiamBhau es primary; FFM/itemData/resolvers complementan', () => {
@@ -130,6 +130,23 @@ test('enrichment: metadata de import/atribucion honesta (reference => sin "Compl
   assert.equal(mv.attributionRequired, true)
   assert.equal(mv.attributionType, 'dofollow')
   assert.equal(mv.sourceUrl, mv.url)
+})
+
+test('garena-official: registrado como integracion PENDIENTE, fuera del merge, sin secretos', () => {
+  const g = PROVIDER_REGISTRY['garena-official']
+  assert.ok(g, 'garena-official registrado en el registry')
+  assert.equal(g.integrationStatus, 'official-integration-pending')
+  assert.equal(g.accessMode, 'unavailable')
+  assert.equal(g.fallbackPriority, null)
+  // Pendiente => NO entra al merge de datos todavia.
+  assert.equal(canEnterDataMerge('garena-official', 'profile'), false)
+  // Registro de gestion con referencia de ticket, sin secretos.
+  assert.equal(GARENA_INTEGRATION.status, 'contacted-pending')
+  assert.equal(GARENA_INTEGRATION.ticketId, '835889')
+  const blob = JSON.stringify(GARENA_INTEGRATION).toLowerCase()
+  for (const secret of ['password', 'cookie', 'token', 'authorization', 'session']) {
+    assert.ok(!blob.includes(secret), `GARENA_INTEGRATION no debe contener ${secret}`)
+  }
 })
 
 test('buildSources: perfil KEYLESS (sin SiamBhau) marca las fuentes correctamente', () => {
