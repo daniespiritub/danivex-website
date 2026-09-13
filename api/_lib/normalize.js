@@ -10,7 +10,7 @@ import { resolveBadge } from './badge-resolver.js'
 import { passEntry } from './pass-catalog.js'
 import { CURRENT_CS_SEASON } from './cs-rank-rules.js'
 import { resolvePrime } from './prime.js'
-import { buildSources } from './provider-registry.js'
+import { buildSources, getEnrichmentSources } from './provider-registry.js'
 
 // Construye la coleccion de pases: catalogo historico + POSESION real (del album
 // publico de FreeFireMania). Solo incluye los pases que aparecen en el album (con
@@ -233,5 +233,8 @@ export function buildResponse(uid, profile, cacheHit) {
     primeBadge: primeB,
     // Procedencia por-campo (multi-source aggregator): que fuente resolvio cada campo.
     sources,
+    // Fuentes de enriquecimiento VISUAL (complementarias que el usuario puede abrir para
+    // ver mas datos; NO se importa su contenido). Generico/registry-driven.
+    enrichment: getEnrichmentSources(uid),
   }
 }

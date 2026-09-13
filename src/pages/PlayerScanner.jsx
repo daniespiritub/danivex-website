@@ -227,6 +227,10 @@ function PlayerScanner() {
         <div className="ps-result" ref={resultRef}>
           <PlayerCard player={player} outfit={outfit} changesCount={changes.length} onSeeHistory={() => goToSection('historial')} />
 
+          {Array.isArray(player.enrichment) && player.enrichment.length > 0 && (
+            <EnrichmentBar sources={player.enrichment} />
+          )}
+
           {cacheInfo?.state === 'stale' && (
             <p className="action-message warning">
               Ultima informacion disponible: los proveedores no respondieron y DaniVex muestra el ultimo perfil guardado
@@ -754,6 +758,46 @@ function PrimeEmblem({ prime, size = 'md' }) {
       <text x="20" y="26" textAnchor="middle" fontSize="16" fontWeight="800" fill="#fff">{prime.level}</text>
       <text x="20" y="36" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="rgba(255,255,255,0.92)" letterSpacing="0.6">PRIME</text>
     </svg>
+  )
+}
+
+// Barra de enriquecimiento: fuentes COMPLEMENTARIAS que el usuario puede ABRIR para ver
+// mas datos (NO se importa su contenido; se respeta su politica/gate). Generico: se
+// alimenta de `player.enrichment` (registry-driven), asi que aceptar otra fuente en el
+// futuro no requiere tocar esta UI. La fuente se abre en una pestaña nueva (DaniVex sigue
+// abierto); si pide verificacion humana (captcha), la resuelve el usuario en la fuente.
+function EnrichmentBar({ sources }) {
+  const [open, setOpen] = useState(false)
+  const src = sources[0]
+  if (!src) return null
+  const openSource = () => { window.open(src.url, '_blank', 'noopener,noreferrer') }
+  return (
+    <>
+      <div className="ps-enrich-bar">
+        <div className="ps-enrich-txt">
+          <span className="ps-enrich-title">¿Ver más datos de este jugador?</span>
+          <span className="ps-enrich-sub">Hay información complementaria disponible en una fuente externa.</span>
+        </div>
+        <button type="button" className="ps-enrich-btn" onClick={() => setOpen(true)}>Ver perfil ampliado</button>
+      </div>
+      {open && (
+        <div className="ps-modal-overlay" role="dialog" aria-modal="true" aria-label="Datos complementarios" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}>
+          <div className="ps-modal">
+            <h3 className="ps-modal-title">Datos complementarios</h3>
+            <p className="ps-modal-lead">{src.label} puede mostrar información adicional de este jugador:</p>
+            <ul className="ps-modal-list">
+              {src.shows.map((f) => <li key={f}>{f}</li>)}
+            </ul>
+            {src.note && <p className="ps-modal-note">{src.note}</p>}
+            <p className="ps-modal-attr">{src.attribution}</p>
+            <div className="ps-modal-actions">
+              <button type="button" className="ps-btn-ghost" onClick={() => setOpen(false)}>Cancelar</button>
+              <button type="button" className="ps-btn-primary" onClick={() => { openSource(); setOpen(false) }}>Abrir en {src.label}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
