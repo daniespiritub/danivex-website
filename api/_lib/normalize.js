@@ -10,6 +10,7 @@ import { resolveBadge } from './badge-resolver.js'
 import { passEntry } from './pass-catalog.js'
 import { CURRENT_CS_SEASON } from './cs-rank-rules.js'
 import { resolvePrime } from './prime.js'
+import { buildSources } from './provider-registry.js'
 
 // Construye la coleccion de pases: catalogo historico + POSESION real (del album
 // publico de FreeFireMania). Solo incluye los pases que aparecen en el album (con
@@ -95,6 +96,14 @@ export function buildResponse(uid, profile, cacheHit) {
   const hasCsTier = Boolean(ranks.csRankName)
   const csSeason = ranks.csSeason || (hasCsTier ? CURRENT_CS_SEASON.value : '')
   const csSeasonSource = ranks.csSeason ? ranks.csSeasonSource : (hasCsTier ? CURRENT_CS_SEASON.source : 'unavailable')
+  const primeB = resolvePrime(profile.primeLevel)
+  // Procedencia POR-CAMPO (que fuente resolvio cada campo): DaniVex es un multi-source
+  // aggregator; `sources` lo hace explicito y trazable. Ver provider-registry.js.
+  const sources = buildSources({
+    profile, ranks, primeBadge: primeB,
+    avatarSource: avatarRes.source, bannerSource: bannerRes.source,
+    outfitLen: outfit.length, clanClean: cleanClanName(profile.clan),
+  })
 
   return {
     ok: true,
@@ -221,6 +230,8 @@ export function buildResponse(uid, profile, cacheHit) {
     primeConfirmed: Boolean(profile.primeLevel),
     // Prime resuelto por NIVEL (emblema distinto por nivel; Prime 0 => sin insignia).
     // Derivado del nivel live => sin hardcode ni leakage por cuenta.
-    primeBadge: resolvePrime(profile.primeLevel),
+    primeBadge: primeB,
+    // Procedencia por-campo (multi-source aggregator): que fuente resolvio cada campo.
+    sources,
   }
 }
