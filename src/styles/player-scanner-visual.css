@@ -332,9 +332,11 @@
 .ps-modal-list { margin: 0 0 12px; padding-left: 20px; color: var(--text-muted, #98a2b0); font-size: 0.85rem; line-height: 1.6; }
 .ps-modal-note { margin: 0 0 8px; font-size: 0.78rem; color: var(--text-faint, #7c8694); font-style: italic; line-height: 1.5; }
 .ps-modal-attr { margin: 0 0 16px; font-size: 0.78rem; color: var(--text-muted, #98a2b0); }
-.ps-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.ps-attr-link { color: #a5b0ff; text-decoration: underline; font-weight: 700; }
+.ps-attr-link:hover { color: #c3ccff; }
+.ps-modal-actions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
 .ps-btn-ghost { padding: 9px 16px; border-radius: 10px; border: 1px solid rgba(150, 160, 180, 0.35); background: transparent; color: var(--text-muted, #c4ccd8); font-weight: 700; cursor: pointer; }
-.ps-btn-primary { padding: 9px 18px; border-radius: 10px; border: 0; background: linear-gradient(135deg, #5865f2, #7c3aed); color: #fff; font-weight: 800; cursor: pointer; }
+.ps-btn-primary { display: inline-flex; align-items: center; justify-content: center; padding: 9px 18px; border-radius: 10px; border: 0; background: linear-gradient(135deg, #5865f2, #7c3aed); color: #fff; font-weight: 800; cursor: pointer; text-decoration: none; line-height: 1; }
 .ps-btn-primary:hover { filter: brightness(1.08); }
 .ps-pet-lvl { font-size: 0.8rem; color: var(--text-faint, #5c6672); }
 
