@@ -771,7 +771,14 @@ function EnrichmentBar({ sources }) {
   const [open, setOpen] = useState(false)
   const src = sources[0]
   if (!src) return null
-  const openSource = () => { window.open(src.url, '_blank', 'noopener,noreferrer') }
+  // Copy HONESTO segun capacidad real: si NO hay mecanismo de importacion (canImport=false),
+  // esto es SOLO referencia => "Ver datos adicionales" (no "Completar perfil", que implicaria
+  // que DaniVex importa el resultado). Si mañana una fuente ofrece import legitimo, canImport
+  // sera true y el copy cambia a "Completar perfil" sin tocar el resto del flujo.
+  const cta = src.canImport ? 'Completar perfil' : 'Ver datos adicionales'
+  // Enlace de atribucion: dofollow real (rel del registry; 'noopener', SIN nofollow/sponsored
+  // /ugc). target _blank => DaniVex permanece abierto. dofollow != bypass del Turnstile.
+  const rel = src.rel || 'noopener'
   return (
     <>
       <div className="ps-enrich-bar">
@@ -779,7 +786,7 @@ function EnrichmentBar({ sources }) {
           <span className="ps-enrich-title">¿Ver más datos de este jugador?</span>
           <span className="ps-enrich-sub">Hay información complementaria disponible en una fuente externa.</span>
         </div>
-        <button type="button" className="ps-enrich-btn" onClick={() => setOpen(true)}>Ver perfil ampliado</button>
+        <button type="button" className="ps-enrich-btn" onClick={() => setOpen(true)}>{cta}</button>
       </div>
       {open && createPortal((
         <div className="ps-modal-overlay" role="dialog" aria-modal="true" aria-label="Datos complementarios" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}>
@@ -790,10 +797,15 @@ function EnrichmentBar({ sources }) {
               {src.shows.map((f) => <li key={f}>{f}</li>)}
             </ul>
             {src.note && <p className="ps-modal-note">{src.note}</p>}
-            <p className="ps-modal-attr">{src.attribution}</p>
+            <p className="ps-modal-attr">
+              Datos complementarios:{' '}
+              <a className="ps-attr-link" href={src.sourceUrl || src.url} target="_blank" rel={rel}>{src.label}</a>
+            </p>
             <div className="ps-modal-actions">
               <button type="button" className="ps-btn-ghost" onClick={() => setOpen(false)}>Cancelar</button>
-              <button type="button" className="ps-btn-primary" onClick={() => { openSource(); setOpen(false) }}>Abrir en {src.label}</button>
+              {/* Accion real: enlace dofollow a la pagina oficial del UID (funciona con el clic
+                  real del usuario; DaniVex sigue abierto). No se importa contenido. */}
+              <a className="ps-btn-primary" href={src.sourceUrl || src.url} target="_blank" rel={rel} onClick={() => setOpen(false)}>Abrir en {src.label}</a>
             </div>
           </div>
         </div>

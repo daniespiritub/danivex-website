@@ -1,6 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PROVIDER_REGISTRY, buildSources, getEnrichmentSources, ENRICHMENT_SOURCES } from '../api/_lib/provider-registry.js'
+import {
+  PROVIDER_REGISTRY, buildSources, getEnrichmentSources, ENRICHMENT_SOURCES,
+  ACCESS_MODES, CONTENT_REUSE, MOBILEVERSO_FIELD_RIGHTS,
+  classifyMobileversoField, canEnterDataMerge, getAttributionMeta,
+} from '../api/_lib/provider-registry.js'
 
 test('provider-registry: SiamBhau es primary; FFM/itemData/resolvers complementan', () => {
   assert.equal(PROVIDER_REGISTRY.siambhau.integrationStatus, 'primary')
@@ -62,6 +66,70 @@ test('enrichment: ENRICHMENT_SOURCES declara accessMode valido y NO importa cont
     assert.ok(['reference', 'user_assisted'].includes(s.accessMode))
     assert.ok(typeof s.urlTemplate === 'function')
   }
+})
+
+test('registry depth: cada provider declara accessMode valido y fallbackPriority coherente', () => {
+  for (const [name, p] of Object.entries(PROVIDER_REGISTRY)) {
+    assert.ok(ACCESS_MODES.includes(p.accessMode), `${name}: accessMode debe ser valido`)
+    assert.ok(CONTENT_REUSE.includes(p.contentReuseStatus), `${name}: contentReuseStatus debe ser valido`)
+    assert.ok(p.technicalAccessStatus, `${name}: technicalAccessStatus requerido`)
+    assert.ok(p.thirdPartyAssetStatus, `${name}: thirdPartyAssetStatus requerido`)
+    // fallbackPriority: numero (>=1) o null (no entra al merge).
+    assert.ok(p.fallbackPriority === null || (Number.isInteger(p.fallbackPriority) && p.fallbackPriority >= 1), `${name}: fallbackPriority`)
+  }
+  // SiamBhau gana el merge (prioridad mas alta); Mobileverso NO entra al merge.
+  assert.equal(PROVIDER_REGISTRY.siambhau.fallbackPriority, 1)
+  assert.equal(PROVIDER_REGISTRY.mobileverso.fallbackPriority, null)
+  assert.equal(PROVIDER_REGISTRY.mobileverso.accessMode, 'reference_only')
+})
+
+test('rights: reference_only NO entra al merge; automatic reutilizable SI', () => {
+  // Mobileverso es reference_only => jamas entra al merge de datos, campo a campo.
+  assert.equal(canEnterDataMerge('mobileverso', 'bio'), false)
+  assert.equal(canEnterDataMerge('mobileverso', 'passCounts'), false)
+  assert.equal(canEnterDataMerge('mobileverso', 'rankEmblem'), false)
+  // Fuentes automaticas reutilizables SI entran.
+  assert.equal(canEnterDataMerge('siambhau', 'nickname'), true)
+  assert.equal(canEnterDataMerge('itemdata', 'petSpeciesName'), true)
+  // Provider inexistente => false (no leakage).
+  assert.equal(canEnterDataMerge('desconocido', 'x'), false)
+})
+
+test('rights: clasificacion CAMPO POR CAMPO de Mobileverso (data vs third-party asset)', () => {
+  // Datos/texto => REFERENCE_ONLY (no reutilizable sin permiso confirmado).
+  assert.equal(classifyMobileversoField('bio'), 'REFERENCE_ONLY')
+  assert.equal(classifyMobileversoField('passCounts'), 'REFERENCE_ONLY')
+  // Assets del juego (Garena) => THIRD_PARTY_ASSET (no se rehostean automaticamente).
+  assert.equal(classifyMobileversoField('rankEmblem'), 'THIRD_PARTY_ASSET')
+  assert.equal(classifyMobileversoField('primeBadge'), 'THIRD_PARTY_ASSET')
+  // Desconocido => conservador REFERENCE_ONLY (no inventar permisos).
+  assert.equal(classifyMobileversoField('campoRaro'), 'REFERENCE_ONLY')
+  // El mapa solo usa estados validos.
+  for (const v of Object.values(MOBILEVERSO_FIELD_RIGHTS)) assert.ok(CONTENT_REUSE.includes(v))
+})
+
+test('attribution: dofollow (rel=noopener, SIN nofollow/sponsored/ugc) y URL del UID', () => {
+  const meta = getAttributionMeta('mobileverso', '2196518104')
+  assert.equal(meta.required, true)
+  assert.equal(meta.type, 'dofollow')
+  assert.equal(meta.rel, 'noopener')
+  assert.doesNotMatch(meta.rel, /nofollow|sponsored|ugc/)
+  assert.match(meta.sourceUrl, /mobileverso\.com\.br\/en\/freefire\/player\/2196518104$/)
+  // Fuentes sin attributionRequired => no exigen atribucion.
+  assert.equal(getAttributionMeta('siambhau', '2196518104').required, false)
+})
+
+test('enrichment: metadata de import/atribucion honesta (reference => sin "Completar perfil")', () => {
+  const mv = getEnrichmentSources('2196518104')[0]
+  // Reference-only HOY: sin mecanismo de import => canImport false (UI honesta).
+  assert.equal(mv.importMode, null)
+  assert.equal(mv.canImport, false)
+  // Enlace dofollow: rel noopener, nunca nofollow/sponsored/ugc.
+  assert.equal(mv.rel, 'noopener')
+  assert.doesNotMatch(mv.rel, /nofollow|sponsored|ugc/)
+  assert.equal(mv.attributionRequired, true)
+  assert.equal(mv.attributionType, 'dofollow')
+  assert.equal(mv.sourceUrl, mv.url)
 })
 
 test('buildSources: perfil KEYLESS (sin SiamBhau) marca las fuentes correctamente', () => {
