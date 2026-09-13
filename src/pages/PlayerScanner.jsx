@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { PiArrowClockwiseBold, PiShareNetworkBold, PiCrownBold } from 'react-icons/pi'
 import ShareCard from '../components/prime-scanner/ShareCard'
 import logo from '../assets/logo.webp'
@@ -780,7 +781,7 @@ function EnrichmentBar({ sources }) {
         </div>
         <button type="button" className="ps-enrich-btn" onClick={() => setOpen(true)}>Ver perfil ampliado</button>
       </div>
-      {open && (
+      {open && createPortal((
         <div className="ps-modal-overlay" role="dialog" aria-modal="true" aria-label="Datos complementarios" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}>
           <div className="ps-modal">
             <h3 className="ps-modal-title">Datos complementarios</h3>
@@ -796,7 +797,7 @@ function EnrichmentBar({ sources }) {
             </div>
           </div>
         </div>
-      )}
+      ), document.body)}
     </>
   )
 }
