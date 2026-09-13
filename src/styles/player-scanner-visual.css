@@ -318,6 +318,24 @@
 .ps-pet-name-lg { font-size: 1.1rem; font-weight: 800; color: var(--text, #f2f4f7); }
 .ps-pet-sub { font-size: 0.78rem; color: var(--text-muted, #98a2b0); }
 .ps-pass-note { font-size: 0.85rem; color: var(--text-muted, #98a2b0); line-height: 1.5; margin: 4px 0 0; }
+/* Barra de enriquecimiento (fuentes complementarias que el usuario abre) */
+.ps-enrich-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: 14px 0 0; padding: 14px 16px; border-radius: 14px; background: linear-gradient(135deg, rgba(88, 101, 242, 0.14), rgba(214, 48, 43, 0.10)); border: 1px solid rgba(120, 130, 200, 0.28); }
+.ps-enrich-txt { display: flex; flex-direction: column; gap: 2px; }
+.ps-enrich-title { font-weight: 800; color: var(--text, #f2f4f7); font-size: 0.98rem; }
+.ps-enrich-sub { font-size: 0.8rem; color: var(--text-muted, #98a2b0); }
+.ps-enrich-btn { padding: 9px 18px; border-radius: 10px; border: 0; font-weight: 800; cursor: pointer; background: linear-gradient(135deg, #5865f2, #7c3aed); color: #fff; }
+.ps-enrich-btn:hover { filter: brightness(1.08); }
+.ps-modal-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(4, 6, 12, 0.72); backdrop-filter: blur(4px); }
+.ps-modal { width: 100%; max-width: 460px; border-radius: 16px; padding: 22px; background: #1b2130; border: 1px solid rgba(140, 150, 220, 0.4); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65); }
+.ps-modal-title { margin: 0 0 8px; font-size: 1.25rem; color: var(--text, #f2f4f7); }
+.ps-modal-lead { margin: 0 0 8px; font-size: 0.9rem; color: var(--text-muted, #c4ccd8); }
+.ps-modal-list { margin: 0 0 12px; padding-left: 20px; color: var(--text-muted, #98a2b0); font-size: 0.85rem; line-height: 1.6; }
+.ps-modal-note { margin: 0 0 8px; font-size: 0.78rem; color: var(--text-faint, #7c8694); font-style: italic; line-height: 1.5; }
+.ps-modal-attr { margin: 0 0 16px; font-size: 0.78rem; color: var(--text-muted, #98a2b0); }
+.ps-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.ps-btn-ghost { padding: 9px 16px; border-radius: 10px; border: 1px solid rgba(150, 160, 180, 0.35); background: transparent; color: var(--text-muted, #c4ccd8); font-weight: 700; cursor: pointer; }
+.ps-btn-primary { padding: 9px 18px; border-radius: 10px; border: 0; background: linear-gradient(135deg, #5865f2, #7c3aed); color: #fff; font-weight: 800; cursor: pointer; }
+.ps-btn-primary:hover { filter: brightness(1.08); }
 .ps-pet-lvl { font-size: 0.8rem; color: var(--text-faint, #5c6672); }
 
 /* ---------------- PERFIL DETALLE ---------------- */

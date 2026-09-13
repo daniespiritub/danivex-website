@@ -334,6 +334,7 @@ export function generatePlayerFromLookup(uid, lookup) {
     passCollection: lookup?.passCollection || null,
     passCollectionState: lookup?.passCollectionState || 'unknown',
     primeBadge: lookup?.primeBadge || null,
+    enrichment: Array.isArray(lookup?.enrichment) ? lookup.enrichment : [],
     pet: lookup?.pet || '',
     petNickname: lookup?.petNickname || '',
     petSkinName: lookup?.petSkinName || '',

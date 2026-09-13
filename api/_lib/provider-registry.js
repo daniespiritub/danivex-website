@@ -73,6 +73,48 @@ export const PROVIDER_REGISTRY = {
   },
 }
 
+// Fuentes de ENRIQUECIMIENTO VISUAL: complementarias que el USUARIO puede abrir para ver
+// MÁS datos, pero cuyo contenido NO se importa/scrapea (por su politica y su gate). El
+// modelo es generico: mañana se añade otra fuente registrandola aqui, sin tocar la UI.
+//   accessMode: 'reference' (el usuario la ve; no se importa contenido)
+//               'user_assisted' (requiere verificacion humana y expone un resultado importable)
+//   launchMode: 'popup' (ventana nueva; DaniVex sigue abierto) | 'embed' (iframe permitido)
+// Mobileverso: robots Content-Signal `use=reference` (solo referencia, ai-train=no) + Turnstile
+// + sin API/embed => reference/popup. NO se importa su contenido (se respeta su politica).
+export const ENRICHMENT_SOURCES = [
+  {
+    key: 'mobileverso',
+    label: 'Mobileverso',
+    accessMode: 'reference',
+    launchMode: 'popup',
+    embedAllowed: false, // Turnstile + Cloudflare => no framable de forma fiable
+    urlTemplate: (uid) => `https://mobileverso.com.br/en/freefire/player/${encodeURIComponent(uid)}`,
+    attribution: 'Fuente complementaria: Mobileverso',
+    shows: ['nombres y descripciones de items', 'contadores de pases (Elite/Booyah)', 'wishlist', 'outfit con nombres', 'emblema de rango', 'bio'],
+    note: 'Puede pedir una verificación humana (captcha) de Mobileverso. Se abre su página oficial; DaniVex no importa su contenido (política use=reference).',
+    requiresHumanVerification: true,
+  },
+]
+
+// getEnrichmentSources(uid) -> lista de fuentes de enriquecimiento con su URL resuelta.
+// El frontend muestra un boton "Ver perfil ampliado"; abre la fuente (popup/embed). GENERAL.
+export function getEnrichmentSources(uid) {
+  const cleanUid = String(uid || '').replace(/[^\d]/g, '')
+  if (!cleanUid) return []
+  return ENRICHMENT_SOURCES.map((s) => ({
+    key: s.key,
+    label: s.label,
+    accessMode: s.accessMode,
+    launchMode: s.launchMode,
+    embedAllowed: s.embedAllowed,
+    url: s.urlTemplate(cleanUid),
+    attribution: s.attribution,
+    shows: s.shows,
+    note: s.note,
+    requiresHumanVerification: Boolean(s.requiresHumanVerification),
+  }))
+}
+
 // buildSources(ctx) -> procedencia por-campo (que fuente resolvio cada campo), para
 // exponerla en /api/player. ctx trae el perfil ya resuelto + metadata de rangos/prime.
 export function buildSources(ctx) {

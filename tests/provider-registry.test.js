@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PROVIDER_REGISTRY, buildSources } from '../api/_lib/provider-registry.js'
+import { PROVIDER_REGISTRY, buildSources, getEnrichmentSources, ENRICHMENT_SOURCES } from '../api/_lib/provider-registry.js'
 
 test('provider-registry: SiamBhau es primary; FFM/itemData/resolvers complementan', () => {
   assert.equal(PROVIDER_REGISTRY.siambhau.integrationStatus, 'primary')
@@ -35,6 +35,33 @@ test('buildSources: procedencia por-campo de un perfil RICO (SiamBhau + resolver
   assert.equal(s.passes, 'freefiremania')
   assert.equal(s.stats, 'siambhau-stats')
   assert.equal(s.avatar, 'freefiremania')
+})
+
+test('enrichment: fuentes complementarias con URL resuelta por UID (generico, no per-UID)', () => {
+  const list = getEnrichmentSources('2196518104')
+  assert.ok(list.length >= 1)
+  const mv = list.find((s) => s.key === 'mobileverso')
+  assert.ok(mv, 'Mobileverso registrado como enrichment source')
+  assert.equal(mv.accessMode, 'reference', 'reference-only (no se importa contenido)')
+  assert.equal(mv.launchMode, 'popup')
+  assert.equal(mv.embedAllowed, false)
+  assert.match(mv.url, /mobileverso\.com\.br\/en\/freefire\/player\/2196518104$/)
+  assert.ok(mv.attribution && mv.shows.length > 0)
+})
+
+test('enrichment: UID distinto => URL distinta (sin leakage; general)', () => {
+  const a = getEnrichmentSources('2196518104')[0].url
+  const b = getEnrichmentSources('427951596')[0].url
+  assert.notEqual(a, b)
+  assert.match(b, /427951596$/)
+  assert.equal(getEnrichmentSources('').length, 0, 'sin uid => sin fuentes')
+})
+
+test('enrichment: ENRICHMENT_SOURCES declara accessMode valido y NO importa contenido', () => {
+  for (const s of ENRICHMENT_SOURCES) {
+    assert.ok(['reference', 'user_assisted'].includes(s.accessMode))
+    assert.ok(typeof s.urlTemplate === 'function')
+  }
 })
 
 test('buildSources: perfil KEYLESS (sin SiamBhau) marca las fuentes correctamente', () => {
