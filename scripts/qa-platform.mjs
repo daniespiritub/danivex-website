@@ -188,6 +188,28 @@ try {
     } finally { await ctx.close() }
   })
 
+  await check('Companion inactivity, return and rapid taps have distinct states', async () => {
+    const ctx = await context({ viewport: { width: 1440, height: 900 } })
+    try {
+      const page = await ctx.newPage()
+      captureErrors(page)
+      await page.clock.install()
+      await page.goto(base)
+      await canvasCheck(page)
+      await page.waitForFunction(() => document.querySelector('[data-companion-root]').dataset.state === 'IDLE')
+      await page.clock.fastForward(41000)
+      assert.equal(await page.locator('[data-companion-root]').getAttribute('data-state'), 'BORED')
+      await page.mouse.move(30, 300)
+      assert.equal(await page.locator('[data-companion-root]').getAttribute('data-state'), 'RETURN')
+      await page.clock.fastForward(86000)
+      assert.equal(await page.locator('[data-companion-root]').getAttribute('data-state'), 'SLEEPY')
+      const hit = page.getByRole('button', { name: 'Saludar a DaniVex', exact: true })
+      for (let i = 0; i < 4; i++) await hit.click()
+      assert.equal(await page.locator('[data-companion-root]').getAttribute('data-state'), 'SURPRISED')
+      return { boredom: true, sleep: true, return: true, rapidTap: true }
+    } finally { await ctx.close() }
+  })
+
   await check('reduced motion and absent WebGL preserve the tools', async () => {
     const ctx = await context({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' })
     try {

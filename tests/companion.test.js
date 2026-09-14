@@ -85,6 +85,26 @@ test('Character: actual geometry, finite animation, bounded cursor and disposal'
   assert.ok(disposed >= meshCount)
 })
 
+test('Character: cursor limits and distinct surprise, boredom and sleep poses', () => {
+  const character = createCharacter()
+  const head = character.root.getObjectByName('DaniVexHead')
+  const eye = character.root.getObjectByName('DaniVexEye1')
+  const pose = (action, time, pointer = { x: 0, y: 0 }) => character.update({ action, time, pointer, delta: 1, motion: true })
+  pose('IDLE', 0, { x: 500, y: -500 })
+  assert.ok(head.rotation.y <= 0.23 && head.rotation.y > 0)
+  assert.ok(head.rotation.x >= -0.1 && head.rotation.x < 0)
+  pose('SURPRISED', 1)
+  assert.equal(eye.scale.y, 1.1)
+  assert.ok(head.rotation.x < -0.08)
+  pose('BORED', 2)
+  pose('BORED', 3)
+  assert.ok(head.rotation.y > 0.15)
+  pose('SLEEPY', 4)
+  assert.equal(eye.scale.y, 0.45)
+  assert.ok(head.rotation.x > 0.13)
+  character.dispose()
+})
+
 const profile = { years: 2, rootState: 'no-root', dpi: 480, fireButton: 52, fpsTarget: 'auto', gameVersion: 'ff', rankMode: 'de-ranked' }
 
 test('Sensitivity regression: original RedMagic result and BR mode preserved', () => {

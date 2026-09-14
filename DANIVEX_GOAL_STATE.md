@@ -55,15 +55,19 @@ Vercel CLI session confirmed as daniespiritub; git origin main verified.
 
 ## TESTS
 
-Baseline 209 tests; now 220/220 pass. ESLint passes. Production build passes.
-Two browser QA rounds: 12/12 checks, no console/page/HTTP errors. Actual canvas
+Baseline 209 tests; now 221/221 pass. ESLint passes. Production build passes.
+Browser QA: 13/13 local checks, no console/page/HTTP errors. Actual canvas
 pixel comparison confirms colored geometry and motion. Android/iPhone/iPad/
 Android tablets, massive catalog, manual fallback, DE/BR, ES/PT/EN and clipboard
 preserve behavior. Exact scanner nickname and real images verified visually.
 Mobilador EXE HEAD 200 (60,224,920 bytes); screenshot tabs and keyboard work.
-Home JS 274.45 kB / 86.18 kB gzip; scanner lazy. Three renderer 618.69 kB /
-157.14 kB gzip, deferred. GLTFLoader separate and unused without final asset.
+Home JS 274.45 kB / 86.18 kB gzip; scanner lazy. Three renderer 618.98 kB /
+157.29 kB gzip, deferred. GLTFLoader separate and unused without final asset.
 Mechanical design scan: two layout-transition warnings corrected.
+Production first release: 12/12 checks without mocks; real API, exact nickname,
+mobile modal hiding and sticky navigation pass. Extra clock-driven local QA
+proves boredom, sleep, return and rapid-tap surprise. Cursor limits and visibly
+distinct geometry poses now have dedicated tests.
 
 ## KNOWN_ISSUES
 
@@ -76,12 +80,17 @@ Mechanical design scan: two layout-transition warnings corrected.
 
 ## NEXT_ACTION
 
-Commit verified implementation, push main, deploy through existing Vercel project
-and run the same browser checks against public production without API fixtures.
+Publish final gesture refinement, repeat public QA, record final acceptance.
 
 ## DEPLOY_STATUS
 
-Existing production inspected. No new deployment yet.
+Commit 87cc886 pushed to main. Vercel automatic deployment
+dpl_W3AWBXUESLHkwVxP2YS5DJRYPYey / r75t0cm2o is Ready. Public aliases
+danivex.com and www.danivex.com confirmed. Build used existing dependency cache;
+new production assets match the local build. Public home opened and visually
+checked, including sensitivity, Mobilador, community and both Companion sides.
+Home, scanner, saved-profile route, legacy redirect, sitemap, robots, favicon
+and preview image returned 200; HTML contains no old ad scripts.
 
 ## ACCEPTANCE_PENDING
 

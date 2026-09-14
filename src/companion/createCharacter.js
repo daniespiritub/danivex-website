@@ -77,6 +77,7 @@ export function createCharacter() {
   })
 
   const head = new THREE.Group()
+  head.name = 'DaniVexHead'
   head.position.set(0, 2.76, 0)
   torso.add(head)
   ellipsoid(head, 'skin', [0, -0.02, 0], [0.7, 0.72, 0.58])
@@ -96,6 +97,7 @@ export function createCharacter() {
   fringe.rotation.z = 0.38
   const eyes = [-1, 1].map((side) => {
     const eye = new THREE.Group()
+    eye.name = `DaniVexEye${side}`
     eye.position.set(side * 0.27, -0.055, 0.506)
     eye.rotation.y = side * 0.18
     head.add(eye)
@@ -107,8 +109,8 @@ export function createCharacter() {
     ellipsoid(pupil, 'pupil', [0.015 * -side, 0.01, 0.114], [0.07, 0.119, 0.014])
     ellipsoid(pupil, 'shine', [-0.04, 0.085, 0.13], [0.04, 0.044, 0.01])
     ellipsoid(pupil, 'shine', [0.055, -0.06, 0.122], [0.017, 0.022, 0.008])
-    curve(head, 'hair', [[side * 0.11, 0.27, 0.51], [side * 0.27, 0.3, 0.54], [side * 0.44, 0.26, 0.44]], 0.027)
-    return { eye, pupil }
+    const brow = curve(head, 'hair', [[side * 0.11, 0.27, 0.51], [side * 0.27, 0.3, 0.54], [side * 0.44, 0.26, 0.44]], 0.027)
+    return { eye, pupil, brow }
   })
   ellipsoid(head, 'skin', [0, -0.24, 0.559], [0.067, 0.077, 0.067])
   const smile = curve(head, 'hair', [[-0.2, -0.405, 0.444], [-0.08, -0.449, 0.466], [0.075, -0.442, 0.47], [0.19, -0.397, 0.443]], 0.012)
@@ -144,27 +146,30 @@ export function createCharacter() {
       const phase = time - actionStart
       const m = motion ? 1 : 0
       const blend = 1 - Math.exp(-delta * 8)
-      lookX += ((pointer.x || 0) * 0.23 * m - lookX) * blend
-      lookY += ((pointer.y || 0) * 0.1 * m - lookY) * blend
+      lookX += (THREE.MathUtils.clamp(pointer.x || 0, -1, 1) * 0.23 * m - lookX) * blend
+      lookY += (THREE.MathUtils.clamp(pointer.y || 0, -1, 1) * 0.1 * m - lookY) * blend
       const happy = ['HAPPY', 'CELEBRATE'].includes(action)
       const waving = ['WAVE', 'RETURN'].includes(action)
       const sleepy = action === 'SLEEPY'
+      const surprised = action === 'SURPRISED'
+      const bored = action === 'BORED'
       const blinkTime = time % 5.7
       const blink = motion && blinkTime > 5.45 ? Math.max(0.06, Math.abs(blinkTime - 5.575) / 0.125) : 1
-      eyes.forEach(({ eye, pupil }) => {
-        eye.scale.y = sleepy ? 0.45 : blink
+      eyes.forEach(({ eye, pupil, brow }) => {
+        eye.scale.y = sleepy ? 0.45 : blink * (surprised ? 1.1 : 1)
+        brow.position.y += ((surprised ? 0.045 : bored ? -0.015 : 0) - brow.position.y) * blend
         pupil.position.x = lookX * 0.18
         pupil.position.y = -lookY * 0.15
       })
       torso.position.y = m * (Math.sin(time * 1.8) * 0.016 + (happy ? Math.max(0, Math.sin(phase * 6)) * 0.075 : 0))
       torso.rotation.z = m * (Math.sin(time * 0.8) * 0.016 + (action === 'CURIOUS' ? 0.025 : 0))
-      head.rotation.y = lookX + (action === 'POINT_LEFT' ? -0.14 : action === 'POINT_RIGHT' ? 0.14 : 0)
-      head.rotation.x = lookY + (sleepy ? 0.14 : 0)
+      head.rotation.y = lookX + (['POINT_LEFT', 'LOOK'].includes(action) ? -0.14 : action === 'POINT_RIGHT' ? 0.14 : bored ? Math.sin(phase * 1.6) * 0.17 * m : 0)
+      head.rotation.x = lookY + (sleepy ? 0.14 + Math.sin(phase * 1.4) * 0.035 * m : surprised ? -0.09 : 0)
       head.rotation.z = action === 'CURIOUS' ? -0.1 : action === 'THINKING' ? 0.07 : Math.sin(time * 0.7) * 0.016 * m
       smile.scale.y = happy ? 1.03 : 1
       const rightTarget = waving ? 2.65 + Math.sin(phase * 12) * 0.2 * m
-        : happy ? 1.45 : action === 'POINT_RIGHT' ? 1.35 : action === 'THINKING' ? 2.1 : 0.12
-      const leftTarget = action === 'POINT_LEFT' ? -1.35 : happy ? -0.7 : -0.1
+        : happy ? 1.45 : action === 'POINT_RIGHT' ? 1.35 : action === 'THINKING' ? 2.1 : surprised ? 0.55 : bored ? 0.16 + Math.sin(phase * 2) * 0.05 * m : 0.12
+      const leftTarget = action === 'POINT_LEFT' ? -1.35 : happy ? -0.7 : surprised ? -0.55 : -0.1
       arms[1].arm.rotation.z += (rightTarget - arms[1].arm.rotation.z) * blend
       arms[0].arm.rotation.z += (leftTarget - arms[0].arm.rotation.z) * blend
       arms[1].hand.scale.y = waving ? 0.2 : 0.16
