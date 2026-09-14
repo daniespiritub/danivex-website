@@ -10,7 +10,7 @@ preserve core functionality, validate and deploy to https://danivex.com.
 React 19 / Vite. HomePage owns sensitivity and home sections; PlayerScanner
 owns /player-scanner and /cuenta/:uid.html. api/ owns server-only providers,
 rights, cache and persistence. Existing react-icons, local fonts, real screenshots.
-Add one lazy Three.js renderer, independent character asset adapter, state
+One lazy Three.js renderer, independent character asset adapter, state
 controller and deterministic placement. Existing backend remains the authority.
 
 ## CURRENT_STATE
@@ -19,6 +19,7 @@ Initial commit 6cd21a0. Home, tools, Mobilador and social sections redesigned.
 One lazy Three.js Companion with articulated reference-based placeholder;
 state machine, safe placement, preference persistence and GLB adapter complete.
 Vercel CLI session confirmed as daniespiritub; git origin main verified.
+Implementation and final public acceptance complete on 2026-09-14.
 
 ## COMPLETED
 
@@ -64,10 +65,11 @@ Mobilador EXE HEAD 200 (60,224,920 bytes); screenshot tabs and keyboard work.
 Home JS 274.45 kB / 86.18 kB gzip; scanner lazy. Three renderer 618.98 kB /
 157.29 kB gzip, deferred. GLTFLoader separate and unused without final asset.
 Mechanical design scan: two layout-transition warnings corrected.
-Production first release: 12/12 checks without mocks; real API, exact nickname,
-mobile modal hiding and sticky navigation pass. Extra clock-driven local QA
+Final production release: 13/13 checks without API mocks; real API, exact nickname,
+mobile modal hiding and sticky navigation pass. Clock-driven local AND public QA
 proves boredom, sleep, return and rapid-tap surprise. Cursor limits and visibly
-distinct geometry poses now have dedicated tests.
+distinct geometry poses have dedicated tests. Evidence: .qa/production/report.json
+and screenshots; repeat with DANIVEX_QA_URL=https://danivex.com npm run test:platform.
 
 ## KNOWN_ISSUES
 
@@ -80,19 +82,37 @@ distinct geometry poses now have dedicated tests.
 
 ## NEXT_ACTION
 
-Publish final gesture refinement, repeat public QA, record final acceptance.
+No remaining implementation or deployment gate for this approved placeholder
+release. A future final art asset can replace the temporary model using
+docs/COMPANION.md; do not restart the application architecture.
 
 ## DEPLOY_STATUS
 
-Commit 87cc886 pushed to main. Vercel automatic deployment
-dpl_W3AWBXUESLHkwVxP2YS5DJRYPYey / r75t0cm2o is Ready. Public aliases
+Implementation commits 87cc886 and 3f9e780 pushed to main. Final code deployment
+dpl_BEEc1E3a2iXYxA4U1pMChgR6tD8c / o6buiw90a is Ready. Public aliases
 danivex.com and www.danivex.com confirmed. Build used existing dependency cache;
 new production assets match the local build. Public home opened and visually
 checked, including sensitivity, Mobilador, community and both Companion sides.
 Home, scanner, saved-profile route, legacy redirect, sitemap, robots, favicon
 and preview image returned 200; HTML contains no old ad scripts.
+Public browser confirmed /assets/index-BK3hOzHW.js from the final local build.
 
 ## ACCEPTANCE_PENDING
 
-Deployment and public verification. The temporary 3D model is explicitly allowed;
-the final art asset remains replaceable without rebuilding the application.
+None for the requested release. Evidence by acceptance group:
+
+- Platform/identity/navigation/tools/product/community: source components,
+  DESIGN.md, real Mobilador screenshots/release and public visual inspection.
+- Critical functionality: unchanged backend/device/math git diff versus 6cd21a0,
+  221 unit tests and public Android/iOS/tablet/catalog/manual/DE/BR/scanner checks.
+- Companion architecture/appearance: transparent real geometry, approved identity,
+  asset adapter docs; no floating reference image or application coupling to GLB.
+- Greeting/idle/interaction/inactivity/movement: state and geometry unit tests,
+  public colored-pixel/motion tests, clock-driven states and public side changes.
+- Responsive/accessibility: eight viewport sizes, collision checks, keyboard
+  controls, persisted minimization, reduced motion, modal/keyboard hiding and
+  tested no-WebGL fallback. Physical devices were not available.
+- Resources/security/performance: frame/pixel caps, deferred renderer/catalog,
+  cleanup/disposal code and tests, zero audit vulnerabilities, no backend changes.
+- Delivery: lint/build pass, git pushes accepted, Vercel Ready, domain aliases,
+  real endpoints/assets and browser-based production QA all verified.
