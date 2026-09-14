@@ -1,9 +1,11 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import HomePage from './pages/HomePage.jsx'
-import PlayerScanner from './pages/PlayerScanner.jsx'
 import NotFound from './components/NotFound.jsx'
+import DaniVexCompanion from './companion/DaniVexCompanion.jsx'
 import { applySeo, SEO } from './utils/seo.js'
 import './App.css'
+
+const PlayerScanner = lazy(() => import('./pages/PlayerScanner.jsx'))
 
 // Rutas viejas del Prime Scanner: redirigen al Player Scanner (ademas del
 // redirect 308 en vercel.json, este cubre navegacion en cliente / dev).
@@ -37,10 +39,16 @@ function App() {
   }, [route])
 
   if (route === 'legacyScanner') return null
-  if (route === 'player') return <PlayerScanner />
   if (route === 'notFound') return <NotFound />
 
-  return <HomePage />
+  return (
+    <>
+      <Suspense fallback={<div className="page-loading" role="status">DaniVex</div>}>
+        {route === 'player' ? <PlayerScanner /> : <HomePage />}
+      </Suspense>
+      <DaniVexCompanion />
+    </>
+  )
 }
 
 export default App

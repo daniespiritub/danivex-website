@@ -1,93 +1,17 @@
-/* App.css / navbar — extraido del monolito, orden preservado. */
-.navbar {
-  width: 100%;
-  min-height: 68px;
-  padding: 14px 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 100;
-  backdrop-filter: blur(20px);
-  background: rgba(11, 13, 16, 0.86);
-  border-bottom: 1px solid var(--border);
-}
-
-.nav-cta {
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  min-height: 36px;
-  padding: 0 18px;
-  background: var(--accent);
-  color: var(--accent-text);
-  font-size: 0.8rem;
-  font-weight: 700;
-  border-radius: var(--radius-control);
-  text-decoration: none;
-  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
-}
-
-.nav-cta:hover {
-  background: var(--accent-strong);
-  transform: translateY(-1px);
-}
-
-.nav-cta:active {
-  transform: translateY(0);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.brand img {
-  width: 40px;
-  border-radius: var(--radius-control);
-}
-
-.brand span {
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-
-.menu {
-  display: flex;
-  gap: 22px;
-  align-items: center;
-}
-
-.menu a {
-  color: var(--text-muted);
-  font-size: 0.86rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: color var(--dur-fast) var(--ease);
-}
-
-.menu a:hover {
-  color: var(--accent);
-}
-
-.menu a.active {
-  color: var(--text);
-  position: relative;
-}
-
-.menu a.active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -8px;
-  height: 2px;
-  border-radius: var(--radius-pill);
-  background: var(--accent);
-}
+.navbar { position: sticky; inset: 0 0 auto; width: 100%; min-height: 72px; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); }
+.nav-inner { width: min(1360px, calc(100% - 48px)); min-height: 72px; margin: auto; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.brand { display: inline-flex; flex: none; align-items: center; gap: 9px; color: var(--text); text-decoration: none; }
+.brand img { display: block; width: 36px; height: 36px; object-fit: contain; }
+.brand span { font-family: var(--font-display); font-size: 19px; font-weight: 700; letter-spacing: 0; }
+.menu { display: flex; align-items: center; gap: 24px; }
+.menu a { font-size: 13px; font-weight: 600; line-height: 1.5; color: var(--text-muted); text-decoration: none; position: relative; padding-block: 25px; white-space: nowrap; transition: color 160ms ease; }
+.menu a:hover, .menu a.active { color: var(--text); }
+.menu a.active::after { content: ''; position: absolute; bottom: 0; height: 2px; left: 0; right: 0; background: var(--accent-strong); }
+.menu .nav-contact { display: none; }
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+.nav-cta { display: inline-flex; align-items: center; gap: 8px; color: var(--text); padding: 10px 12px; text-decoration: none; font-size: 12px; font-weight: 700; background: var(--surface-hover); border-radius: 6px; transition: background 140ms ease; }
+.nav-cta:hover { background: var(--accent); }
+.nav-cta svg { width: 16px; height: 16px; }
+.language-select { background: transparent; border: 0; color: var(--text-muted); width: 52px; height: 40px; font-size: 12px; cursor: pointer; }
+.language-select option { background: var(--surface); }
+.nav-toggle { display: none; align-items: center; justify-content: center; border: 1px solid var(--border-strong); background: var(--surface); border-radius: 6px; width: 40px; height: 40px; }

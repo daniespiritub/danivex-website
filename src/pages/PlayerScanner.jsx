@@ -2,14 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { PiArrowClockwiseBold, PiShareNetworkBold, PiCrownBold } from 'react-icons/pi'
 import ShareCard from '../components/prime-scanner/ShareCard'
-import logo from '../assets/logo.webp'
-import fondo from '../assets/fondo-gamer.webp'
+import SiteNav from '../components/SiteNav.jsx'
+import { reactCompanion } from '../companion/config.js'
 import { formatNumber, generatePlayerFromLookup } from '../data/primeScanner'
 import { buildDaniVexAiRead } from '../data/aiSummary'
 import { comparePlayers, compareSummary } from '../data/compare'
 import { rankEmblemSrc } from '../data/rankEmblems'
 import '../styles/prime-scanner.css'
 import '../styles/player-scanner-visual.css'
+import '../styles/scanner/platform.css'
 
 const REGIONS = [
   { value: '', label: 'Autodetectar region' },
@@ -84,6 +85,7 @@ function PlayerScanner() {
     const cleanUid = String(value || '').replace(/[^\d]/g, '').slice(0, 12)
     if (cleanUid.length < 6) {
       setErrorMessage('El UID debe tener entre 6 y 12 digitos.')
+      reactCompanion('ERROR')
       return
     }
 
@@ -91,6 +93,7 @@ function PlayerScanner() {
 
     setUid(cleanUid)
     setIsLoading(true)
+    reactCompanion('LOADING')
     setPlayer(null)
     setActionMessage('')
     setErrorMessage('')
@@ -115,7 +118,9 @@ function PlayerScanner() {
 
     if (nextPlayer.lookupStatus !== 'real') {
       setErrorMessage(cleanErrorMessage(lookup))
+      reactCompanion('ERROR')
     } else {
+      reactCompanion('SUCCESS')
       fetchTimeline(cleanUid).then((t) => { if (seq === requestSeqRef.current) setTimeline(t) })
     }
 
@@ -179,23 +184,18 @@ function PlayerScanner() {
   const changes = timeline.slice(0, 10)
 
   return (
-    <main className="scanner-page ps-page" style={{ backgroundImage: `url(${fondo})` }}>
-      <header className="scanner-nav">
-        <a className="scanner-brand" href="/">
-          <img src={logo} alt="DaniVex" />
-          <span>DANIVEX</span>
-        </a>
-        <a className="scanner-home-link" href="/">Volver al inicio</a>
-      </header>
+    <main id="scanner-main" className="scanner-page ps-page">
+      <SiteNav scanner activeSection="scanner" />
 
-      <section className="scanner-hero ps-hero">
+      <section className="scanner-hero ps-hero" data-companion-section="scanner" data-companion-side="right">
         <div className="scanner-hero-copy">
-          <span className="scanner-kicker">Buscador de jugadores Free Fire</span>
           <h1>Player Scanner</h1>
           <p>Busca cualquier jugador por su UID y explora su perfil real: banner, avatar, Prime, rangos, clan, outfit e historial de cambios.</p>
         </div>
 
-        <form className="uid-form ps-form" onSubmit={handleSubmit}>
+        <div className="scanner-companion-anchor" data-companion-anchor aria-hidden="true" />
+
+        <form className="uid-form ps-form" onSubmit={handleSubmit} data-companion-obstacle>
           <label htmlFor="player-uid-input">UID del jugador</label>
           <div className="uid-input-wrap">
             <input
@@ -204,7 +204,7 @@ function PlayerScanner() {
               maxLength={12}
               placeholder="Ej: 2196518104"
               value={uid}
-              onChange={(event) => setUid(event.target.value.replace(/[^\d]/g, '').slice(0, 12))}
+              onChange={(event) => { setUid(event.target.value.replace(/[^\d]/g, '').slice(0, 12)); reactCompanion('CHANGE') }}
             />
             <button type="submit" disabled={isLoading || uid.length < 6}>
               {isLoading ? 'Buscando...' : 'Buscar jugador'}
@@ -225,7 +225,7 @@ function PlayerScanner() {
       )}
 
       {player && player.lookupStatus === 'real' && !isLoading && (
-        <div className="ps-result" ref={resultRef}>
+        <div className="ps-result" ref={resultRef} data-companion-section="scanner" data-companion-obstacle>
           <PlayerCard player={player} outfit={outfit} changesCount={changes.length} onSeeHistory={() => goToSection('historial')} />
 
           {Array.isArray(player.enrichment) && player.enrichment.length > 0 && (

@@ -10,9 +10,9 @@ export const OG_IMAGE = `${SITE}/preview.png`
 
 export const SEO = {
   home: {
-    title: 'DaniVex - Generador de Sensibilidad Free Fire',
+    title: 'DaniVex - Sensibilidad Free Fire, Player Scanner y Mobilador',
     description:
-      'Elegi tu dispositivo y arma una base de sensibilidad lista para Free Fire, gratis y sin registro.',
+      'Ajusta tu sensibilidad Free Fire, consulta jugadores por UID y conecta tu Android al PC con DaniVex Mobilador. Herramientas para gamers.',
     path: '/',
   },
   playerScanner: {

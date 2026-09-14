@@ -1,0 +1,23 @@
+.danivex-companion {
+  position: fixed;
+  inset: 0 auto auto 0;
+  z-index: 105;
+  pointer-events: none;
+  transition: transform 440ms cubic-bezier(.2,.8,.2,1);
+  contain: layout style;
+}
+.danivex-companion[data-mode="hero"] { z-index: 5; }
+.companion-stage { position: absolute; inset: 0 0 28px; pointer-events: none; }
+.companion-canvas { width: 100%; height: 100%; display: block; }
+.companion-hit { position: absolute; inset: 6px 12px 30px; cursor: pointer; pointer-events: auto; background: transparent; border: 0; border-radius: 6px; }
+.companion-controls { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; opacity: 0; transition: opacity 140ms ease; pointer-events: auto; }
+.danivex-companion:hover .companion-controls, .danivex-companion:focus-within .companion-controls { opacity: 1; }
+.companion-controls button { border: 0; width: 32px; height: 32px; display: grid; place-items: center; color: var(--text-muted); background: var(--surface); cursor: pointer; border-radius: 4px; }
+.companion-controls button:hover { color: var(--text); background: var(--surface-hover); }
+.companion-dock-button { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--border-strong); background: var(--surface); color: var(--companion-gold, #f4c34d); cursor: pointer; border-radius: 6px; pointer-events: auto; }
+.companion-dock-button svg { width: 20px; height: 20px; }
+[data-companion-dock] { flex: 0 0 40px; width: 40px; height: 40px; }
+[data-companion-anchor] { width: 210px; height: 268px; flex: none; }
+@media (hover: none) { .companion-controls { opacity: 1; } .companion-controls button { width: 36px; height: 32px; } }
+@media (max-width: 700px) { [data-companion-anchor] { width: 116px; height: 162px; } }
+@media (prefers-reduced-motion: reduce) { .danivex-companion { transition: none; } }

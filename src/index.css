@@ -47,9 +47,12 @@
   --accent2-text: #ffffff;
 
   --positive: #4fae8a;
+  --warning: #e7bd68;
+  --danger: #ff7168;
+  --companion-gold: #f4c34d;
 
-  --radius-panel: 18px;
-  --radius-control: 10px;
+  --radius-panel: 8px;
+  --radius-control: 6px;
   --radius-pill: 999px;
 
   --shadow-panel: 0 6px 8px -4px rgba(0, 0, 0, 0.4);

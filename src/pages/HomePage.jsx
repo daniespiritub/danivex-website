@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
-import { FaDiscord, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa'
-import { PiChartBarBold, PiDeviceMobileBold, PiEyeBold, PiSlidersHorizontalBold } from 'react-icons/pi'
-import logo from '../assets/logo.webp'
-import fondo from '../assets/fondo-gamer.webp'
-import mobiladorLogo from '../assets/mobilador-logo.webp'
-import mobiladorScreenInicio from '../assets/mobilador-screens/inicio.png'
-import mobiladorScreenPerfiles from '../assets/mobilador-screens/perfiles.png'
-import mobiladorScreenAcercaDe from '../assets/mobilador-screens/acerca-de.png'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { PiChartBarBold, PiDeviceMobileBold, PiEyeBold, PiSlidersHorizontalBold, PiCopyBold, PiCheckBold } from 'react-icons/pi'
+import SiteNav from '../components/SiteNav.jsx'
+import PlatformHero from '../components/home/PlatformHero.jsx'
+import ToolsSection from '../components/home/ToolsSection.jsx'
+import MobiladorSection from '../components/home/MobiladorSection.jsx'
+import CommunitySection from '../components/home/CommunitySection.jsx'
+import { platformCopy } from '../data/ecosystem.js'
+import { reactCompanion } from '../companion/config.js'
 import {
   createManualDevice,
   devices,
@@ -45,15 +45,6 @@ const platformFallbackManualTier = {
 }
 
 const resultKeys = ['general', 'redDot', 'scope2x', 'scope4x', 'sniper', 'camera360']
-const links = {
-  discord: 'https://discord.gg/AmTUUANzRr',
-  whatsapp: 'https://whatsapp.com/channel/0029Vb7ChEo2UPBIcPCSTI0m',
-  instagram: 'https://www.instagram.com/dani.bpe/',
-  tiktokMain: 'https://www.tiktok.com/@.mashesp',
-  tiktokSecond: 'https://www.tiktok.com/@.danibpe',
-  mobiladorDownload: 'https://github.com/daniespiritub/danivex-mobilador/releases/download/v0.0.0.1/DaniVex-Mobilador-Setup.exe',
-}
-
 function getMaxExperienceYears(now = new Date()) {
   let years = now.getFullYear() - FREE_FIRE_RELEASE_DATE.getFullYear()
   const beforeReleaseDay =
@@ -65,6 +56,10 @@ function getMaxExperienceYears(now = new Date()) {
 }
 
 function getPreferredLanguage() {
+  try {
+    const saved = localStorage.getItem('danivex:language')
+    if (['es', 'pt', 'en'].includes(saved)) return saved
+  } catch { /* Browser language remains available. */ }
   const locale = (navigator.languages?.[0] || navigator.language || 'es').toLowerCase()
   if (locale.startsWith('pt') || locale.includes('-br')) return 'pt'
   if (locale.startsWith('en')) return 'en'
@@ -84,18 +79,23 @@ async function fetchVisitCount(method) {
 }
 
 function HomePage() {
-  const [language] = useState(getPreferredLanguage)
+  const [language, setLanguage] = useState(getPreferredLanguage)
   const [devicePlatform, setDevicePlatform] = useState('android')
   const [catalogDevices, setCatalogDevices] = useState(devices)
   const [isCatalogLoading, setIsCatalogLoading] = useState(false)
+  const [catalogError, setCatalogError] = useState(false)
   const [search, setSearch] = useState(defaultDevice.name)
   const [selectedDevice, setSelectedDevice] = useState(defaultDevice)
   const [manualTier, setManualTier] = useState('mid')
   const [profile, setProfile] = useState(defaultProfile)
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState(false)
+  const copyTimer = useRef(null)
+  const lastResultInputs = useRef({ device: defaultDevice, profile: defaultProfile })
   const [visitCount, setVisitCount] = useState(null)
   const [activeSection, setActiveSection] = useState('inicio')
   const text = copy[language]
+  const words = platformCopy[language]
   const isApplePlatform = selectedDevice.os === 'iOS' || selectedDevice.os === 'iPadOS'
   const showAndroidTuning = !isApplePlatform
   const experienceOptions = Array.from({ length: MAX_EXPERIENCE_YEARS + 1 }, (_, year) => year)
@@ -107,7 +107,8 @@ function HomePage() {
 
   useEffect(() => {
     document.documentElement.lang = text.lang
-  }, [text.lang])
+    try { localStorage.setItem('danivex:language', language) } catch { /* Optional preference. */ }
+  }, [text.lang, language])
 
   useEffect(() => {
     const sections = Array.from(document.querySelectorAll('section[id]'))
@@ -130,8 +131,11 @@ function HomePage() {
   useEffect(() => {
     let cancelled = false
     const sessionKey = 'danivex-visit-session'
-    const hasSession = Boolean(sessionStorage.getItem(sessionKey))
-    if (!hasSession) sessionStorage.setItem(sessionKey, '1')
+    let hasSession = false
+    try {
+      hasSession = Boolean(sessionStorage.getItem(sessionKey))
+      if (!hasSession) sessionStorage.setItem(sessionKey, '1')
+    } catch { /* The real visit API still works without browser storage. */ }
 
     fetchVisitCount(hasSession ? 'GET' : 'POST').then((count) => {
       if (!cancelled && count !== null) setVisitCount(count)
@@ -178,7 +182,17 @@ function HomePage() {
     [selectedDevice, profile, text],
   )
 
+  useEffect(() => {
+    if (lastResultInputs.current.device === selectedDevice && lastResultInputs.current.profile === profile) return undefined
+    lastResultInputs.current = { device: selectedDevice, profile }
+    const timer = window.setTimeout(() => reactCompanion('SUCCESS'), 900)
+    return () => window.clearTimeout(timer)
+  }, [selectedDevice, profile])
+
+  useEffect(() => () => window.clearTimeout(copyTimer.current), [])
+
   function updateProfile(key, value) {
+    reactCompanion('CHANGE')
     setProfile((current) => {
       let parsedValue = value
       if (key === 'years') parsedValue = Math.min(MAX_EXPERIENCE_YEARS, Math.max(0, Number(value || 0)))
@@ -196,15 +210,19 @@ function HomePage() {
     if (platform === 'ios' || catalogDevices.length > devices.length || isCatalogLoading) return
 
     setIsCatalogLoading(true)
+    setCatalogError(false)
     try {
       const loadedDevices = await loadMassiveDeviceCatalog()
       setCatalogDevices(loadedDevices)
+    } catch {
+      setCatalogError(true)
     } finally {
       setIsCatalogLoading(false)
     }
   }
 
   function updateSelectedDevice(nextDevice) {
+    reactCompanion('CHANGE')
     setSelectedDevice(nextDevice)
     setSearch(nextDevice.isManual ? '' : nextDevice.name)
     setProfile((current) => ({
@@ -251,32 +269,19 @@ function HomePage() {
     try {
       await navigator.clipboard.writeText(lines.join('\n'))
       setCopied(true)
-      window.setTimeout(() => setCopied(false), 1400)
+      setCopyError(false)
+      reactCompanion('SUCCESS')
+      window.clearTimeout(copyTimer.current)
+      copyTimer.current = window.setTimeout(() => setCopied(false), 1400)
     } catch {
       setCopied(false)
+      setCopyError(true)
     }
   }
 
   return (
-    <div className="page" style={{ backgroundImage: `url(${fondo})` }}>
-      <nav className="navbar">
-        <div className="brand">
-          <img src={logo} alt="Danivex Logo" />
-          <span>DANIVEX</span>
-        </div>
-
-        <div className="menu">
-          <a href="#inicio" className={activeSection === 'inicio' ? 'active' : ''}>{text.nav[0]}</a>
-          <a href="#sensibilidad" className={activeSection === 'sensibilidad' ? 'active' : ''}>{text.nav[1]}</a>
-          <a href="/player-scanner">{text.primeScanner}</a>
-          <a href="#mobilador" className={activeSection === 'mobilador' ? 'active' : ''}>{text.nav[2]}</a>
-          <a href="#descargas" className={activeSection === 'descargas' ? 'active' : ''}>{text.nav[3]}</a>
-          <a href="#comunidad" className={activeSection === 'comunidad' ? 'active' : ''}>{text.nav[4]}</a>
-          <a href="#contacto" className={activeSection === 'contacto' ? 'active' : ''}>{text.nav[5]}</a>
-        </div>
-
-        <a className="nav-cta" href={links.mobiladorDownload} download>{text.navDownloadCta}</a>
-      </nav>
+    <div className="page platform-page">
+      <SiteNav activeSection={activeSection} language={language} onLanguage={setLanguage} />
 
       {visitCount !== null && (
         <div className="visitor-counter" aria-label={String(visitCount)}>
@@ -285,40 +290,16 @@ function HomePage() {
         </div>
       )}
 
-      <section id="inicio" className="hero">
-        <div className="hero-card">
-          <img src={logo} alt="Danivex Logo" className="hero-logo" />
-          <h1>DANIVEX</h1>
-          <p>{text.heroText}</p>
+      <main id="main-content">
+      <PlatformHero language={language} />
 
-          <div className="buttons">
-            <a href="#sensibilidad" className="btn primary">{text.primaryCta}</a>
-            <a href="/player-scanner" className="btn secondary">{text.primeScanner}</a>
-            <a href="#comunidad" className="btn secondary">{text.community}</a>
-          </div>
-        </div>
-      </section>
-
-      <section id="sensibilidad" className="tool-section">
+      <section id="sensibilidad" className="tool-section" data-companion-section="sensibilidad" data-companion-side="right">
         <div className="section-heading">
-          <span>{text.toolBadge}</span>
           <h2>{text.toolTitle}</h2>
           <p>{text.toolText}</p>
         </div>
 
-        <div className="sensi-how">
-          <h3>{text.sensiHowTitle}</h3>
-          <div className="sensi-how-grid">
-            {text.sensiFactors.map((factor) => (
-              <div className="sensi-how-item" key={factor.label}>
-                <strong>{factor.label}</strong>
-                <span>{factor.text}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="senselab">
+        <div className="senselab" data-companion-obstacle>
           <div className="tool-panel device-panel">
             <div className="panel-head">
               <div className="panel-head-title">
@@ -356,7 +337,8 @@ function HomePage() {
               />
             </label>
 
-            <div className="suggestions" role="listbox" aria-label={text.searchModel}>
+            <div className="suggestions" role="group" aria-label={text.searchModel}>
+              {catalogError && <p className="catalog-error" role="status">{words.catalogError}</p>}
               {isCatalogLoading && (
                 <div className="empty-state">{text.loadingDevices}</div>
               )}
@@ -454,7 +436,7 @@ function HomePage() {
                 </label>
               )}
 
-              <label className="field">
+              <label className="field field-mode">
                 <span>{text.rankMode}</span>
                 <select value={profile.rankMode} onChange={(event) => updateProfile('rankMode', event.target.value)}>
                   <option value="de-ranked">{text.deRanked}</option>
@@ -505,124 +487,49 @@ function HomePage() {
                 <h3>{text.recommended}</h3>
               </div>
               <button type="button" className="copy-btn" onClick={copyPreset}>
-                {copied ? text.copied : text.copy}
+                {copied ? <PiCheckBold aria-hidden="true" /> : <PiCopyBold aria-hidden="true" />} {copied ? text.copied : text.copy}
               </button>
             </div>
 
-            <div className="result-grid">
+            <p className="result-status"><span aria-hidden="true" />{words.liveResult}</p>
+            <div className="result-grid" aria-live="polite" aria-atomic="true">
               {resultKeys.map((key) => (
                 <div className="result-card" key={key}>
                   <span>{text.resultLabels[key]}</span>
-                  <strong>{result.values[key]}</strong>
+                  <strong>{result.values[key]}<small>/ 200</small></strong>
+                  <div className="result-meter" aria-hidden="true"><i style={{ transform: `scaleX(${result.values[key] / 200})` }} /></div>
                 </div>
               ))}
             </div>
 
-            <div className="bars" aria-label={text.recommended}>
-              {resultKeys.map((key) => (
-                <div className="bar-row" key={key}>
-                  <span>{text.resultLabels[key]}</span>
-                  <div><i style={{ width: `${result.values[key] / 2}%` }} /></div>
-                  <b>{result.values[key]}</b>
-                </div>
-              ))}
-            </div>
-
-            <p className="coach">
+            {copyError && <p className="catalog-error" role="status">{words.copyError}</p>}
+            <details className="coach">
+              <summary>{words.details}</summary>
+              <p>
               <strong>{text.coachStart}</strong> {result.reasons.join(' ')}
               {' '}{text.coachEnd}
-            </p>
+              </p>
+            </details>
           </div>
         </div>
-      </section>
-
-      <section id="mobilador" className="section section-wide">
-        <span className="eyebrow">{text.mobiladorEyebrow}</span>
-        <h2>{text.mobiladorSectionTitle}</h2>
-        <p>{text.mobiladorSectionText}</p>
-
-        <ul className="mobilador-profiles">
-          {text.mobiladorProfiles.map((profile) => (
-            <li key={profile}>{profile}</li>
-          ))}
-        </ul>
-
-        <div className="screenshot-gallery">
-          <img src={mobiladorScreenInicio} alt={text.mobiladorShotHome} loading="lazy" />
-          <img src={mobiladorScreenPerfiles} alt={text.mobiladorShotProfiles} loading="lazy" />
-          <img src={mobiladorScreenAcercaDe} alt={text.mobiladorShotAbout} loading="lazy" />
-        </div>
-
-        <a className="btn primary" href="#descargas">{text.mobiladorShowcaseCta}</a>
-      </section>
-
-      <section id="descargas" className="section section-wide">
-        <span className="eyebrow">{text.downloadsEyebrow}</span>
-        <h2>{text.downloadsTitle}</h2>
-        <p>{text.downloadsText}</p>
-
-        <div className="download-card">
-          <div className="download-media">
-            <img src={mobiladorLogo} alt="DaniVex Mobilador" loading="lazy" />
+        <details className="sensi-how" data-companion-obstacle>
+          <summary>{text.sensiHowTitle}</summary>
+          <div className="sensi-how-grid">
+            {text.sensiFactors.map((factor) => (
+              <div className="sensi-how-item" key={factor.label}>
+                <strong>{factor.label}</strong>
+                <span>{factor.text}</span>
+              </div>
+            ))}
           </div>
-          <div className="download-info">
-            <a className="btn primary download-btn" href={links.mobiladorDownload} download>
-              {text.mobiladorButton}
-            </a>
-            <span className="download-note">{text.mobiladorNote}</span>
-          </div>
-        </div>
+        </details>
+
       </section>
 
-      <section id="comunidad" className="section">
-        <span className="eyebrow">{text.communityEyebrow}</span>
-        <h2>{text.nav[4]}</h2>
-        <p>{text.communityText}</p>
-        <div className="social-actions">
-          <a className="social-button discord" href={links.discord} target="_blank" rel="noreferrer">
-            <FaDiscord aria-hidden="true" />
-            <span>{text.discordServer}</span>
-          </a>
-          <a className="social-button whatsapp" href={links.whatsapp} target="_blank" rel="noreferrer">
-            <FaWhatsapp aria-hidden="true" />
-            <span>{text.whatsapp}</span>
-          </a>
-        </div>
-      </section>
-
-      <section id="contacto" className="section">
-        <span className="eyebrow">{text.contactEyebrow}</span>
-        <h2>{text.nav[5]}</h2>
-        <p>{text.contactText}</p>
-        <div className="social-actions contact-actions">
-          <a className="social-button instagram" href={links.instagram} target="_blank" rel="noreferrer">
-            <FaInstagram aria-hidden="true" />
-            <span>{text.instagram}</span>
-          </a>
-          <a className="social-button tiktok" href={links.tiktokMain} target="_blank" rel="noreferrer">
-            <FaTiktok aria-hidden="true" />
-            <span>{text.tiktokMain}</span>
-          </a>
-          <a className="social-button tiktok" href={links.tiktokSecond} target="_blank" rel="noreferrer">
-            <FaTiktok aria-hidden="true" />
-            <span>{text.tiktokSecond}</span>
-          </a>
-        </div>
-      </section>
-
-      <footer className="site-footer">
-        <div className="site-footer-brand">
-          <img src={logo} alt="Danivex Logo" />
-          <span>{text.footerRights(new Date().getFullYear())}</span>
-        </div>
-        <nav className="site-footer-links" aria-label={text.nav[0]}>
-          <a href="#inicio">{text.nav[0]}</a>
-          <a href="#sensibilidad">{text.nav[1]}</a>
-          <a href="/player-scanner">{text.primeScanner}</a>
-          <a href="#mobilador">{text.nav[2]}</a>
-          <a href="#comunidad">{text.nav[4]}</a>
-        </nav>
-      </footer>
+      <ToolsSection language={language} />
+      <MobiladorSection language={language} />
+      <CommunitySection language={language} />
+      </main>
     </div>
   )
 }
