@@ -1,16 +1,16 @@
 # DaniVex Goal State
 
-## ACTIVE REVISION - 2026-09-15
+## PRODUCTION VERIFIED - 2026-09-15
 
 The user rejected the shipped procedural character. Its geometry, proportions
 and visual design must not be reused or shipped as the final replacement.
 Earlier acceptance below records the platform release, NOT current art approval.
 Preserve the independent renderer/controller/placement infrastructure only.
 Current candidate: Blender Studio Snow v4, professionally authored humanoid rig,
-CC BY 4.0. Adaptation is integrated locally; final production acceptance pending.
+CC BY 4.0. Adaptation is integrated and verified at https://danivex.com.
 Source: https://studio.blender.org/characters/snow/v4/
 Gate: multi-angle face/hands/shoes review, natural rigged clips, web performance,
-desktop/mobile visual QA and production verification. Goal remains active.
+desktop/mobile visual QA and production verification are complete.
 
 Progress: official portable Blender 4.5.13 checksum verified. Snow v4.2 source
 inspected with required CC BY credit. scripts/companion now contains the full
@@ -27,8 +27,17 @@ Source artifacts remain in ignored .qa/companion-source; original blend untouche
 Independent initial review identified five art corrections; all are resolved by
 current evidence in docs/COMPANION_ACCEPTANCE.md. Its external verdict retry hit
 a usage limit; the final scoring/documentation pass was performed in-thread.
-No new commit or deployment yet; publication is the remaining gate.
-Production remains ab08f11 / prior release until these final gates are complete.
+Code commit c3e86859c75d4bb892e194e8d4491ec19c1479ad is pushed to origin/main.
+Automatic Vercel deployment dpl_F4kXBNcyeF419ZDJ7yLWtsQeuJPy is Ready and aliased
+to danivex.com and www.danivex.com. Production QA passes 13/13 without mocks;
+no console/page/HTTP errors. Public GLB SHA-256 matches the reviewed local binary.
+Production evidence: .qa/production/report.json, asset-verification.json and
+throttled-loading.json. Cold throttled 4Mbps/80ms + 4x CPU: tools usable at 1.64s,
+Companion rendered at 19.54s; physical low-end hardware remains untested.
+The documentation-only checkpoint commit follows the verified functional release.
+
+Everything below is historical context for the prior platform release, not the
+current character specification or deployment status.
 
 ## GOAL
 

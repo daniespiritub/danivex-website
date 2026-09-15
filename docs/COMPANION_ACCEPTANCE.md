@@ -55,12 +55,30 @@ decisions remain intact. Publication still requires the production gate below.
 
 Physical low-end Android/iPhone hardware has not been tested. Browser mobile
 emulation and local GPU measurements do not prove all-device performance.
-The deferred ~7.95 MB asset still costs bandwidth on slow connections. Vite's
+The deferred ~7.95 MB asset still costs bandwidth on slow connections. A cold
+production test at 4Mbps/80ms and 4x CPU slowdown measured FCP 1.23s, usable iOS
+selection 1.64s and the first rendered Companion at 19.54s. HTTP compression
+transferred 5.43 MB for the GLB. This is one measured run, not a universal SLA.
+Vite's
 large-chunk advisory concerns separately loaded Three.js and device catalog,
 not a build failure. glTF validation reports no errors; parented-skin and unused
 attribute advisories are checked against actual Three.js rendering.
 
 ## Production Gate
 
-Pending commit, push, deployment and live-domain verification. Do not mark the
-thread goal complete until this section contains the verified production result.
+- Functional commit: `c3e86859c75d4bb892e194e8d4491ec19c1479ad`, pushed to `origin/main`.
+- Vercel automatic deployment: `dpl_F4kXBNcyeF419ZDJ7yLWtsQeuJPy`, Ready.
+- Immutable URL: https://danivex-website-1ges8ysyv-daniespiritubs-projects.vercel.app
+- Public aliases: https://danivex.com and https://www.danivex.com.
+- Production browser QA: 13/13 groups, eight viewport sizes, no API fixtures,
+  no console/page/HTTP errors or horizontal overflow in tested views.
+- Sensitivity, device catalog/fallback, ES/PT/EN, download controls, Companion
+  states/pause/docking and real Player Scanner nickname/images passed.
+- Public GLB: HTTP 200, correct MIME, 7,951,192 bytes and the SHA-256 listed above.
+- Credits, decoder JS/WASM, root and www respond 200. Desktop/mobile production
+  captures show the replacement model rather than the rejected geometry.
+- Reports: `.qa/production/report.json`, `asset-verification.json`,
+  `throttled-loading.json` and the production screenshots.
+
+This documentation checkpoint follows that verified functional release; it does
+not change application code or the reviewed public asset.
