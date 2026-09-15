@@ -1,5 +1,35 @@
 # DaniVex Goal State
 
+## ACTIVE REVISION - 2026-09-15
+
+The user rejected the shipped procedural character. Its geometry, proportions
+and visual design must not be reused or shipped as the final replacement.
+Earlier acceptance below records the platform release, NOT current art approval.
+Preserve the independent renderer/controller/placement infrastructure only.
+Current candidate: Blender Studio Snow v4, professionally authored humanoid rig,
+CC BY 4.0. Adaptation is integrated locally; final production acceptance pending.
+Source: https://studio.blender.org/characters/snow/v4/
+Gate: multi-angle face/hands/shoes review, natural rigged clips, web performance,
+desktop/mobile visual QA and production verification. Goal remains active.
+
+Progress: official portable Blender 4.5.13 checksum verified. Snow v4.2 source
+inspected with required CC BY credit. scripts/companion now contains the full
+Blender-to-GLB pipeline and visual QA. New GLB: 73 bones, 14 clips, six facial
+morphs, WebP atlases, Draco compression and explicit normal tangents. 7,951,192 bytes,
+179,362 triangles, 18 draw calls. Licensed notices are public and linked in footer.
+The rejected createCharacter.js and its fallback are deleted. New runtime handles
+clips, gaze, blink, pause and resource cleanup independently of placement.
+28 actual WebGL review frames cover angles, face, hands, shoes, poses, walk/hop.
+Fixed binding/UV conversion, metallic-looking eyes, compact celebration, persistent
+idle looping and unsafe hero-to-gutter travel. Unit suite: 225/225. Local platform
+13/13, no console/page/HTTP errors. Build/lint pass; dependency audit: zero. Detector: [].
+Source artifacts remain in ignored .qa/companion-source; original blend untouched.
+Independent initial review identified five art corrections; all are resolved by
+current evidence in docs/COMPANION_ACCEPTANCE.md. Its external verdict retry hit
+a usage limit; the final scoring/documentation pass was performed in-thread.
+No new commit or deployment yet; publication is the remaining gate.
+Production remains ab08f11 / prior release until these final gates are complete.
+
 ## GOAL
 
 Transform the existing platform and integrate the approved small 3D Companion;

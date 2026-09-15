@@ -7,6 +7,14 @@ function rect(left, top, width, height) {
   return { left, top, width, height, right: left + width, bottom: top + height }
 }
 
+export function canAnimatePlacement(previous, next, obstacles = []) {
+  if (previous?.mode !== 'floating' || next.mode !== 'floating') return false
+  const left = Math.min(previous.left, next.left)
+  const top = Math.min(previous.top, next.top)
+  const swept = rect(left, top, Math.max(previous.right, next.right) - left, Math.max(previous.bottom, next.bottom) - top)
+  return !obstacles.some((obstacle) => intersects(swept, obstacle))
+}
+
 export function chooseCompanionPlacement({ width, height, anchor, dock, obstacles = [],
   preferredSide = 'right', previous, hidden = false, minimized = false }) {
   if (hidden || height < 280) return { mode: 'hidden', left: 0, top: 0, width: 0, height: 0 }
@@ -15,8 +23,8 @@ export function chooseCompanionPlacement({ width, height, anchor, dock, obstacle
   if (anchor && anchor.top >= 64 && anchor.bottom <= height - 8) {
     return { ...anchor, mode: 'hero', side: 'right' }
   }
-  const w = width < 700 ? 100 : 136
-  const h = width < 700 ? 148 : 208
+  const w = width < 700 ? 100 : 140
+  const h = width < 700 ? 148 : 236
   const safe = (box) => box.left >= 8 && box.right <= width - 8 && box.top >= 80
     && box.bottom <= height - 60 && !obstacles.some((obstacle) => intersects(box, obstacle))
   // Keep a free position while scrolling; a new section must not cause jitter.

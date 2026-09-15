@@ -31,3 +31,4 @@ dist-ssr
 
 # Local browser verification artifacts
 .qa/
+scripts/companion/__pycache__/

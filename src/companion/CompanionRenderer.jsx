@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { createCompanionLighting } from './lighting.js'
 import { loadCharacter } from './loadCharacter.js'
 
 export default function CompanionRenderer({ action, pointer, motion, active, onUnavailable, onReady }) {
@@ -22,15 +23,9 @@ export default function CompanionRenderer({ action, pointer, motion, active, onU
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.25 : 1.5))
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.3
+    renderer.toneMappingExposure = 1
     const scene = new THREE.Scene()
-    scene.add(new THREE.HemisphereLight(0xfff3e4, 0x716780, 2.25))
-    const key = new THREE.DirectionalLight(0xfff0d6, 3.2)
-    key.position.set(-3, 5, 6)
-    scene.add(key)
-    const rim = new THREE.DirectionalLight(0xa5c7ff, 2)
-    rim.position.set(3, 3, -3)
-    scene.add(rim)
+    const disposeLighting = createCompanionLighting(renderer, scene)
     const camera = new THREE.OrthographicCamera(-1.8, 1.8, 4, -0.2, 0.1, 30)
     camera.position.set(0, 1.9, 9)
     camera.lookAt(0, 1.9, 0)
@@ -80,13 +75,14 @@ export default function CompanionRenderer({ action, pointer, motion, active, onU
       scene.add(character.root)
       resize()
       onReady()
-    }).catch(onUnavailable)
+    }).catch(() => { if (!cancelled) onUnavailable() })
     return () => {
       cancelled = true
       cancelAnimationFrame(raf)
       observer.disconnect()
       canvas.removeEventListener('webglcontextlost', lost)
       character?.dispose()
+      disposeLighting()
       renderer.dispose()
       renderer.forceContextLoss()
       canvas.remove()

@@ -27,13 +27,20 @@ Software downloads use a metadata row sourced from the existing release.
 
 ## Companion
 
-One transparent lazy Three.js renderer. Procedural articulated placeholder
-temporarily represents the approved chibi: black D cap, normal brown eyes,
-friendly uncovered face, dark/red shirt, purple pants. GLB loader accepts
-named clips. Controller and placement do not depend on the character asset.
+One transparent lazy Three.js renderer. The rejected procedural model and its
+fallback have been removed entirely, without recycling their geometry.
+The replacement is a professional stylized young gamer, friendly dimensional face,
+expressive eyelids/eyes/mouth, modeled fingers and sneakers, layered graphite
+and violet clothing, subtle red/gold accents. GLB loader accepts named clips.
+Controller and placement do not depend on the character asset. The character
+adapts Blender Studio Snow v4 under CC BY 4.0 with public attribution. Fabric,
+skin, eyes, modeled hair and rubber retain different material responses. Cuff
+color is baked continuously; the white sole edge is split in the shoe geometry.
+Facial morphs include relaxed mouth shapes rather than a fixed grin in every state.
 Hero anchor, collision-free viewport gutters, reserved nav dock when no safe
 space remains. Hide on mobile text entry and dialogs. Persist motion/minimize
 preferences. Reduced motion and hidden-tab behavior stop the render loop.
+Animate travel only when its full swept rectangle is free of protected content.
 
 ## Interaction
 

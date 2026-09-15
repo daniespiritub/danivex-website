@@ -1,72 +1,85 @@
 # DaniVex Companion
 
-## Current asset
+## Asset and Rights
 
-The shipped character is a temporary, articulated Three.js model built from
-geometry, not a floating image. It follows the approved reference: black cap
-with yellow D, uncovered friendly face, large brown eyes, dark/red clothing,
-purple trousers. It is not the final sculpt or a reconstructed scan.
+The rejected procedural character has been removed, including its fallback.
+`public/companion/DaniVexCharacter.glb` is a genuinely rigged 3D adaptation of
+Blender Studio's professionally authored Snow v4. It is a licensed derivative,
+not an exclusively original DaniVex sculpt. Required credit:
+**Snow Rig (CC) Blender Foundation | studio.blender.org**.
 
-Reference-to-3D upload through the available Fal integration returned Forbidden.
-No conversion job or paid generation was started. The final model remains an
-art-production replacement, independently of the working interaction system.
+Source: https://studio.blender.org/characters/snow/v4/
+License: https://creativecommons.org/licenses/by/4.0/
+Attribution is embedded in the GLB and linked from the website footer through
+`public/companion/CREDITS.txt`. Complete CC BY, Three.js MIT and Draco Apache
+license notices are distributed beside the asset.
 
-## Replace the character
+DaniVex adaptations include graphite fabric, violet trousers, red fabric/suede,
+rubber soles, raised gold DV monogram, baked PBR atlases, independent web rig,
+facial morphs and authored Companion clips. No geometry from the rejected
+character is included. The original Blender source remains untouched.
 
-1. Export a rigged, self-contained glTF 2.0 GLB with embedded textures.
-2. Place it at `public/companion/DaniVexCharacter.glb`.
-3. Set `companionAsset.modelUrl` in `src/companion/config.js` to
-   `/companion/DaniVexCharacter.glb`.
-4. Match animation clip names using the aliases in that config. Minimum: Idle
-   and Wave. Recommended: Look, Curious, Thinking, Happy, Celebrate, Walk,
-   Surprised, Bored, Sleepy, PointLeft and PointRight.
-5. Adjust `rotationY` if the export faces away from the camera. The adapter
-   normalizes height and centers the model with its feet on the ground.
-6. Run `npm test`, `npm run build` and `npm run test:platform` against the dev
-   server. Inspect the character at desktop and mobile sizes before deploying.
+## Art Pipeline
 
-Use ordinary GLB initially: the adapter does not currently configure Draco or
-KTX2 decoders. Aim for a 1-2 MB asset, fewer than 50k triangles, shared materials
-and textures of at most 1024px where possible. These are production budgets,
-not claims about an unavailable final asset. Preserve normal expressive eyes,
-the cap letter, bare face and the approved silhouette in the art review.
+`scripts/companion/README.md` documents the official source/checksums and the
+Blender 4.5 pipeline. `build.ps1` produces an editable blend and a compressed
+candidate in ignored `.qa/companion-source/web`; it never publishes automatically.
+The source CloudRig runs only during local authoring, not in the website.
 
-The adapter loads GLTFLoader only when a GLB is configured. Failed model loads
-fall back to procedural geometry. Missing clips fall back to Idle/the first
-available clip. A new renderer backend would only need to preserve the same
-`root`, `update` and `dispose` character adapter contract.
+The web asset has 73 deform bones, 14 named clips and six facial morphs:
+Blink, Smile, Surprised, Curious, Sleepy and Relaxed. Body/fingers use skinning; head/eye
+bones add bounded pointer tracking. Draco geometry and embedded WebP textures
+keep the asset at 7,951,192 bytes. Normal-map tangents are baked before final compression.
 
-## Responsibilities
+## Runtime Responsibilities
 
-- `DaniVexCompanion.jsx`: isolated error boundary, deferred renderer and controls.
-- `CompanionRenderer.jsx`: one transparent canvas, camera/lights, frame budget,
-  resize and complete WebGL/resource cleanup, including React StrictMode.
-- `createCharacter.js` / `loadCharacter.js`: asset and animation implementations.
-- `machine.js`: pure state transitions; greeting starts only after asset ready.
-- `useCompanionController.js`: events, throttling, inactivity, reduced motion,
-  visibility and persistent minimize/motion preferences.
-- `useCompanionPosition.js` / `placement.js`: section observation and deterministic
-  collision avoidance. No space means a small navigation dock, not overlap.
-- `config.js`: asset aliases and `reactCompanion(type)` frontend event interface.
+- `DaniVexCompanion.jsx`: isolated error boundary, delayed renderer and translated controls.
+- `CompanionRenderer.jsx`: transparent canvas, camera, resize and frame budget.
+- `lighting.js`: soft studio environment, key/fill/rim and faint contact shadow.
+- `loadCharacter.js`: lazy GLTF/Draco loading, one decoder worker and failure cleanup.
+- `characterRuntime.js`: normalization, clip transitions, facial morphs, gaze and disposal.
+- `machine.js`: pure state transitions; greeting starts only after the asset is ready.
+- `useCompanionController.js`: events, inactivity, reduced motion and persistent preferences.
+- `useCompanionPosition.js` / `placement.js`: reserved anchor, gutters and collision avoidance.
+- `config.js`: model URL, dimensions, clip aliases and frontend event interface.
 
-Sections opt in through `data-companion-section` and `data-companion-side`.
-Important blocks use `data-companion-obstacle`. The observer also checks common
-interactive/text elements. On mobile, focused fields, the keyboard viewport and
-open dialogs hide the character. No cursor-follow on touch devices.
+The renderer is deferred 650 ms and stays outside the initial application chunk.
+No model loads when minimized. The device catalog remains independently lazy.
+Animation is capped at 30 fps desktop / 20 fps mobile and DPR at 1.5 / 1.25.
+Hidden tabs, docked/hidden state, pause and reduced motion stop continuous rendering.
+Textures, ImageBitmaps, skeletons, geometries, materials, decoder workers, environment
+maps, animation actions and WebGL contexts are explicitly released.
 
-The animation loop is capped at 30 fps desktop / 20 fps mobile, pixel ratio at
-1.5 / 1.25 respectively. Hidden tabs, docked/hidden state and reduced motion stop
-continuous rendering. There is no audio, external telemetry or interaction with
-backend data. Preferences use the local key `danivex:companion` only.
+Sections declare `data-companion-section`, `data-companion-side` and protected
+`data-companion-obstacle` areas. Focused mobile fields, the keyboard and dialogs
+hide the overlay. A dense layout uses the small navigation dock. Animated travel
+is allowed only when its entire swept rectangle is clear; it cannot cross controls.
+The existing controller and positioning are independent of the replaceable asset.
+There is no audio, advertising, telemetry or new access to backend data.
 
-## Verification
+## Replace or Rebuild
 
-`tests/companion.test.js` covers state, placement, geometry/disposal and unchanged
-sensitivity output. `scripts/qa-platform.mjs` verifies eight viewport sizes,
-pixel-colored geometry, actual motion, greeting, controls, no-WebGL fallback,
-catalog, languages, screenshots and Player Scanner.
+Use a self-contained GLB with licensed textures, skinning and matching clips:
+Idle, Wave, Look, PointLeft, PointRight, Happy, Celebrate, Thinking, Surprised,
+Walk, Hop, Bored, Sleepy and Return. Update `config.js` aliases for other names.
+Height/grounding is normalized; `rotationY` adjusts forward direction. Failed
+model loads use the existing accessible dock, never the rejected geometry.
 
-Local QA uses an isolated browser with visit fixtures and a captured public
-player response. It does not change application API behavior. Set
-`DANIVEX_QA_URL=https://danivex.com` to exercise real production endpoints.
-Reports and screenshots are written to ignored `.qa/` directories.
+## Verification and Limits
+
+`tests/characterRuntime.test.js` checks the shipped GLB structure/license/budget,
+clip aliases, Intro-to-Idle looping, expressions, gaze bounds, pause and disposal.
+`tests/companion.test.js` covers states, safe placement and unchanged sensitivity.
+`scripts/companion/qa-asset.mjs` renders 28 multi-angle/pose frames from the actual
+GLB, verifies foot/hip/wrist motion and captures a local browser timing sample.
+`qa-motion.mjs` records nine clips playing in real time and their joint trajectories.
+`scripts/qa-platform.mjs` checks eight viewport sizes, canvas pixels/motion,
+controls, reduced motion, WebGL failure, sensitivity/catalog/languages and scanner.
+
+Local platform QA confines API fixtures to its isolated browser. Production QA
+uses real endpoints: `$env:DANIVEX_QA_URL='https://danivex.com'; npm run test:platform`.
+Evidence is written under `.qa/`, not deployed. Browser mobile emulation does
+not substitute for testing every physical low-end phone. The model favors visual
+quality (179,362 triangles, 18 draw calls) over an ultra-low-poly budget; its download
+is deferred but still matters on slow connections. Check actual load and frame
+timings before increasing texture/geometry budgets.

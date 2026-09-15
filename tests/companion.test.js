@@ -1,8 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { companionReducer, initialCompanionState } from '../src/companion/machine.js'
-import { chooseCompanionPlacement, intersects } from '../src/companion/placement.js'
-import { createCharacter } from '../src/companion/createCharacter.js'
+import { canAnimatePlacement, chooseCompanionPlacement, intersects } from '../src/companion/placement.js'
 import { devices, createManualDevice, filterDevicesByPlatform, loadMassiveDeviceCatalog } from '../src/data/devices.js'
 import { calculateSensitivity } from '../src/utils/sensitivity.js'
 
@@ -68,41 +67,12 @@ test('Placement: minimized overrides hero, and a safe existing position does not
   assert.deepEqual(chooseCompanionPlacement({ width: 1440, height: 900, preferredSide: 'left', previous }), previous)
 })
 
-test('Character: actual geometry, finite animation, bounded cursor and disposal', () => {
-  const character = createCharacter()
-  let meshCount = 0
-  let disposed = 0
-  character.root.traverse((object) => {
-    if (object.isMesh) { meshCount++; object.geometry.addEventListener('dispose', () => disposed++) }
-  })
-  assert.ok(meshCount > 50)
-  for (const action of ['WAVE', 'CURIOUS', 'THINKING', 'CELEBRATE', 'SLEEPY', 'MOVE_SIDE', 'IDLE']) {
-    character.update({ time: 3, delta: 0.033, action, pointer: { x: 1, y: -1 }, motion: true })
-    character.root.updateMatrixWorld()
-    character.root.traverse((object) => assert.ok(object.matrixWorld.elements.every(Number.isFinite)))
-  }
-  character.dispose()
-  assert.ok(disposed >= meshCount)
-})
-
-test('Character: cursor limits and distinct surprise, boredom and sleep poses', () => {
-  const character = createCharacter()
-  const head = character.root.getObjectByName('DaniVexHead')
-  const eye = character.root.getObjectByName('DaniVexEye1')
-  const pose = (action, time, pointer = { x: 0, y: 0 }) => character.update({ action, time, pointer, delta: 1, motion: true })
-  pose('IDLE', 0, { x: 500, y: -500 })
-  assert.ok(head.rotation.y <= 0.23 && head.rotation.y > 0)
-  assert.ok(head.rotation.x >= -0.1 && head.rotation.x < 0)
-  pose('SURPRISED', 1)
-  assert.equal(eye.scale.y, 1.1)
-  assert.ok(head.rotation.x < -0.08)
-  pose('BORED', 2)
-  pose('BORED', 3)
-  assert.ok(head.rotation.y > 0.15)
-  pose('SLEEPY', 4)
-  assert.equal(eye.scale.y, 0.45)
-  assert.ok(head.rotation.x > 0.13)
-  character.dispose()
+test('Placement: never animate across content or from the hero into controls', () => {
+  const start = { ...rect(12, 92, 140, 236), mode: 'floating' }
+  const end = { ...rect(1288, 92, 140, 236), mode: 'floating' }
+  assert.equal(canAnimatePlacement(start, end, []), true)
+  assert.equal(canAnimatePlacement(start, end, [rect(300, 90, 600, 400)]), false)
+  assert.equal(canAnimatePlacement({ ...start, mode: 'hero' }, end, []), false)
 })
 
 const profile = { years: 2, rootState: 'no-root', dpi: 480, fireButton: 52, fpsTarget: 'auto', gameVersion: 'ff', rankMode: 'de-ranked' }

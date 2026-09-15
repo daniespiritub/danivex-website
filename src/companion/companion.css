@@ -3,9 +3,9 @@
   inset: 0 auto auto 0;
   z-index: 105;
   pointer-events: none;
-  transition: transform 440ms cubic-bezier(.2,.8,.2,1);
   contain: layout style;
 }
+.danivex-companion[data-travel="true"] { transition: transform 440ms cubic-bezier(.2,.8,.2,1); }
 .danivex-companion[data-mode="hero"] { z-index: 5; }
 .companion-stage { position: absolute; inset: 0 0 28px; pointer-events: none; }
 .companion-canvas { width: 100%; height: 100%; display: block; }
@@ -20,4 +20,4 @@
 [data-companion-anchor] { width: 210px; height: 268px; flex: none; }
 @media (hover: none) { .companion-controls { opacity: 1; } .companion-controls button { width: 36px; height: 32px; } }
 @media (max-width: 700px) { [data-companion-anchor] { width: 116px; height: 162px; } }
-@media (prefers-reduced-motion: reduce) { .danivex-companion { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .danivex-companion[data-travel] { transition: none; } }

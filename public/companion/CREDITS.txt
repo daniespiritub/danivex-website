@@ -1,0 +1,15 @@
+DaniVex Companion - 3D credits
+
+Snow Rig (CC) Blender Foundation | studio.blender.org
+Original model and rig: https://studio.blender.org/characters/snow/v4/
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+DaniVex adaptation: graphite/violet clothing, red accents, monogram,
+material conversion, web deform rig, facial morphs and Companion animations.
+This is a modified licensed asset, not an exclusively original sculpt.
+The Blender Foundation does not endorse DaniVex.
+
+Three.js renderer: MIT License, https://github.com/mrdoob/three.js
+Draco decoder: Apache License 2.0, https://github.com/google/draco
+The decoder files are distributed unchanged from the installed Three.js release.

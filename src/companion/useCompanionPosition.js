@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { chooseCompanionPlacement } from './placement.js'
+import { canAnimatePlacement, chooseCompanionPlacement } from './placement.js'
 
 function box(element) {
   if (!element) return null
@@ -46,6 +46,7 @@ export function useCompanionPosition({ minimized, dispatch }) {
         hidden: Boolean(editing || keyboard || modal || section?.dataset.companionAllow === 'false'),
       })
       if (!previous || ['mode', 'left', 'top', 'width', 'height'].some((key) => previous[key] !== next[key])) {
+        next.animate = canAnimatePlacement(previous, next, obstacles)
         if (previous?.mode === 'floating' && next.mode === 'floating' && previous.side !== next.side) dispatch({ type: 'MOVE' })
         previous = next
         setPlacement(next)

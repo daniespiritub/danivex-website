@@ -29,15 +29,19 @@ Only actual releases, fields and features may be advertised.
 
 The user supplied the complete GOAL MAESTRO on 2026-09-14 and delegated normal
 design, implementation and deployment decisions. DaniVex Companion reference:
-IMG_0093.PNG, black cap with yellow D, friendly uncovered face, large normal
-eyes, dark clothing with red details and purple pants. Small, secondary and
-nonintrusive. Three-dimensional asset replaceable independently of the app.
+The later replacement brief supersedes IMG_0093.PNG fidelity: the procedural
+character is rejected. Build a professionally modeled, expressive young gamer
+with natural eyes, proper hands and sneakers, graphite/violet clothing and
+restrained warm accents. Small, secondary and nonintrusive. Licensed professional
+geometry may be adapted with attribution; no reuse of the rejected visual base.
 
 ## Evidence on Hand
 
 Existing Mobilador release URL and real application screenshots in src/assets.
-Existing community/social links and public-data scanner. Final rigged character
-asset is not yet supplied. Temporary 3D placeholder is explicitly permitted.
+Existing community/social links and public-data scanner. The new rigged character
+is a DaniVex adaptation of Blender Studio Snow v4 (CC BY 4.0), with attribution,
+73 bones, 14 animation clips and six facial morphs. The former placeholder is
+deleted. This is licensed professional source geometry, not an exclusive sculpt.
 
 ## Accessibility & Inclusion
 

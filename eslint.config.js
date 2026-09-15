@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'sw.js', 'public/sw.js']),
+  globalIgnores(['dist', 'sw.js', 'public/sw.js', 'public/companion/draco/**']),
   {
     files: ['**/*.{js,jsx}'],
     ignores: ['api/**'],

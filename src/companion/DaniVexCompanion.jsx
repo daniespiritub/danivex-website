@@ -37,6 +37,7 @@ function Companion() {
 
   return (
     <div data-companion-root data-mode={position.mode} data-state={state.action}
+      data-travel={Boolean(position.animate)}
       data-motion={paused ? 'paused' : 'active'} className="danivex-companion"
       aria-hidden={hidden || undefined}
       style={{ width: position.width || 1, height: position.height || 1,

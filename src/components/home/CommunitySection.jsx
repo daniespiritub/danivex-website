@@ -30,6 +30,7 @@ export default function CommunitySection({ language }) {
         <div className="site-footer-brand"><img src={logo} alt="" width="28" height="28" /><span>{text.footerRights(new Date().getFullYear())}</span></div>
         <nav className="site-footer-links" aria-label={text.nav[0]}>
           <a href="#inicio">{text.nav[0]}</a><a href="#sensibilidad">{text.nav[1]}</a><a href="/player-scanner">{text.primeScanner}</a><a href="#descargas">{text.nav[3]}</a>
+          <a href="/companion/CREDITS.txt" target="_blank" rel="noreferrer">{language === 'en' ? '3D credits' : 'Créditos 3D'}</a>
         </nav>
       </footer>
     </>
