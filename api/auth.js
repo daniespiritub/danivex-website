@@ -32,6 +32,7 @@ export default async function handler(req, res) {
     if (['signin', 'signup', 'reset'].includes(action)) {
       const email = text(input.email, 3, 254).trim()
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new PublicError('invalid_email')
+      await limit(req, `auth-email-${action}`, 10, 900, email.toLowerCase())
       if (action === 'reset') {
         await auth.auth.resetPasswordForEmail(email, { redirectTo: `${origin()}/auth/confirm` })
         return res.status(200).json({ ok: true, message: 'check_email' })
@@ -52,6 +53,7 @@ export default async function handler(req, res) {
       if (!['signup', 'recovery', 'email_change'].includes(input.type)) throw new PublicError('invalid_input')
       const result = await auth.auth.verifyOtp({ token_hash: text(input.token_hash, 20, 512), type: input.type })
       if (result.error) throw new PublicError('invalid_or_expired_link', 401)
+      if (input.type === 'email_change' && !result.data.session) return res.status(200).json({ ok: true, message: 'check_email' })
       saveSession(res, result.data.session)
       return res.status(200).json({ ok: true, recovery: input.type === 'recovery' })
     }
@@ -98,5 +100,11 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true })
     }
     throw new PublicError('unknown_action', 404)
-  } catch (error) { return fail(res, error) }
+  } catch (error) {
+    if (req.method === 'GET' && new URL(req.url, origin()).searchParams.get('action') === 'callback') {
+      res.setHeader('Location', '/signin?auth_error=1')
+      return res.status(303).end()
+    }
+    return fail(res, error)
+  }
 }

@@ -18,6 +18,7 @@ export default async function handler(req, res) {
     const consent = input.private_context === true
     const account = consent || input.save === true ? await authenticated(req, res) : null
     if (account) {
+      await limit(req, 'assistant-user', 20, 3600, account.user.id)
       const profile = check(await account.db.from('dv_profiles').select('handle').eq('user_id', account.user.id).single())
       if (!profile.handle) throw new PublicError('onboarding_required', 403)
     }

@@ -45,10 +45,10 @@ export function fail(res, error) {
 export function limiterConfigured() {
   return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN && process.env.RATE_LIMIT_SECRET?.length >= 32)
 }
-export async function limit(req, bucket, max = 20, seconds = 60) {
+export async function limit(req, bucket, max = 20, seconds = 60, identity) {
   if (!limiterConfigured()) throw new PublicError('service_unavailable', 503)
   const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim()
-  const hash = createHmac('sha256', process.env.RATE_LIMIT_SECRET).update(ip).digest('hex')
+  const hash = createHmac('sha256', process.env.RATE_LIMIT_SECRET).update(identity ? `user:${identity}` : `ip:${ip}`).digest('hex')
   const redis = new Redis({ url: process.env.KV_REST_API_URL, token: process.env.KV_REST_API_TOKEN, retry: false, signal: () => AbortSignal.timeout(3000) })
   const key = `${process.env.VERCEL_ENV || 'development'}:account:rate:${bucket}:${hash}`
   const script = "local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],ARGV[1]) end; return n"

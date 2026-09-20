@@ -13,6 +13,7 @@ export default async function handler(req, res) {
     if (!['overview', 'profile', 'clear-chats', 'remove', 'favorite', 'save', 'download', 'support', ...Object.keys(tables)].includes(action)) throw new PublicError('unknown_action', 404)
     if (req.method !== 'GET') mutation(req)
     const { db, user } = await authenticated(req, res)
+    await limit(req, 'account-user', 120, 60, user.id)
     if (req.method === 'GET') {
       if (action === 'overview') {
         const counts = {}
