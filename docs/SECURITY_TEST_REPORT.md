@@ -24,7 +24,8 @@ recorded separately in TEST_REPORT.md after deployment.
 
 ## GitHub and real staging
 
-- GitHub CodeQL completed successfully; open code-scanning alerts API returned [].
+- GitHub CodeQL completed successfully; the initial alerts query returned [] before
+  the default branch analysis. This did not prove the absence of inherited findings.
 - Secret scanning and push protection already enabled and retained.
 - Enabled vulnerability alerts and Dependabot security updates (verified enabled).
 - Protected main: require verify/analyze from the GitHub Actions app, up-to-date
@@ -38,3 +39,20 @@ recorded separately in TEST_REPORT.md after deployment.
 
 Configuration references: [GitHub protected branches](https://docs.github.com/en/rest/branches/branch-protection),
 [CSP connect-src](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/connect-src).
+
+## Default-branch findings and remediation
+
+The subsequent main analysis reported three high-severity CodeQL findings in
+pre-existing public profile code: two incomplete HTML tag filtering expressions
+and one substring-based URL classification. The text is consumed as data, not an
+HTML sanitization boundary, but these patterns are corrected rather than waived.
+
+- api/_lib/providers/text-utils.js now parses HTML with parse5 and walks text nodes,
+  omitting script/style/template content even with unusual valid closing tags.
+- api/free-fire-prime.js reuses that parser, removing its duplicate tag filters.
+- api/_lib/profile-images.js compares parsed protocol/hostname/origin/path, not a
+  hostname embedded anywhere in the URL. Tests include userinfo and hostile suffixes.
+- Added three focused tests; all existing profile/Prime tests continue to pass.
+  The parser runs only on the server and adds no browser bundle weight.
+- Follow-up PR/CodeQL and live redeploy must confirm closure. Workflow success alone
+  is not used as evidence that alerts are resolved.
