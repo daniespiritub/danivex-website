@@ -28,6 +28,7 @@ async function seedLegacyVisitsOnce(counterKey) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader('Cache-Control', 'no-store')
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -56,7 +57,7 @@ export default async function handler(req, res) {
       : Number(await redis.get(counterKey)) || 0
 
     return res.status(200).json({ ok: true, count })
-  } catch (error) {
-    return res.status(200).json({ ok: false, error: 'visits_unavailable', message: error.message })
+  } catch {
+    return res.status(200).json({ ok: false, error: 'visits_unavailable' })
   }
 }

@@ -96,7 +96,7 @@ export default async function handler(req, res) {
       ok: false,
       uid,
       provider: 'FreeFireJornal Prime Fast',
-      error: error.message,
+      error: 'provider_unavailable',
       primeConfirmed: false,
       message: 'La verificacion Prime rapida no respondio.',
     })

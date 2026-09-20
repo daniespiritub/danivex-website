@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { PRERENDER_ROUTES, SITE } from './src/data/seo-meta.js'
+import { privacySections } from './src/data/privacy.js'
+import { devApi } from './scripts/dev-api.mjs'
 
 // Escapa un valor para usarlo como texto/atributo HTML.
 function esc(value) {
@@ -42,16 +44,21 @@ function withRouteMeta(html, meta) {
 // <head> correcto. Da preview social por-ruta a scrapers que NO ejecutan JS.
 function prerenderRoutes() {
   let outDir = 'dist'
+  let failed = false
   return {
     name: 'danivex-prerender-routes',
     apply: 'build',
     configResolved(config) {
       outDir = resolve(config.root, config.build.outDir)
     },
+    buildEnd(error) { failed = Boolean(error) },
     closeBundle() {
+      if (failed) return
       const indexHtml = readFileSync(resolve(outDir, 'index.html'), 'utf8')
       for (const route of PRERENDER_ROUTES) {
-        const html = withRouteMeta(indexHtml, route.meta)
+        let html = withRouteMeta(indexHtml, route.meta)
+        if (route.meta.noindex) html = html.replace('</head>', '<meta name="robots" content="noindex, follow"></head>')
+        if (route.meta.path === '/privacy') html = html.replace('<div id="root"></div>', `<div id="root"><main><h1>Privacidad en DaniVex</h1>${privacySections.map((s) => `<section><h2>${esc(s.title)}</h2><p>${esc(s.text)}</p></section>`).join('')}<a href="/">DaniVex</a></main></div>`)
         writeFileSync(resolve(outDir, route.out), html)
         console.log(`[prerender] dist/${route.out} <- ${route.meta.title}`)
       }
@@ -61,5 +68,5 @@ function prerenderRoutes() {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), prerenderRoutes()],
+  plugins: [react(), devApi(), prerenderRoutes()],
 })

@@ -9,6 +9,8 @@ export const SITE = 'https://danivex.com'
 export const OG_IMAGE = `${SITE}/preview.png`
 
 export const SEO = {
+  privacy: { title: 'Privacidad | DaniVex', description: 'Cómo DaniVex trata los datos del sitio, las cuentas, el Player Scanner y el asistente.', path: '/privacy' },
+  account: { title: 'Tu cuenta | DaniVex', description: 'Gestiona tus favoritos, configuraciones y preferencias de DaniVex.', path: '/account', noindex: true },
   home: {
     title: 'DaniVex - Sensibilidad Free Fire, Player Scanner y Mobilador',
     description:
@@ -32,4 +34,7 @@ export const SEO = {
 // ya es el index.html por defecto, y notFound, que no tiene URL fija).
 export const PRERENDER_ROUTES = [
   { out: 'player-scanner.html', meta: SEO.playerScanner },
+  { out: 'privacy.html', meta: SEO.privacy },
+  { out: 'account.html', meta: SEO.account },
+  { out: '404.html', meta: SEO.notFound },
 ]

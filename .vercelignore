@@ -1,0 +1,12 @@
+/.qa/
+/assets/
+/docs/
+/tests/
+/dist/
+/node_modules/
+/.git/
+/scripts/companion/
+*.blend
+*.blend1
+.env*
+WORKLOG.md

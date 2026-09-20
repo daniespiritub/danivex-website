@@ -28,6 +28,8 @@ dist-ssr
 .env.local
 .env*.local
 .env.*.local
+.env.*
+!.env.example
 
 # Local browser verification artifacts
 .qa/

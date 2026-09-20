@@ -3,8 +3,9 @@ import { PiListBold, PiXBold, PiArrowDownBold } from 'react-icons/pi'
 import logo from '../assets/logo.webp'
 import { copy } from '../data/copy.js'
 import { platformCopy } from '../data/ecosystem.js'
+import AccountLink from '../account/AccountLink.jsx'
 
-export default function SiteNav({ activeSection, language = 'es', onLanguage, scanner = false }) {
+export default function SiteNav({ activeSection, language = 'es', onLanguage, scanner = false, skipTarget }) {
   const [open, setOpen] = useState(false)
   const nav = useRef(null)
   const toggle = useRef(null)
@@ -30,7 +31,7 @@ export default function SiteNav({ activeSection, language = 'es', onLanguage, sc
   }, [open])
   return (
     <nav className="navbar" ref={nav} aria-label={words.menu}>
-      <a className="skip-link" href={scanner ? '#player-uid-input' : '#sensibilidad'}>{words.skip}</a>
+      <a className="skip-link" href={skipTarget ? `#${skipTarget}` : scanner ? '#player-uid-input' : '#sensibilidad'}>{words.skip}</a>
       <div className="nav-inner">
         <a className="brand" href={scanner ? '/' : '#inicio'} aria-label={`DaniVex · ${words.home}`}>
           <img src={logo} alt="" width="36" height="36" /><span>DANIVEX</span>
@@ -41,6 +42,7 @@ export default function SiteNav({ activeSection, language = 'es', onLanguage, sc
           <a className="nav-contact" href={`${prefix}#contacto`} onClick={() => setOpen(false)}>{text.nav[5]}</a>
         </div>
         <div className="nav-actions">
+          <AccountLink language={language} />
           {onLanguage && <select aria-label={words.language} value={language} className="language-select" onChange={(e) => onLanguage(e.target.value)}>
             <option value="es">ES</option><option value="pt">PT</option><option value="en">EN</option>
           </select>}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { PiChartBarBold, PiDeviceMobileBold, PiEyeBold, PiSlidersHorizontalBold, PiCopyBold, PiCheckBold } from 'react-icons/pi'
 import SiteNav from '../components/SiteNav.jsx'
+import SavePreset from '../account/SavePreset.jsx'
 import PlatformHero from '../components/home/PlatformHero.jsx'
 import ToolsSection from '../components/home/ToolsSection.jsx'
 import MobiladorSection from '../components/home/MobiladorSection.jsx'
@@ -503,6 +504,7 @@ function HomePage() {
             </div>
 
             {copyError && <p className="catalog-error" role="status">{words.copyError}</p>}
+            <SavePreset language={language} device={selectedDevice} profile={profile} values={result.values} />
             <details className="coach">
               <summary>{words.details}</summary>
               <p>
