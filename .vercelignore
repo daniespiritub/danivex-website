@@ -1,0 +1,9 @@
+.qa
+assets
+docs
+tests
+scripts/companion
+*.blend
+*.blend1
+.env*
+WORKLOG.md

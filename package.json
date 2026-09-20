@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
     "@upstash/redis": "^1.38.2",
     "playwright": "^1.60.0",
     "react": "^19.2.6",
@@ -20,6 +21,7 @@
     "three": "^0.186.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@eslint/js": "^10.0.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
