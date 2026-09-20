@@ -1,3 +1,5 @@
+import { scannerProfileImage } from '../utils/scannerImages.js'
+
 export const scannerRegions = [
   { value: 'auto', label: 'Autodetectar region' },
   { value: 'south-america', label: 'Sudamerica' },
@@ -265,14 +267,14 @@ export function generatePlayerFromLookup(uid, lookup) {
     savedToPrivateDb: Boolean(lookup?.savedToPrivateDb),
 
     avatarUrl: hasRealData
-      ? (lookup.avatar || '')
+      ? scannerProfileImage(lookup.avatar)
       : '',
 
     bannerUrl: hasRealData
-      ? (lookup.banner || '')
+      ? scannerProfileImage(lookup.banner)
       : '',
     bannerFallbackUrl: hasRealData
-      ? (lookup.bannerFallback || '')
+      ? scannerProfileImage(lookup.bannerFallback)
       : '',
 
     avatarSeed: 0,

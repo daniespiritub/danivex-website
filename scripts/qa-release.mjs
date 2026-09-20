@@ -230,10 +230,7 @@ try {
     const uid = '2196518104'
     const res = await request(`/api/player?uid=${uid}`)
     const data = await res.json()
-    if (!res.ok || !data.ok) {
-      warnings.push(`Public player provider unavailable: HTTP ${res.status}; full real result could not be verified`)
-      return { providerAvailable: false, status: res.status }
-    }
+    assert.ok(res.ok && data.ok, `Real public player unavailable: HTTP ${res.status}; Scanner cannot be marked verified`)
     const ctx = await context()
     try {
       const page = await ctx.newPage()
@@ -243,7 +240,22 @@ try {
       await page.getByRole('button', { name: 'Buscar jugador', exact: true }).click()
       await page.locator('.pc-name').waitFor({ timeout: 45000 })
       assert.equal(await page.locator('.pc-name').innerText(), data.username)
-      for (const width of [1440, 390]) {
+      for (const selector of ['.pc-avatar', '.pc-banner-img']) {
+        const img = page.locator(selector)
+        await img.waitFor({ state: 'visible' })
+        await page.waitForFunction((selector) => {
+          const img = document.querySelector(selector)
+          return img?.complete && img.naturalWidth > 0
+        }, selector)
+        const imageUrl = new URL(await img.getAttribute('src'), base)
+        assert.equal(imageUrl.origin, base)
+        assert.equal(imageUrl.pathname, '/api/profile-image')
+        const response = await request(`${imageUrl.pathname}${imageUrl.search}`)
+        assert.equal(response.status, 200)
+        assert.equal(response.headers.get('content-type'), 'image/png')
+        assert.ok((await response.arrayBuffer()).byteLength > 0)
+      }
+      for (const width of [360, 390, 430, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: 900 })
         await page.locator('.pc').scrollIntoViewIfNeeded()
         await page.waitForTimeout(700)
