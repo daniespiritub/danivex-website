@@ -3,9 +3,19 @@ import HomePage from './pages/HomePage.jsx'
 import NotFound from './components/NotFound.jsx'
 import DaniVexCompanion from './companion/DaniVexCompanion.jsx'
 import { applySeo, SEO } from './utils/seo.js'
+import AccountProvider from './account/AccountProvider.jsx'
+import { useAccount } from './account/context.js'
 import './App.css'
 
 const PlayerScanner = lazy(() => import('./pages/PlayerScanner.jsx'))
+const AccountPage = lazy(() => import('./account/AccountPage.jsx'))
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage.jsx'))
+const AssistantWidget = lazy(() => import('./account/AssistantWidget.jsx'))
+
+function OptionalAssistant() {
+  const { assistant } = useAccount()
+  return assistant ? <Suspense fallback={null}><AssistantWidget /></Suspense> : null
+}
 
 // Rutas viejas del Prime Scanner: redirigen al Player Scanner (ademas del
 // redirect 308 en vercel.json, este cubre navegacion en cliente / dev).
@@ -19,6 +29,9 @@ function resolveRoute(pathname) {
   if (path === '') return 'home'
   if (LEGACY_SCANNER_PATHS.has(path)) return 'legacyScanner'
   if (path === '/player-scanner') return 'player'
+  if (path === '/privacy') return 'privacy'
+  if (/^\/account(?:\/(favorites|saved|downloads|assistant|support|settings))?$/.test(path)) return 'account'
+  if (['/signin', '/register', '/reset-password', '/auth/confirm'].includes(path)) return 'account'
   if (/^\/cuenta\/\d+\.html$/.test(path)) return 'player'
   return 'notFound'
 }
@@ -32,7 +45,9 @@ function App() {
       return
     }
     applySeo(
-      route === 'player' ? SEO.playerScanner
+      route === 'account' ? { ...SEO.account, path: window.location.pathname }
+        : route === 'privacy' ? SEO.privacy
+        : route === 'player' ? SEO.playerScanner
         : route === 'notFound' ? SEO.notFound
           : SEO.home,
     )
@@ -42,12 +57,13 @@ function App() {
   if (route === 'notFound') return <NotFound />
 
   return (
-    <>
+    <AccountProvider>
       <Suspense fallback={<div className="page-loading" role="status">DaniVex</div>}>
-        {route === 'player' ? <PlayerScanner /> : <HomePage />}
+        {route === 'account' ? <AccountPage /> : route === 'privacy' ? <PrivacyPage /> : route === 'player' ? <PlayerScanner /> : <HomePage />}
       </Suspense>
-      <DaniVexCompanion />
-    </>
+      {['home', 'player'].includes(route) && <DaniVexCompanion />}
+      <OptionalAssistant />
+    </AccountProvider>
   )
 }
 

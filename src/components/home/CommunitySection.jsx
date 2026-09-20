@@ -31,6 +31,7 @@ export default function CommunitySection({ language }) {
         <nav className="site-footer-links" aria-label={text.nav[0]}>
           <a href="#inicio">{text.nav[0]}</a><a href="#sensibilidad">{text.nav[1]}</a><a href="/player-scanner">{text.primeScanner}</a><a href="#descargas">{text.nav[3]}</a>
           <a href="/companion/CREDITS.txt" target="_blank" rel="noreferrer">{language === 'en' ? '3D credits' : 'Créditos 3D'}</a>
+          <a href="/privacy">{language === 'en' ? 'Privacy' : language === 'pt' ? 'Privacidade' : 'Privacidad'}</a>
         </nav>
       </footer>
     </>

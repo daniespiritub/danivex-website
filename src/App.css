@@ -6,3 +6,9 @@
 @import './styles/home/sensitivity.css';
 @import './styles/home/layout.css';
 @import './styles/home/responsive.css';
+
+.account-nav-link { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; color: #f4f4f6; font-size: 12px; text-decoration: none; }
+.account-nav-link svg { width: 24px; height: 24px; }
+.account-nav-link span { max-width: 94px; overflow: hidden; text-overflow: ellipsis; }
+.preset-save { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; font-size: 13px; }
+@media (max-width: 1100px) { .account-nav-link span { display: none; } }
