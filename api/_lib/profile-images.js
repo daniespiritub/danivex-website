@@ -27,9 +27,17 @@ export function itemIconUrl(id) {
 // de items (jsDelivr/CDN por ID). Asi, si en un snapshot viejo quedo cacheada una
 // URL de catalogo derivada del ID equivocado, se ignora y se re-deriva del ID.
 export function isCatalogUrl(url) {
-  const u = String(url || '')
-  if (!u) return false
-  return u.includes('cdn.jsdelivr.net') || u.includes('/ShahGCreator/') || (CATALOG_BASE && u.startsWith(CATALOG_BASE))
+  try {
+    const parsed = new URL(url)
+    if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) return false
+    const catalog = new URL(CATALOG_BASE)
+    const prefix = catalog.pathname.replace(/\/$/, '')
+    return parsed.hostname === 'cdn.jsdelivr.net' || (
+      parsed.origin === catalog.origin && (parsed.pathname === prefix || parsed.pathname.startsWith(`${prefix}/`))
+    )
+  } catch {
+    return false
+  }
 }
 
 function realProviderUrl(url) {

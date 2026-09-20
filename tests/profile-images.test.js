@@ -64,6 +64,18 @@ test('isCatalogUrl distingue catalogo (jsdelivr) de URL real de proveedor', () =
   assert.equal(isCatalogUrl('https://www.freefiremania.com.br/images/itens/x.png'), false)
 })
 
+test('isCatalogUrl compares URL host and path, never arbitrary substrings', () => {
+  for (const url of [
+    'https://cdn.jsdelivr.net.evil.test/image.png',
+    'https://evil.test/cdn.jsdelivr.net/image.png',
+    'https://evil.test/ShahGCreator/image.png',
+    'https://cdn.jsdelivr.net@evil.test/image.png',
+    'https://evil.test/?next=https://cdn.jsdelivr.net/image.png',
+    'javascript:cdn.jsdelivr.net', 'not a URL', '',
+  ]) assert.equal(isCatalogUrl(url), false, url)
+  assert.equal(isCatalogUrl('https://CDN.JSDELIVR.NET/gh/ShahGCreator/icon@main/PNG/1.png'), true)
+})
+
 test('buildResponse: resuelve avatar por headPic y conserva outfit intacto', () => {
   const r = buildResponse('123456', {
     nickname: 'X', avatarId: '102000004', headPic: '902033014', bannerId: '901000008',

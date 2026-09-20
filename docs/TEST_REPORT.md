@@ -45,3 +45,21 @@ as already counted, so QA does not inflate the public visitor counter.
 
 Limitations: this is not a full penetration test or hosted Auth/AI acceptance.
 Missing services remain disabled; production evidence is recorded after deployment.
+
+## First production verification
+
+PR #39 merged as ec1811b85f77f9f8eaead385cc3ce78cbd765e99. Vercel production
+dpl_5CKcJrKsycnbSc4BQpSh7CVThzmb built without cache and was aliased to danivex.com.
+The same 12/12 real browser checks pass on the domain with no console/page errors
+or warnings (.qa/production-release). All gated capabilities remain false.
+
+Both domain aliases point to this project. The config-only www redirect did not
+take effect in live HTTP checks, so the project domain was also configured to
+redirect to the apex (308). Verified /, /account/settings and Scanner with its UID
+query all preserve the path/query. Public source-map URL returns 404. The actual
+Mobilador release HEAD returns 200 (60,224,920 bytes). No installer was executed.
+
+After main was scanned, three inherited CodeQL alerts appeared. Follow-up replaces
+HTML tag filtering with parse5 (server-only) and substring URL classification with
+parsed host/path checks, adds malformed-tag/Unicode/host-confusion regressions and
+requires a new CI/CodeQL run and redeploy. These alerts were not ignored or dismissed.

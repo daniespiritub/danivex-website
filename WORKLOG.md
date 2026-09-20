@@ -37,3 +37,9 @@
   and main branch protection with required checks. PR #39 carries the release.
 - Added a host-scoped www -> apex redirect: previously both hosts served HTTP 200,
   which would split account cookies and conflict with the exact auth origin.
+- Merged PR #39, deployed ec1811b without cache, and passed 12/12 real production
+  browser checks. Configured the project-level www 308 after HTTP checks showed
+  the config-only rule had not taken effect; verified paths and query preservation.
+- Default-branch CodeQL revealed three inherited alerts. Replaced HTML regex filters
+  with parse5 and URL substring classification with parsed fields; added regressions.
+  No alert was suppressed; follow-up CI and production revalidation required.

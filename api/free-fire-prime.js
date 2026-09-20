@@ -1,5 +1,6 @@
 import { enforceRateLimit, getClientIp } from './_lib/rate-limit.js'
 import { classifyFetchError, logEvent } from './_lib/log.js'
+import { htmlToText } from './_lib/providers/text-utils.js'
 
 const REQUEST_TIMEOUT_MS = 3500
 
@@ -193,24 +194,6 @@ function clampPrimeLevel(value) {
   if (level < 0) return 0
   if (level > 8) return 8
   return level
-}
-
-function htmlToText(html) {
-  return String(html || '')
-    .replace(/<script[\s\S]*?<\/script>/gi, '\n')
-    .replace(/<style[\s\S]*?<\/style>/gi, '\n')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&aacute;/g, 'á')
-    .replace(/&eacute;/g, 'é')
-    .replace(/&iacute;/g, 'í')
-    .replace(/&oacute;/g, 'ó')
-    .replace(/&uacute;/g, 'ú')
-    .replace(/&ntilde;/g, 'ñ')
-    .replace(/&amp;/g, '&')
-    .replace(/[ \t]+/g, ' ')
-    .trim()
 }
 
 function pick(value, patterns) {
