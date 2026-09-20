@@ -88,6 +88,14 @@ Only App route registration adds /account/activity.
 - Hosted acceptance script exits NOT VERIFIED without required keys and documents
   its exact, restricted scope. No hosted migrations or live test accounts created.
 
+Initial PR CodeQL identified three URL-substring checks in the new transport
+fixtures; changed them to parsed exact-origin checks. A fourth trace classified
+the test helper call `request('password', ...)` as returning a password, then
+tainted the whole fixture (including IP/email) into the rate-limit HMAC. The
+fixture now constructs its request separately from setting the password-action
+URL. Production hashing is unchanged: the HMAC keys IP/email/UUID rate buckets,
+never passwords. Passwords go only to Supabase Auth. No alert was suppressed.
+
 Final commit/deployment/production results are recorded in
 DANIVEX_PLATFORM_RELEASE_2026-09-20.md, delivered in the task workspace after
 deployment. External configuration procedure: PRIVATE_PLATFORM_ACTIVATION.md.

@@ -29,7 +29,7 @@ async function withTransport(run, override = () => undefined) {
     calls.push({ url: String(url), init })
     const replacement = override(String(url), init)
     if (replacement !== undefined) return replacement
-    if (String(url).startsWith('https://test.upstash.io')) return json([{ result: 1 }])
+    if (new URL(url).origin === 'https://test.upstash.io') return json([{ result: 1 }])
     if (String(url).includes('/auth/v1/user')) return json(user)
     if (String(url).includes('/rpc/dv_session_active')) return json(true)
     if (String(url).includes('/auth/v1/logout')) return new Response(null, { status: 204 })
@@ -157,7 +157,9 @@ test('BFF signout: expired sessions succeed; provider failures still clear brows
 test('BFF recovery: password reset revokes all sessions and requires new login', async () => {
   await withTransport(async (calls) => {
     const res = response()
-    await auth(request('password', { password: 'Controlled-new-password-123' }, jwt(3600, 'recovery')), res)
+    const recoveryRequest = request('session', { password: 'Controlled-new-password-123' }, jwt(3600, 'recovery'))
+    recoveryRequest.url = '/api/auth?action=password'
+    await auth(recoveryRequest, res)
     assert.equal(res.code, 200)
     assert.equal(res.data.signedOut, true)
     assert.ok(calls.some((call) => call.url.includes('logout?scope=global')))
@@ -171,7 +173,7 @@ test('BFF availability: authenticated, normalized, rate limited and constrained'
     await account(request('handle-availability', { handle: 'Player_A' }), res)
     assert.equal(res.code, 200)
     assert.deepEqual(res.data, { ok: true, handle: 'player_a', available: true })
-    assert.ok(calls.some((call) => call.url.includes('upstash.io') && call.init.body.includes('handle-availability')))
+    assert.ok(calls.some((call) => new URL(call.url).origin === 'https://test.upstash.io' && call.init.body.includes('handle-availability')))
     const input = JSON.parse(calls.find((call) => call.url.includes('/rpc/dv_handle_available')).init.body)
     assert.deepEqual(input, { candidate: 'player_a' })
   }, (url) => url.includes('/rpc/dv_handle_available') ? json(true) : undefined)
@@ -228,7 +230,7 @@ test('BFF availability rejects excess calls before querying availability', async
     assert.equal(res.code, 429)
     assert.equal(res.data.error, 'rate_limited')
     assert.equal(calls.some((call) => call.url.includes('/rpc/dv_handle_available')), false)
-  }, (url, init) => url.includes('upstash.io') && init.body.includes('handle-availability') ? json([{ result: 21 }]) : undefined)
+  }, (url, init) => new URL(url).origin === 'https://test.upstash.io' && init.body.includes('handle-availability') ? json([{ result: 21 }]) : undefined)
 })
 
 test('assistant tool resolves only authenticated owner and exposes counts, never history', async () => {
