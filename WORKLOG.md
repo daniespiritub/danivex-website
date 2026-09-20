@@ -20,7 +20,10 @@
 - Added privacy page, noindex private HTML, CSP/security headers and error redaction.
 - Added CI, CodeQL workflow and Dependabot configuration. Remote activation checked
   separately; a workflow file alone is not a successful security scan.
-- 237 local Node tests pass (includes two uncommitted Companion tests from prior work).
+- 237 local Node tests pass (includes three uncommitted Companion tests from prior work).
 - 48 responsive account route fixtures + 3 auth forms pass. Browser fixtures are not
   live integration proof. Build/lint/audit pass; secret/bundle scan no findings.
 - Supabase/SMTP/Google/Apple/AI credentials remain external blockers to activation.
+- Clean release worktree: 234 tests pass; only committed production-safe files included.
+- First preview failed: unanchored Vercel ignore pattern removed src/assets. Corrected
+  root-only exclusions and excluded generated dist; no production traffic affected.

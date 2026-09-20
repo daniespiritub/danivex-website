@@ -44,13 +44,16 @@ function withRouteMeta(html, meta) {
 // <head> correcto. Da preview social por-ruta a scrapers que NO ejecutan JS.
 function prerenderRoutes() {
   let outDir = 'dist'
+  let failed = false
   return {
     name: 'danivex-prerender-routes',
     apply: 'build',
     configResolved(config) {
       outDir = resolve(config.root, config.build.outDir)
     },
+    buildEnd(error) { failed = Boolean(error) },
     closeBundle() {
+      if (failed) return
       const indexHtml = readFileSync(resolve(outDir, 'index.html'), 'utf8')
       for (const route of PRERENDER_ROUTES) {
         let html = withRouteMeta(indexHtml, route.meta)
