@@ -1,18 +1,24 @@
 import { useEffect, useState } from 'react'
-import { PiHouseBold, PiHeartBold, PiBookmarkSimpleBold, PiDownloadSimpleBold, PiChatCircleDotsBold, PiLifebuoyBold, PiGearBold, PiSignOutBold, PiTrashBold } from 'react-icons/pi'
+import { PiHouseBold, PiHeartBold, PiBookmarkSimpleBold, PiDownloadSimpleBold, PiChatCircleDotsBold, PiLifebuoyBold, PiGearBold, PiSignOutBold, PiTrashBold, PiClockCounterClockwiseBold } from 'react-icons/pi'
 import { FaGoogle, FaApple } from 'react-icons/fa'
 import SiteNav from '../components/SiteNav.jsx'
 import { useAccount } from './context.js'
 import { request } from './api.js'
 import { initialLanguage, accountCopy } from './copy.js'
 import AssistantPanel from './AssistantPanel.jsx'
+import HandleField from './HandleField.jsx'
 import './account.css'
 
-const sections = [ ['overview', PiHouseBold], ['favorites', PiHeartBold], ['saved', PiBookmarkSimpleBold], ['downloads', PiDownloadSimpleBold], ['assistant', PiChatCircleDotsBold], ['support', PiLifebuoyBold], ['settings', PiGearBold] ]
+const sections = [ ['overview', PiHouseBold], ['favorites', PiHeartBold], ['saved', PiBookmarkSimpleBold], ['downloads', PiDownloadSimpleBold], ['activity', PiClockCounterClockwiseBold], ['assistant', PiChatCircleDotsBold], ['support', PiLifebuoyBold], ['settings', PiGearBold] ]
 const resourceLabels = { sensitivity: 'Sensibilidad FF', scanner: 'Player Scanner', mobilador: 'DaniVex Mobilador' }
 const resourceLinks = { sensitivity: '/#sensibilidad', scanner: '/player-scanner', mobilador: '/#mobilador' }
 
 export default function AccountPage() {
+  const { user } = useAccount()
+  return <AccountSurface key={window.location.pathname.startsWith('/account') ? user?.email || 'anonymous' : 'auth'} />
+}
+
+function AccountSurface() {
   const account = useAccount()
   const [language, setLanguage] = useState(initialLanguage)
   const t = accountCopy[language]
@@ -51,6 +57,7 @@ export default function AccountPage() {
   async function authAction(action, input) {
     const result = await request('auth', action, input)
     if (result.url) window.location.assign(result.url)
+    else if (result.signedOut) window.location.assign('/signin')
     else if (result.message) setFeedback(t.checkEmail)
     else if (action === 'confirm' && result.recovery) { await account.refresh(); setRecovery(true) }
     else if (['signin', 'confirm'].includes(action)) window.location.assign('/account')
@@ -60,6 +67,10 @@ export default function AccountPage() {
   const emailInput = <label>{t.email}<input type="email" name="email" required maxLength="254" autoComplete="email" /></label>
   const feedbackNode = <>{feedback && <p role="status" className="account-notice">{feedback}</p>}{error && <div role="alert" className="account-error"><p>{error === 'reauthentication_required' ? <>{t.relogin} <a href="/signin">{t.signin}</a></> : error === 'invalid_handle' || error === 'already_exists' ? `${t.error} ${t.handleHelp}` : t.error}</p>{isAccount && <button className="account-secondary" disabled={busy} onClick={() => { setError(''); setRevision((n) => n + 1) }}>{t.retry}</button>}</div>}</>
   function remove(collection, id) { perform(async () => { await request('account', 'remove', { collection, id }); setRevision((n) => n + 1) }) }
+  async function signout() {
+    try { await request('auth', 'signout', {}) } finally { await account.refresh() }
+    window.location.assign('/')
+  }
 
   let content
   if (!account.ready) content = <p role="status">{t.loading}</p>
@@ -81,7 +92,7 @@ export default function AccountPage() {
     </div>
   } else if (!account.user) content = <><h1>{t.account}</h1><a className="btn btn-primary" href="/signin">{t.signin}</a></>
   else if (!account.user.handle) content = <div className="auth-surface"><h1>{t.chooseHandle}</h1><p>{t.handleHelp}</p><form className="account-form" onSubmit={(event) => { const input = fields(event); perform(async () => { await request('account', 'profile', { handle: input.handle }); await account.refresh() }) }}>
-    <label>{t.handle}<input name="handle" required pattern="[A-Za-z0-9_]{3,16}" minLength="3" maxLength="16" autoComplete="username" autoCapitalize="none" spellCheck="false" /></label><button className="btn btn-primary" disabled={busy}>{t.submit}</button>
+    <HandleField t={t} /><button className="btn btn-primary" disabled={busy}>{t.submit}</button>
   </form>{feedbackNode}</div>
   else {
     let panel
@@ -89,13 +100,13 @@ export default function AccountPage() {
       <h1>@{account.user.handle}</h1>
       <div className="account-stats">{['favorites', 'saved', 'downloads'].map((key) => <a key={key} href={`/account/${key}`}><strong>{data?.counts?.[key] ?? '—'}</strong><span>{t[key]}</span></a>)}</div>
       <div className="account-list">{(data?.resources || []).map((resource) => <div className="account-row" key={resource.id}><a href={resource.href}>{resource.title}</a><button className="account-icon" title={t.favorite} aria-label={`${t.favorite}: ${resource.title}`} disabled={busy} onClick={() => perform(async () => { await request('account', 'favorite', { resource_id: resource.id }); setFeedback(t.done); setRevision((n) => n + 1) })}><PiHeartBold /></button></div>)}</div>
-      <h2>{t.activity}</h2>{!data?.activity?.length ? <p>{t.empty}</p> : <ul className="account-list">{data.activity.map((item) => <li className="account-row" key={item.id}><span>{item.kind === 'saved' ? t.saved : item.kind === 'download_requested' ? t.requested : t.support}</span><time>{new Date(item.created_at).toLocaleDateString(language)}</time></li>)}</ul>}
+      <h2><a href="/account/activity">{t.activity}</a></h2>{!data?.activity?.length ? <p>{t.empty}</p> : <ul className="account-list">{data.activity.map((item) => <li className="account-row" key={item.id}><span>{t.events[item.kind] || t.activity}</span><time dateTime={item.created_at}>{new Date(item.created_at).toLocaleDateString(language)}</time></li>)}</ul>}
     </>
     else if (section === 'settings') panel = <>
       <h1>{t.settings}</h1>
       <dl className="account-details"><dt>{t.email}</dt><dd>{account.user.email}</dd><dt>{t.created}</dt><dd>{new Date(account.user.created_at).toLocaleDateString(language)}</dd><dt>{t.providers}</dt><dd>{account.user.providers.join(', ')}</dd></dl>
       <form className="account-form" onSubmit={(event) => { const input = fields(event); perform(async () => { await request('account', 'profile', { handle: input.handle, language, chat_history_enabled: input.history === 'on' }); await account.refresh(); setFeedback(t.done) }) }}>
-        <label>{t.handle}<input name="handle" defaultValue={account.user.handle} pattern="[A-Za-z0-9_]{3,16}" required maxLength="16" /></label>
+        <HandleField t={t} initial={account.user.handle} />
         <label className="account-check"><input type="checkbox" name="history" defaultChecked={account.user.chat_history_enabled} />{t.history}</label>
         <button className="btn btn-primary" disabled={busy}>{t.save}</button>
       </form>
@@ -117,13 +128,13 @@ export default function AccountPage() {
     </>
     else panel = <><h1>{t[section]}</h1>{section === 'downloads' && <button className="btn btn-primary" disabled={busy} onClick={() => perform(async () => { const result = await request('account', 'download', { resource_id: 'mobilador' }); window.location.assign(result.url); setRevision((n) => n + 1) })}><PiDownloadSimpleBold />{t.download}</button>}
       {data === null && !error ? <p role="status">{t.loading}</p> : !data?.rows?.length ? <p className="account-empty">{t.empty} <a href="/#herramientas">{t.explore}</a></p> : <ul className="account-list">{data.rows.map((row) => <li className="account-row" key={row.id}><div>
-        {section === 'favorites' ? <a href={resourceLinks[row.resource_id]}>{resourceLabels[row.resource_id]}</a> : <strong>{row.title || resourceLabels[row.resource_id]}</strong>}
+        {section === 'favorites' ? <a href={resourceLinks[row.resource_id]}>{resourceLabels[row.resource_id]}</a> : <strong>{section === 'activity' ? t.events[row.kind] || t.activity : row.title || resourceLabels[row.resource_id]}</strong>}
         <time>{new Date(row.created_at).toLocaleDateString(language)}</time>
         {section === 'downloads' && <p>{row.version} · {t.requested}</p>}
         {section === 'saved' && row.payload?.values && <dl className="saved-values">{Object.entries(row.payload.values).filter(([, value]) => Number.isFinite(value)).map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{value}</dd></div>)}</dl>}
       </div><button className="account-icon" title={t.remove} aria-label={t.remove} disabled={busy} onClick={() => remove(section, row.id)}><PiTrashBold /></button></li>)}</ul>}
     </>
-    content = <div className="account-layout"><aside><nav aria-label={t.account}>{sections.filter(([name]) => name !== 'assistant' || account.assistant).map(([name, Icon]) => <a key={name} href={name === 'overview' ? '/account' : `/account/${name}`} aria-current={section === name ? 'page' : undefined}><Icon aria-hidden="true" />{t[name]}</a>)}</nav><button disabled={busy} onClick={() => perform(async () => { await request('auth', 'signout', {}); window.location.assign('/') })}><PiSignOutBold />{t.signout}</button></aside><div className="account-panel">{feedbackNode}{panel}{data?.next && <button className="account-secondary" disabled={busy} onClick={() => perform(async () => { const next = await request('account', section === 'assistant' ? 'chats' : section, undefined, undefined, data.next); setData((current) => ({ ...next, rows: [...current.rows, ...next.rows] })) })}>{t.more}</button>}</div></div>
+    content = <div className="account-layout"><aside><nav aria-label={t.account}>{sections.filter(([name]) => name !== 'assistant' || account.assistant).map(([name, Icon]) => <a key={name} href={name === 'overview' ? '/account' : `/account/${name}`} aria-current={section === name ? 'page' : undefined}><Icon aria-hidden="true" />{t[name]}</a>)}</nav><button disabled={busy} onClick={() => perform(signout)}><PiSignOutBold />{t.signout}</button></aside><div className="account-panel">{feedbackNode}{panel}{data?.next && <button className="account-secondary" disabled={busy} onClick={() => perform(async () => { const next = await request('account', section === 'assistant' ? 'chats' : section, undefined, undefined, data.next); setData((current) => ({ ...next, rows: [...current.rows, ...next.rows] })) })}>{t.more}</button>}</div></div>
   }
   return <><SiteNav scanner language={language === 'it' ? 'en' : language} skipTarget="main-content" /><main id="main-content" className="account-main" data-companion-obstacle>
     <div className="account-topline"><a href="/">DaniVex</a><label>{t.language}<select value={language} onChange={(e) => setLanguage(e.target.value)}><option value="es">Español</option><option value="en">English</option><option value="it">Italiano</option><option value="pt">Português</option></select></label></div>{content}<footer className="account-footer"><a href="/privacy">{t.privacy}</a></footer>

@@ -4,7 +4,9 @@ import { check } from './client.js'
 export const assistantTools = [{ type: 'function', name: 'get_my_summary', description: 'Counts of the currently authenticated user favorites, saved items and requested downloads. No IDs or personal details.', strict: true, parameters: { type: 'object', properties: {}, required: [], additionalProperties: false } }]
 
 export async function privateTool(call, account, consent) {
-  if (!consent || !account || call.name !== 'get_my_summary' || call.arguments !== '{}') throw new PublicError('tool_not_authorized', 403)
+  let args
+  try { args = JSON.parse(call.arguments) } catch { throw new PublicError('tool_not_authorized', 403) }
+  if (!consent || !account?.user?.id || call.name !== 'get_my_summary' || !args || Array.isArray(args) || typeof args !== 'object' || Object.keys(args).length) throw new PublicError('tool_not_authorized', 403)
   const result = {}
   for (const name of ['favorites', 'saved', 'downloads']) {
     const query = await account.db.from(`dv_${name}`).select('id', { count: 'exact', head: true }).eq('user_id', account.user.id)

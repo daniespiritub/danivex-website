@@ -30,7 +30,7 @@ function resolveRoute(pathname) {
   if (LEGACY_SCANNER_PATHS.has(path)) return 'legacyScanner'
   if (path === '/player-scanner') return 'player'
   if (path === '/privacy') return 'privacy'
-  if (/^\/account(?:\/(favorites|saved|downloads|assistant|support|settings))?$/.test(path)) return 'account'
+  if (/^\/account(?:\/(favorites|saved|downloads|activity|assistant|support|settings))?$/.test(path)) return 'account'
   if (['/signin', '/register', '/reset-password', '/auth/confirm'].includes(path)) return 'account'
   if (/^\/cuenta\/\d+\.html$/.test(path)) return 'player'
   return 'notFound'

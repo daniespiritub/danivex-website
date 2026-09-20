@@ -63,3 +63,39 @@ After main was scanned, three inherited CodeQL alerts appeared. Follow-up replac
 HTML tag filtering with parse5 (server-only) and substring URL classification with
 parsed host/path checks, adds malformed-tag/Unicode/host-confusion regressions and
 requires a new CI/CodeQL run and redeploy. These alerts were not ignored or dismissed.
+
+## Private activation continuation, 2026-09-20
+
+Base 436faa8. Separate clean worktree/branch; original dirty Companion experiments
+left unchanged with tracked checkpoint fdb82561e50e3fae5b203db27c3081d9cf0935c0.
+No Scanner, sensitivity, 3D asset/runtime or public layout changes in this phase.
+Only App route registration adds /account/activity.
+
+- Added transactional migration for lowercase handles, VEXA reservation, boolean
+  availability RPC, timestamps, server-generated activity and live session RLS.
+- Actual PostgreSQL/PGlite tests execute both migrations, two users and anon:
+  owned persistence, read/insert/update/delete negatives, uniqueness, generated
+  events, revoked-JWT denial and cascade account deletion.
+- Supabase SDK with mocked transport verifies expired-token refresh/cookies,
+  invalid/deleted/unverified users, outages, logout, global password-reset logout,
+  signup/reset anti-enumeration, token confirmation, deletion authorization and
+  handle rate limiting. These do not prove hosted Auth or email delivery.
+- Browser fixtures: 54 route/viewport cases at 360/390/430/768/1024/1440, plus
+  three anonymous forms, ES/EN/IT/PT, consent, availability, recovery, expiry and
+  simulated BFCache lifecycle. No horizontal overflow or captured console errors.
+- UI screenshots reviewed on mobile and desktop; impeccable detector returned no
+  findings. Single-agent review, not an independent audit or penetration test.
+- Hosted acceptance script exits NOT VERIFIED without required keys and documents
+  its exact, restricted scope. No hosted migrations or live test accounts created.
+
+Initial PR CodeQL identified three URL-substring checks in the new transport
+fixtures; changed them to parsed exact-origin checks. A fourth trace classified
+the test helper call `request('password', ...)` as returning a password, then
+tainted the whole fixture (including IP/email) into the rate-limit HMAC. The
+fixture now constructs its request separately from setting the password-action
+URL. Production hashing is unchanged: the HMAC keys IP/email/UUID rate buckets,
+never passwords. Passwords go only to Supabase Auth. No alert was suppressed.
+
+Final commit/deployment/production results are recorded in
+DANIVEX_PLATFORM_RELEASE_2026-09-20.md, delivered in the task workspace after
+deployment. External configuration procedure: PRIVATE_PLATFORM_ACTIVATION.md.
