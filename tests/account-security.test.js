@@ -6,6 +6,18 @@ import { mutation, body, setCookie, requireRecent, PublicError } from '../api/_a
 import { validHandle } from '../api/_account/resources.js'
 import { privateTool, respond } from '../api/_account/assistant.js'
 
+test('CSP allows local GLB texture fetches without external API connections', async () => {
+  const config = JSON.parse(await readFile(new URL('../vercel.json', import.meta.url), 'utf8'))
+  const policy = config.headers.flatMap((rule) => rule.headers).find((h) => h.key === 'Content-Security-Policy').value
+  const directives = new Map(policy.split(';').map((part) => {
+    const [name, ...values] = part.trim().split(/\s+/)
+    return [name, values]
+  }))
+  assert.deepEqual(directives.get('connect-src'), ["'self'", 'blob:'])
+  assert.deepEqual(directives.get('script-src'), ["'self'", "'wasm-unsafe-eval'"])
+  assert.deepEqual(directives.get('object-src'), ["'none'"])
+})
+
 test('account: strict origin, method, JSON and size checks', () => {
   process.env.APP_ORIGIN = 'https://danivex.com'
   const req = { method: 'POST', headers: { origin: 'https://danivex.com', 'content-type': 'application/json' }, body: { action: 'test' } }
