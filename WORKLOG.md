@@ -27,3 +27,11 @@
 - Clean release worktree: 234 tests pass; only committed production-safe files included.
 - First preview failed: unanchored Vercel ignore pattern removed src/assets. Corrected
   root-only exclusions and excluded generated dist; no production traffic affected.
+- Moved clean publication checkout outside the original repo; Vercel otherwise
+  walked up to the parent linked checkout and included uncommitted 3D experiments.
+- Staging caught CSP blocking GLB blob textures; corrected the exact directive and
+  added a regression test. 235 committed Node tests now pass.
+- Real fixed staging: 12/12 release checks, six viewports, no captured browser errors;
+  public Scanner real profile and Companion texture/motion pixels verified.
+- GitHub CodeQL and CI run, open CodeQL alerts zero; enabled Dependabot alerts/fixes
+  and main branch protection with required checks. PR #39 carries the release.

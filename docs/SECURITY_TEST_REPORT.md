@@ -21,3 +21,20 @@ created. These features remain disabled until those gates pass.
 
 The report is not a pentest certification. Production header/smoke evidence is
 recorded separately in TEST_REPORT.md after deployment.
+
+## GitHub and real staging
+
+- GitHub CodeQL completed successfully; open code-scanning alerts API returned [].
+- Secret scanning and push protection already enabled and retained.
+- Enabled vulnerability alerts and Dependabot security updates (verified enabled).
+- Protected main: require verify/analyze from the GitHub Actions app, up-to-date
+  branch, resolve conversations, apply to admins, prohibit force pushes/deletion.
+  PRs required with zero external approvals because this is a single-owner workflow;
+  automated checks are not presented as an independent human security review.
+- Preview access protection remains enabled; Playwright uses the official project
+  automation bypass in-memory on same-origin requests only. No credential in Git.
+- Staging policy preserves embedded GLB texture fetches with connect-src blob:;
+  external API destinations and arbitrary external scripts remain denied.
+
+Configuration references: [GitHub protected branches](https://docs.github.com/en/rest/branches/branch-protection),
+[CSP connect-src](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/connect-src).
