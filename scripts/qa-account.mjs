@@ -31,7 +31,7 @@ async function context(width, signedIn = true) {
   await ctx.route('**/api/account?*', async (route) => {
     const action = new URL(route.request().url()).searchParams.get('action')
     if (route.request().method() === 'POST') mutations.push({ endpoint: 'account', action, data: route.request().postDataJSON() })
-    await route.fulfill({ json: { ok: true, rows: [], counts: { favorites: 0, saved: 0, downloads: 0 }, resources: [{ id: 'sensitivity', title: 'Sensibilidad FF', href: '/#sensibilidad' }] } })
+    await route.fulfill({ json: { ok: true, available: true, rows: action === 'activity' ? [{ id: 'activity-fixture', kind: 'favorite_added', created_at: '2026-09-20T12:00:00Z' }] : [], counts: { favorites: 0, saved: 0, downloads: 0 }, resources: [{ id: 'sensitivity', title: 'Sensibilidad FF', href: '/#sensibilidad' }] } })
   })
   await ctx.route('**/api/assistant?*', async (route) => {
     mutations.push({ endpoint: 'assistant', data: route.request().postDataJSON() })
@@ -46,7 +46,7 @@ try {
     const page = await ctx.newPage()
     page.on('pageerror', (e) => errors.push(e.message))
     page.on('console', (e) => { if (e.type() === 'error') errors.push(e.text()) })
-    for (const path of ['/account', '/account/favorites', '/account/saved', '/account/downloads', '/account/support', '/account/settings', '/account/assistant', '/privacy']) {
+    for (const path of ['/account', '/account/favorites', '/account/saved', '/account/downloads', '/account/activity', '/account/support', '/account/settings', '/account/assistant', '/privacy']) {
       await page.goto(base + path, { waitUntil: 'networkidle' })
       await page.locator('h1').waitFor()
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${width} ${path}: overflow`)
@@ -64,10 +64,10 @@ try {
     assert.equal(await page.locator('html').getAttribute('lang'), lang)
     assert.ok((await page.locator('h1').innerText()).length > 0)
   }
-  await page.getByRole('textbox', { name: 'Nombre de usuario', exact: true }).fill('Player_B')
+  await page.getByRole('textbox', { name: /Nombre de usuario/ }).fill('Player_B')
   await page.getByRole('button', { name: 'Guardar', exact: true }).click()
   await page.getByRole('status').filter({ hasText: 'Cambios guardados.' }).waitFor()
-  assert.ok(mutations.some((x) => x.action === 'profile' && x.data.handle === 'Player_B'))
+  assert.ok(mutations.some((x) => x.action === 'profile' && x.data.handle === 'player_b'))
   await page.goto(base + '/account/assistant')
   await page.getByRole('textbox', { name: 'Mensaje', exact: true }).fill('How do I use sensitivity?')
   await page.getByRole('button', { name: 'Enviar', exact: true }).click()
@@ -85,8 +85,51 @@ try {
     await login.screenshot({ path: `${output}/360-${path.slice(1)}.png` })
   }
   await anon.close()
+  const lifecycle = await context(390, false)
+  let currentUser = null
+  let expired = false
+  await lifecycle.route('**/api/auth?*', async (route) => {
+    const action = new URL(route.request().url()).searchParams.get('action')
+    if (action === 'confirm') {
+      currentUser = user
+      return route.fulfill({ json: { ok: true, recovery: true } })
+    }
+    if (action === 'session' && expired) return route.fulfill({ status: 401, json: { ok: false, error: 'authentication_required' } })
+    return route.fulfill({ json: action === 'session' ? { ...config, user: currentUser } : config })
+  })
+  const sessionPage = await lifecycle.newPage()
+  await sessionPage.goto(base + '/account')
+  await sessionPage.getByRole('link', { name: 'Iniciar sesión', exact: true }).waitFor()
+  assert.equal(await sessionPage.locator('.account-panel').count(), 0)
+  await sessionPage.goto(base + '/auth/confirm?token_hash=controlled-fixture-token&type=recovery')
+  await sessionPage.getByRole('button', { name: 'Confirmar enlace' }).click()
+  await sessionPage.getByLabel('Nueva contraseña (mínimo 12 caracteres)').waitFor()
+  assert.equal(new URL(sessionPage.url()).search, '')
+  // Refresh updates the account context without unmounting the recovery form.
+  await sessionPage.goto(base + '/account/settings')
+  await sessionPage.getByRole('heading', { name: 'Ajustes', exact: true }).waitFor()
+  const handle = sessionPage.getByRole('textbox', { name: /Nombre de usuario/ })
+  await handle.fill('New_Player')
+  await handle.press('Tab')
+  await sessionPage.getByText('Nombre disponible.', { exact: true }).waitFor()
+  assert.equal(await handle.inputValue(), 'new_player')
+  expired = true
+  await sessionPage.evaluate(() => window.dispatchEvent(new Event('focus')))
+  await sessionPage.getByRole('link', { name: 'Iniciar sesión', exact: true }).waitFor()
+  assert.equal(await sessionPage.locator('.account-details').count(), 0)
+  assert.equal(await sessionPage.getByText(user.email, { exact: true }).count(), 0)
+  expired = false
+  await sessionPage.reload()
+  await sessionPage.getByRole('heading', { name: 'Ajustes', exact: true }).waitFor()
+  await sessionPage.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true })))
+  assert.equal(await sessionPage.locator('.account-details').count(), 0)
+  currentUser = null
+  await sessionPage.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })))
+  await sessionPage.getByRole('link', { name: 'Iniciar sesión', exact: true }).waitFor()
+  assert.equal(await sessionPage.getByText(user.email, { exact: true }).count(), 0)
+  await lifecycle.close()
   assert.deepEqual(errors, [])
-  console.log(`PASS: ${checks.length} responsive route checks; ES/EN/IT/PT; settings and assistant consent UI; 3 anonymous forms. Browser fixtures only.`)
+  console.log(`PASS: ${checks.length} responsive route checks; ES/EN/IT/PT; settings and assistant consent UI; 3 anonymous forms; availability, recovery, expiry, BFCache lifecycle. Browser fixtures only.`)
 } finally {
   await writeFile(`${output}/report.json`, JSON.stringify({ mode: 'browser-fixtures-only', checks, errors, mutations }, null, 2))
   await browser.close()

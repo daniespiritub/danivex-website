@@ -6,6 +6,9 @@ export async function request(endpoint, action, data, signal, cursor) {
     ...(data === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
   })
   const result = await response.json()
-  if (!response.ok || !result.ok) throw new Error(result.error || 'service_unavailable')
+  if (!response.ok || !result.ok) {
+    if (result.error === 'authentication_required') window.dispatchEvent(new Event('danivex:session-invalid'))
+    throw new Error(result.error || 'service_unavailable')
+  }
   return result
 }

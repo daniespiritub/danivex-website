@@ -19,12 +19,23 @@ Supabase PKCE; verifier slots/index are in ten-minute HttpOnly cookies. SDK's ex
 flow-ID redirect option is enabled and regression-tested. Callback redirects only to
 /account or a fixed sign-in error route. No arbitrary `next` URL is accepted.
 
-Profile UUID comes from auth.users. Handle is 3-16 ASCII letters/numbers/underscore;
-generated lowercase unique column and reserved-name check enforce DB integrity.
+Profile UUID comes from auth.users. Handle is normalized lowercase, 3-16 ASCII
+letters/numbers/underscore; generated lowercase unique column and reserved-name
+checks (including VEXA) enforce DB integrity. Authenticated availability returns
+only a boolean, is rate limited and never replaces the unique constraint.
 App never merges users by email. Supabase's own verified identity linking applies.
 Private endpoints require confirmed email. Sensitive changes require a validated
 JWT AMR password/OAuth/TOTP event within five minutes. Recovery/OTP may change a
 password but cannot authorize account deletion or email change.
+
+Migration 202609200001 requires an active auth.sessions row at the BFF and in RLS,
+so signed JWTs cannot access records after session revocation. Password updates
+globally sign out and clear cookies. Logout also clears cookies on invalid session
+or provider outage (the latter returns an error, not a false revocation success).
+Browser private state is reset before BFCache and after authentication loss.
+
+Current exact activation steps and both migrations:
+[PRIVATE_PLATFORM_ACTIVATION.md](PRIVATE_PLATFORM_ACTIVATION.md).
 
 ## Required activation sequence
 

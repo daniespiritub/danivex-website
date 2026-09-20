@@ -1,6 +1,6 @@
 import { Redis } from '@upstash/redis'
 import { capabilities, authenticated, check } from './_account/client.js'
-import { headers, mutation, body, limit, fail, text, PublicError } from './_account/security.js'
+import { headers, mutation, body, limit, fail, text, PublicError, cookies, cookieName } from './_account/security.js'
 import { retrieve } from './_account/knowledge.js'
 import { respond } from './_account/assistant.js'
 
@@ -16,11 +16,14 @@ export default async function handler(req, res) {
     const page = ['/', '/player-scanner', '/account', '/privacy'].includes(input.page) ? input.page : '/'
     const language = ['es', 'en', 'it', 'pt'].includes(input.language) ? input.language : 'es'
     const consent = input.private_context === true
-    const account = consent || input.save === true ? await authenticated(req, res) : null
+    const hasSession = capabilities().account && Boolean(cookies(req)[cookieName('access')])
+    const account = consent || input.save === true || hasSession ? await authenticated(req, res) : null
     if (account) {
       await limit(req, 'assistant-user', 20, 3600, account.user.id)
-      const profile = check(await account.db.from('dv_profiles').select('handle').eq('user_id', account.user.id).single())
-      if (!profile.handle) throw new PublicError('onboarding_required', 403)
+      if (consent || input.save === true) {
+        const profile = check(await account.db.from('dv_profiles').select('handle').eq('user_id', account.user.id).single())
+        if (!profile.handle) throw new PublicError('onboarding_required', 403)
+      }
     }
     // Global budget gate is independent of IP rotation and fails closed.
     const redis = new Redis({ url: process.env.KV_REST_API_URL, token: process.env.KV_REST_API_TOKEN, retry: false, signal: () => AbortSignal.timeout(3000) })

@@ -26,6 +26,17 @@ export default async function handler(req, res) {
       return res.status(303).end()
     }
     mutation(req)
+    if (!['signin', 'signup', 'reset', 'confirm', 'oauth', 'link', 'signout', 'password', 'email', 'delete'].includes(action)) throw new PublicError('unknown_action', 404)
+    if (action === 'signout') {
+      try {
+        const { db } = await authenticated(req, res)
+        const result = await db.auth.signOut({ scope: 'local' })
+        if (result.error) throw new PublicError('account_unavailable', 503)
+      } catch (error) {
+        if (!(error instanceof PublicError && error.status === 401)) throw error
+      } finally { clearSession(res) }
+      return res.status(200).json({ ok: true })
+    }
     await limit(req, `auth-${action}`, ['signin', 'signup', 'reset', 'confirm'].includes(action) ? 5 : 20)
     const input = body(req)
     const auth = client(req, res)
@@ -63,7 +74,9 @@ export default async function handler(req, res) {
       let authClient = auth
       if (action === 'link') {
         if (!capabilities().linking) throw new PublicError('provider_unavailable', 503)
-        authClient = (await authenticated(req, res)).db
+        const session = await authenticated(req, res)
+        requireRecent(session.token)
+        authClient = session.db
       }
       const options = { redirectTo: `${origin()}/api/auth?action=callback`, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } }
       const result = action === 'link' ? await authClient.auth.linkIdentity({ provider, options }) : await authClient.auth.signInWithOAuth({ provider, options })
@@ -71,18 +84,17 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, url: result.data.url })
     }
     const { db, user, token } = await authenticated(req, res)
-    if (action === 'signout') {
-      await db.auth.signOut({ scope: 'local' })
-      clearSession(res)
-      return res.status(200).json({ ok: true })
-    }
     if (action === 'password') {
       // Recovery sessions may change passwords, but may not delete accounts/change email.
       const claims = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'))
       const recovery = claims.amr?.some((m) => ['recovery', 'otp'].includes(m.method) && m.timestamp > Date.now() / 1000 - 300)
       if (!recovery) requireRecent(token)
       check(await db.auth.updateUser({ password: text(input.password, 12, 128) }))
-      return res.status(200).json({ ok: true })
+      try {
+        const result = await db.auth.signOut({ scope: 'global' })
+        if (result.error) throw new PublicError('session_revocation_failed', 503)
+      } finally { clearSession(res) }
+      return res.status(200).json({ ok: true, signedOut: true })
     }
     if (action === 'email') {
       requireRecent(token)
@@ -94,7 +106,7 @@ export default async function handler(req, res) {
     if (action === 'delete') {
       requireRecent(token)
       if (input.confirmation !== 'DELETE' || !capabilities().deletion) throw new PublicError('confirmation_required')
-      const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
+      const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: (url, options = {}) => fetch(url, { ...options, signal: AbortSignal.timeout(10000) }) } })
       check(await admin.auth.admin.deleteUser(user.id))
       clearSession(res)
       return res.status(200).json({ ok: true })

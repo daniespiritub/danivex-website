@@ -8,6 +8,7 @@
 .account-main select, .account-form input, .account-form textarea { background: #141419; color: #f4f4f6; border: 1px solid #55535e; border-radius: 6px; min-height: 44px; padding: 10px 12px; font: inherit; width: 100%; }
 .account-main select { width: auto; max-width: 160px; }
 .account-form textarea { resize: vertical; }
+.account-form input, .account-form textarea { font-size: 16px; }
 .account-form { display: grid; gap: 18px; max-width: 520px; }
 .account-form label { display: grid; gap: 8px; font-size: 14px; }
 .account-form .account-check { display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }

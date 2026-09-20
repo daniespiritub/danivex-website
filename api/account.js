@@ -1,6 +1,6 @@
 import { authenticated, check } from './_account/client.js'
 import { headers, mutation, body, origin, limit, fail, text, PublicError } from './_account/security.js'
-import { resources, validHandle } from './_account/resources.js'
+import { resources, normalizeHandle } from './_account/resources.js'
 
 const tables = Object.freeze({ favorites: 'dv_favorites', saved: 'dv_saved', downloads: 'dv_downloads', chats: 'dv_chats', support: 'dv_support', activity: 'dv_activity' })
 const columns = { favorites: 'id,resource_type,resource_id,created_at', saved: 'id,kind,title,payload,created_at', downloads: 'id,resource_id,version,status,created_at', chats: 'id,question,answer,created_at', support: 'id,subject,message,status,attachment_consent,created_at', activity: 'id,kind,created_at' }
@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   try {
     const params = new URL(req.url, origin()).searchParams
     const action = params.get('action') || 'overview'
-    if (!['overview', 'profile', 'clear-chats', 'remove', 'favorite', 'save', 'download', 'support', ...Object.keys(tables)].includes(action)) throw new PublicError('unknown_action', 404)
+    if (!['overview', 'profile', 'handle-availability', 'clear-chats', 'remove', 'favorite', 'save', 'download', 'support', ...Object.keys(tables)].includes(action)) throw new PublicError('unknown_action', 404)
     if (req.method !== 'GET') mutation(req)
     const { db, user } = await authenticated(req, res)
     await limit(req, 'account-user', 120, 60, user.id)
@@ -40,11 +40,19 @@ export default async function handler(req, res) {
     }
     await limit(req, 'account-mutations', 30)
     const input = body(req)
+    if (action === 'handle-availability') {
+      await limit(req, 'handle-availability', 20, 60, user.id)
+      const handle = normalizeHandle(input.handle)
+      if (!handle) throw new PublicError('invalid_handle')
+      const available = check(await db.rpc('dv_handle_available', { candidate: handle }))
+      return res.status(200).json({ ok: true, handle, available })
+    }
     if (action === 'profile') {
       const updates = {}
       if (input.handle !== undefined) {
-        if (!validHandle(input.handle)) throw new PublicError('invalid_handle')
-        updates.handle = input.handle
+        const handle = normalizeHandle(input.handle)
+        if (!handle) throw new PublicError('invalid_handle')
+        updates.handle = handle
       }
       if (input.language !== undefined) {
         if (!['es', 'en', 'it', 'pt'].includes(input.language)) throw new PublicError('invalid_input')

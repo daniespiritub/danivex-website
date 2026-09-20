@@ -38,12 +38,18 @@ export async function authenticated(req, res) {
   const jar = cookies(req)
   const access = jar[cookieName('access')]
   const refresh = jar[cookieName('refresh')]
-  if (!access || !refresh) throw new PublicError('authentication_required', 401)
+  if (!access || !refresh) { clearSession(res); throw new PublicError('authentication_required', 401) }
   const { data, error } = await db.auth.setSession({ access_token: access, refresh_token: refresh })
+  if (error?.status >= 500 || error?.name === 'AuthRetryableFetchError') throw new PublicError('account_unavailable', 503)
   if (error || !data.session) { clearSession(res); throw new PublicError('authentication_required', 401) }
   const token = data.session.access_token
   const { data: checked, error: userError } = await db.auth.getUser(token)
-  if (userError || !checked.user?.email_confirmed_at) throw new PublicError('authentication_required', 401)
+  if (userError?.status >= 500 || userError?.name === 'AuthRetryableFetchError') throw new PublicError('account_unavailable', 503)
+  if (userError || !checked.user?.email_confirmed_at) { clearSession(res); throw new PublicError('authentication_required', 401) }
+  // A signed JWT alone survives sign-out until expiry. Check the live Auth session.
+  const active = await db.rpc('dv_session_active')
+  if (active.error) throw new PublicError('account_unavailable', 503)
+  if (active.data !== true) { clearSession(res); throw new PublicError('authentication_required', 401) }
   if (token !== access) saveSession(res, data.session)
   return { db, user: checked.user, token }
 }

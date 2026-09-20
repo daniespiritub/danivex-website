@@ -5,6 +5,11 @@ import { request } from './api.js'
 import { accountCopy } from './copy.js'
 
 export default function AssistantPanel({ language = 'es' }) {
+  const { user, ready } = useAccount()
+  return <AssistantContent key={ready ? user?.email || 'anonymous' : 'loading'} language={language} />
+}
+
+function AssistantContent({ language }) {
   const { assistant, user } = useAccount()
   const t = accountCopy[language]
   const [messages, setMessages] = useState([])
@@ -20,7 +25,7 @@ export default function AssistantPanel({ language = 'es' }) {
       const result = await request('assistant', 'respond', { message: data.message, language, page: window.location.pathname.startsWith('/account') ? '/account' : window.location.pathname, private_context: data.private_context === 'on', save: data.save === 'on' })
       setMessages((current) => [...current.slice(-9), { question: data.message, ...result }])
       form.elements.message.value = ''
-    } catch { setError(t.error) } finally { setBusy(false) }
+    } catch { setError(t.assistantUnavailable) } finally { setBusy(false) }
   }
   return <div className="assistant-content">
     <p className="account-muted">{t.assistantNotice} <a href="/privacy">{t.privacy}</a></p>
