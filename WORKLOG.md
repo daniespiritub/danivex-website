@@ -35,3 +35,5 @@
   public Scanner real profile and Companion texture/motion pixels verified.
 - GitHub CodeQL and CI run, open CodeQL alerts zero; enabled Dependabot alerts/fixes
   and main branch protection with required checks. PR #39 carries the release.
+- Added a host-scoped www -> apex redirect: previously both hosts served HTTP 200,
+  which would split account cookies and conflict with the exact auth origin.

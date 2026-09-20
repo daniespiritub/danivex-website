@@ -35,6 +35,12 @@
   ],
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.danivex.com" }],
+      "destination": "https://danivex.com/:path*",
+      "permanent": true
+    },
+    {
       "source": "/free-fire-prime-scanner",
       "destination": "/player-scanner",
       "permanent": true

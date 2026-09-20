@@ -16,6 +16,10 @@ test('CSP allows local GLB texture fetches without external API connections', as
   assert.deepEqual(directives.get('connect-src'), ["'self'", 'blob:'])
   assert.deepEqual(directives.get('script-src'), ["'self'", "'wasm-unsafe-eval'"])
   assert.deepEqual(directives.get('object-src'), ["'none'"])
+  assert.deepEqual(config.redirects[0], {
+    source: '/:path*', has: [{ type: 'host', value: 'www.danivex.com' }],
+    destination: 'https://danivex.com/:path*', permanent: true,
+  })
 })
 
 test('account: strict origin, method, JSON and size checks', () => {

@@ -11,3 +11,7 @@ Known limitation: home/Scanner still depend on client JS for body content. Their
 route metadata exists without JS. A separate measured prerender/SSR enhancement is
 not silently represented as completed. No search ranking guarantee. Search Console
 and Core Web Vitals field metrics need owner access/real traffic.
+
+www is redirected permanently to the canonical apex host, preserving paths and query
+parameters. This also keeps cookie sessions and strict mutation-origin checks on a
+single origin. Real production verification is recorded in TEST_REPORT.md.
