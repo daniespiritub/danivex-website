@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { request } from './api.js'
 
+const ICON = { handleAvailable: '✓', handleTaken: '✕', handleCheckFailed: '!', loading: '···' }
+
 export default function HandleField({ t, initial = '' }) {
   const hint = useId()
   const pending = useRef(null)
@@ -20,9 +22,22 @@ export default function HandleField({ t, initial = '' }) {
       if (!controller.signal.aborted) setStatus(error.message === 'invalid_handle' ? 'handleTaken' : 'handleCheckFailed')
     }
   }
-  return <label>{t.handle}<input name="handle" aria-label={t.handle} value={value} onChange={(event) => {
-    pending.current?.abort(); setValue(event.target.value.toLowerCase()); setStatus('')
-  }} onBlur={check} required pattern="[a-z0-9_]{3,16}" minLength="3" maxLength="16" autoComplete="username" autoCapitalize="none" spellCheck="false" aria-describedby={hint} />
-    <span id={hint} className="account-muted" role="status">{status ? t[status] : t.handleHelp}</span>
-  </label>
+  const tone = status === 'handleAvailable' ? 'available' : status === 'loading' ? 'loading' : status ? 'taken' : ''
+  return (
+    <label className="handle-group">
+      <span>{t.handle}</span>
+      <span className="handle-preview" aria-hidden="true">@<b>{value || 'tu_handle'}</b></span>
+      <span className="handle-field">
+        <span className="handle-at" aria-hidden="true">@</span>
+        <input
+          name="handle" aria-label={t.handle} value={value}
+          onChange={(event) => { pending.current?.abort(); setValue(event.target.value.toLowerCase()); setStatus('') }}
+          onBlur={check} required pattern="[a-z0-9_]{3,16}" minLength="3" maxLength="16"
+          autoComplete="username" autoCapitalize="none" spellCheck="false" aria-describedby={hint}
+        />
+        {status && <span className={`handle-state handle-status-${tone}`} aria-hidden="true">{ICON[status]}</span>}
+      </span>
+      <span id={hint} className={`handle-hint account-muted ${tone ? `handle-status-${tone}` : ''}`} role="status">{status ? t[status] : t.handleHelp}</span>
+    </label>
+  )
 }
