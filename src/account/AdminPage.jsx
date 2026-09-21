@@ -99,7 +99,6 @@ function Users({ isSuperAdmin }) {
   const [state, setState] = useState({ loading: true, rows: [] })
   const [busy, setBusy] = useState(null)
   const load = useCallback((term) => {
-    setState((s) => ({ ...s, loading: true }))
     const params = new URLSearchParams({ action: 'users' })
     if (term) params.set('search', term)
     fetch(`/api/admin?${params}`, { credentials: 'same-origin' })
@@ -108,6 +107,7 @@ function Users({ isSuperAdmin }) {
       .catch((e) => setState({ loading: false, rows: [], error: e.message }))
   }, [])
   useEffect(() => { load('') }, [load])
+  const runSearch = (e) => { e.preventDefault(); setState((s) => ({ ...s, loading: true })); load(search) }
   const changeRole = async (user, role) => {
     if (!confirm(`¿Cambiar el rol de ${user.email || user.handle} a "${role}"?`)) return
     setBusy(user.user_id)
@@ -122,7 +122,7 @@ function Users({ isSuperAdmin }) {
     <div className="adm-panel">
       <div className="adm-panel-head">
         <h2>Usuarios</h2>
-        <form className="adm-search" onSubmit={(e) => { e.preventDefault(); load(search) }}>
+        <form className="adm-search" onSubmit={runSearch}>
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por email o handle" aria-label="Buscar usuarios" />
         </form>
       </div>
@@ -244,8 +244,7 @@ export default function AdminPage() {
   const [section, setSection] = useState(sectionFromPath())
 
   useEffect(() => {
-    if (!ready) return
-    if (!account || !user) { setGate({ loading: false, forbidden: true, signin: true }); return }
+    if (!ready || !account || !user) return
     let alive = true
     request('admin', 'config')
       .then((r) => { if (alive) setGate({ loading: false, role: r.role, isAdmin: r.isAdmin, isSuperAdmin: r.isSuperAdmin }) })
@@ -255,10 +254,11 @@ export default function AdminPage() {
 
   const go = (id) => { setSection(id); window.history.pushState(null, '', id === 'overview' ? '/admin' : `/admin/${id}`) }
 
-  if (!ready || gate.loading) return <div className="adm-shell"><div className="adm-boot">DaniVex Admin…</div></div>
-  if (gate.signin) {
+  if (!ready) return <div className="adm-shell"><div className="adm-boot">DaniVex Admin…</div></div>
+  if (!account || !user) {
     return <div className="adm-shell"><div className="adm-403"><span className="adm-403-code">401</span><h1>Inicia sesión</h1><p>Necesitas una sesión activa para acceder al panel de administración.</p><a className="adm-btn-primary" href="/signin">Iniciar sesión</a></div></div>
   }
+  if (gate.loading) return <div className="adm-shell"><div className="adm-boot">DaniVex Admin…</div></div>
   if (gate.forbidden || !gate.isAdmin) {
     return <div className="adm-shell"><div className="adm-403"><span className="adm-403-code">403</span><h1>Sin acceso</h1><p>No tienes permisos para ver esta sección.</p><a className="adm-btn-ghost" href="/account">Volver a mi cuenta</a></div></div>
   }
