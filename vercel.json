@@ -15,6 +15,10 @@
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }, { "key": "Cache-Control", "value": "private, no-store" }]
     },
     {
+      "source": "/admin/:path*",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }, { "key": "Cache-Control", "value": "private, no-store" }]
+    },
+    {
       "source": "/sw.js",
       "headers": [
         {
@@ -60,6 +64,8 @@
     { "source": "/register", "destination": "/account.html" },
     { "source": "/reset-password", "destination": "/account.html" },
     { "source": "/auth/confirm", "destination": "/account.html" },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/admin/:path*", "destination": "/admin.html" },
     {
       "source": "/player-scanner",
       "destination": "/player-scanner.html"

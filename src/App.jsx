@@ -11,6 +11,8 @@ const PlayerScanner = lazy(() => import('./pages/PlayerScanner.jsx'))
 const AccountPage = lazy(() => import('./account/AccountPage.jsx'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage.jsx'))
 const AssistantWidget = lazy(() => import('./account/AssistantWidget.jsx'))
+// Admin-only bundle: lazy so it never ships in the public/critical path.
+const AdminPage = lazy(() => import('./account/AdminPage.jsx'))
 
 function OptionalAssistant() {
   const { assistant } = useAccount()
@@ -32,6 +34,7 @@ function resolveRoute(pathname) {
   if (path === '/privacy') return 'privacy'
   if (/^\/account(?:\/(favorites|saved|downloads|activity|assistant|support|settings))?$/.test(path)) return 'account'
   if (['/signin', '/register', '/reset-password', '/auth/confirm'].includes(path)) return 'account'
+  if (/^\/admin(?:\/(users|platform|audit))?$/.test(path)) return 'admin'
   if (/^\/cuenta\/\d+\.html$/.test(path)) return 'player'
   return 'notFound'
 }
@@ -45,7 +48,8 @@ function App() {
       return
     }
     applySeo(
-      route === 'account' ? { ...SEO.account, path: window.location.pathname }
+      route === 'admin' ? { ...SEO.admin, path: window.location.pathname }
+        : route === 'account' ? { ...SEO.account, path: window.location.pathname }
         : route === 'privacy' ? SEO.privacy
         : route === 'player' ? SEO.playerScanner
         : route === 'notFound' ? SEO.notFound
@@ -59,7 +63,7 @@ function App() {
   return (
     <AccountProvider>
       <Suspense fallback={<div className="page-loading" role="status">DaniVex</div>}>
-        {route === 'account' ? <AccountPage /> : route === 'privacy' ? <PrivacyPage /> : route === 'player' ? <PlayerScanner /> : <HomePage />}
+        {route === 'admin' ? <AdminPage /> : route === 'account' ? <AccountPage /> : route === 'privacy' ? <PrivacyPage /> : route === 'player' ? <PlayerScanner /> : <HomePage />}
       </Suspense>
       {['home', 'player'].includes(route) && <DaniVexCompanion />}
       <OptionalAssistant />
