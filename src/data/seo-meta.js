@@ -11,6 +11,7 @@ export const OG_IMAGE = `${SITE}/preview.png`
 export const SEO = {
   privacy: { title: 'Privacidad | DaniVex', description: 'Cómo DaniVex trata los datos del sitio, las cuentas, el Player Scanner y el asistente.', path: '/privacy' },
   account: { title: 'Tu cuenta | DaniVex', description: 'Gestiona tus favoritos, configuraciones y preferencias de DaniVex.', path: '/account', noindex: true },
+  admin: { title: 'Admin | DaniVex', description: 'Panel de administración de la plataforma DaniVex.', path: '/admin', noindex: true },
   home: {
     title: 'DaniVex - Sensibilidad Free Fire, Player Scanner y Mobilador',
     description:
@@ -36,5 +37,6 @@ export const PRERENDER_ROUTES = [
   { out: 'player-scanner.html', meta: SEO.playerScanner },
   { out: 'privacy.html', meta: SEO.privacy },
   { out: 'account.html', meta: SEO.account },
+  { out: 'admin.html', meta: SEO.admin },
   { out: '404.html', meta: SEO.notFound },
 ]
