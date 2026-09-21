@@ -1,4 +1,6 @@
-.navbar { position: sticky; inset: 0 0 auto; width: 100%; min-height: 72px; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); }
+.navbar { position: sticky; inset: 0 0 auto; width: 100%; min-height: 72px; z-index: 100; background: rgba(11, 13, 16, 0.72); backdrop-filter: saturate(140%) blur(14px); -webkit-backdrop-filter: saturate(140%) blur(14px); border-bottom: 1px solid var(--border); box-shadow: 0 10px 30px -24px rgba(0, 0, 0, 0.9); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .navbar { background: var(--bg); } }
+.nav-cta:hover { color: #fff; }
 .nav-inner { width: min(1360px, calc(100% - 48px)); min-height: 72px; margin: auto; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
 .brand { display: inline-flex; flex: none; align-items: center; gap: 9px; color: var(--text); text-decoration: none; }
 .brand img { display: block; width: 36px; height: 36px; object-fit: contain; }

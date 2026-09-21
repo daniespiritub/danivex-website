@@ -1,5 +1,9 @@
-.platform-hero { background: url('../../assets/fondo-gamer.webp') center 43% / cover no-repeat; position: relative; border-bottom: 1px solid var(--border); }
-.platform-hero::before { content: ''; position: absolute; inset: 0; background: rgba(11,13,16,.83); pointer-events: none; }
+.platform-hero { background: url('../../assets/fondo-gamer.webp') center 43% / cover no-repeat; position: relative; border-bottom: 1px solid var(--border); isolation: isolate; }
+/* Layered depth: vertical readability gradient + a soft accent glow top-right. */
+.platform-hero::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(70% 90% at 88% 8%, rgba(214, 48, 43, 0.20), transparent 60%),
+    linear-gradient(180deg, rgba(11, 13, 16, 0.74) 0%, rgba(11, 13, 16, 0.82) 45%, rgba(11, 13, 16, 0.94) 100%); }
 .hero-inner { position: relative; width: min(1120px, calc(100% - 80px)); margin: auto; padding-top: 38px; }
 .hero-title-row { display: flex; justify-content: space-between; align-items: center; gap: 32px; min-height: 294px; padding-right: 38px; }
 .hero-copy { max-width: 660px; padding-block: 12px 32px; }
@@ -11,7 +15,7 @@
 .hero-shortcut { display: flex; align-items: center; gap: 16px; color: var(--text); text-decoration: none; padding: 12px 24px; border-right: 1px solid var(--border); min-height: 82px; transition: background 150ms ease; }
 .hero-shortcut:first-child { padding-left: 0; }
 .hero-shortcut:last-child { border-right: 0; }
-.hero-shortcut:hover { background: rgba(255,255,255,.025); }
+.hero-shortcut:hover { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015)); box-shadow: inset 0 2px 0 var(--accent-line); }
 .hero-shortcut strong { display: block; font-family: var(--font-display); font-size: 17px; font-weight: 500; line-height: 1.35; }
 .hero-shortcut small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 6px; }
 .shortcut-icon { width: 24px; height: 24px; flex: none; color: var(--text-muted); }
@@ -22,9 +26,9 @@
 .hero-shortcut:hover .shortcut-arrow { transform: translate(2px,-2px); color: var(--text); }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 46px; padding: 12px 20px; border-radius: 6px; font-size: 13px; font-weight: 700; line-height: 1.4; text-align: center; text-decoration: none; border: 1px solid transparent; transition: background 150ms ease, transform 150ms ease; }
 .btn svg { flex: none; width: 18px; height: 18px; }
-.primary { color: white; background: var(--accent); }
-.primary:hover { background: #bd2724; transform: translateY(-1px); }
-.primary:active { transform: translateY(0); }
+.primary { color: white; background: linear-gradient(135deg, var(--accent), var(--accent-strong)); box-shadow: 0 6px 18px -8px rgba(214, 48, 43, 0.6); }
+.primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.primary:active { transform: translateY(0); filter: none; }
 .secondary { color: var(--text); background: var(--surface); border-color: var(--border-strong); }
 .secondary:hover { background: var(--surface-hover); }
 .visitor-counter { position: fixed; right: 18px; bottom: 18px; z-index: 90; display: inline-flex; gap: 8px; align-items: center; min-height: 34px; border: 1px solid var(--border-strong); border-radius: var(--radius-pill); background: var(--surface); color: var(--text-faint); padding: 0 12px; pointer-events: none; }
