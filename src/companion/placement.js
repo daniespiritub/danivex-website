@@ -23,18 +23,17 @@ export function chooseCompanionPlacement({ width, height, anchor, dock, obstacle
   if (anchor && anchor.top >= 64 && anchor.bottom <= height - 8) {
     return { ...anchor, mode: 'hero', side: 'right' }
   }
-  const w = width < 700 ? 100 : 140
-  const h = width < 700 ? 148 : 236
+  const w = width < 700 ? 100 : 120
+  const h = width < 700 ? 148 : 196
+  const top = height - h - 60
   const safe = (box) => box.left >= 8 && box.right <= width - 8 && box.top >= 80
     && box.bottom <= height - 60 && !obstacles.some((obstacle) => intersects(box, obstacle))
-  // Keep a free position while scrolling; a new section must not cause jitter.
-  if (previous?.mode === 'floating' && previous.width === w && safe(previous)) return previous
+  // Stay at the lower edge, including after a resize. Never jump to mid-page.
+  if (previous?.mode === 'floating' && previous.width === w && previous.top === top && safe(previous)) return previous
   const sides = preferredSide === 'left' ? ['left', 'right'] : ['right', 'left']
   for (const side of sides) {
-    for (const top of [height - h - 76, (height - h) / 2, 92]) {
-      const box = rect(side === 'left' ? 12 : width - w - 12, Math.round(top), w, h)
-      if (safe(box)) return { ...box, mode: 'floating', side }
-    }
+    const box = rect(side === 'left' ? 12 : width - w - 12, top, w, h)
+    if (safe(box)) return { ...box, mode: 'floating', side }
   }
   return docked
 }

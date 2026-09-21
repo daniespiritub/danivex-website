@@ -39,13 +39,15 @@ export function useCompanionPosition({ minimized, dispatch }) {
       const obstacles = [...document.querySelectorAll(avoidSelector)]
         .filter((el) => !el.closest('[data-companion-root]'))
         .map(box).filter((r) => r.width && r.height && r.bottom > 0 && r.top < height)
-      const next = chooseCompanionPlacement({ width, height, obstacles, previous, minimized,
-        anchor: box(document.querySelector('[data-companion-anchor]')),
+      const anchor = document.querySelector('[data-companion-anchor]')
+      const candidate = chooseCompanionPlacement({ width, height, obstacles, previous, minimized,
+        anchor: box(anchor),
         dock: box(document.querySelector('[data-companion-dock]')),
         preferredSide: section?.dataset.companionSide || 'right',
         hidden: Boolean(editing || keyboard || modal || section?.dataset.companionAllow === 'false'),
       })
-      if (!previous || ['mode', 'left', 'top', 'width', 'height'].some((key) => previous[key] !== next[key])) {
+      const next = { ...candidate, framing: candidate.mode === 'hero' ? anchor?.dataset.companionFraming || 'full' : 'full' }
+      if (!previous || ['mode', 'left', 'top', 'width', 'height', 'framing'].some((key) => previous[key] !== next[key])) {
         next.animate = canAnimatePlacement(previous, next, obstacles)
         if (previous?.mode === 'floating' && next.mode === 'floating' && previous.side !== next.side) dispatch({ type: 'MOVE' })
         previous = next

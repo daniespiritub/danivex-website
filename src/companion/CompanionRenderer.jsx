@@ -2,8 +2,9 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { createCompanionLighting } from './lighting.js'
 import { loadCharacter } from './loadCharacter.js'
+import { getCompanionFraming } from './framing.js'
 
-export default function CompanionRenderer({ action, pointer, motion, active, onUnavailable, onReady }) {
+export default function CompanionRenderer({ action, pointer, motion, active, framing = 'full', onUnavailable, onReady }) {
   const canvasRef = useRef(null)
   const runtime = useRef(null)
 
@@ -34,7 +35,30 @@ export default function CompanionRenderer({ action, pointer, motion, active, onU
     let raf = 0
     let last = 0
     let elapsed = 0
-    let props = { action: 'INTRO', pointer, motion: false, active: false }
+    let props = { action: 'INTRO', pointer, motion: false, active: false, framing: 'full' }
+    let aspect = 1
+    let currentFraming = null
+    // Subtle camera parallax toward the pointer — depth without moving the model.
+    // Snapped to 0 whenever motion is off (paused / reduced-motion / headless QA never
+    // moves the mouse), so it never affects reduced-motion pixel stability or framing.
+    const parallax = { x: 0, y: 0 }
+    const updateCamera = (delta, snap = false) => {
+      const target = getCompanionFraming(props.framing, aspect)
+      if (!currentFraming || snap || !props.motion) currentFraming = target
+      else {
+        for (const key of Object.keys(target)) currentFraming[key] = THREE.MathUtils.damp(currentFraming[key], target[key], 14, delta)
+      }
+      if (!props.motion) { parallax.x = 0; parallax.y = 0 }
+      else {
+        parallax.x = THREE.MathUtils.damp(parallax.x, THREE.MathUtils.clamp(props.pointer.current?.x || 0, -1, 1) * 0.09, 3, delta)
+        parallax.y = THREE.MathUtils.damp(parallax.y, THREE.MathUtils.clamp(props.pointer.current?.y || 0, -1, 1) * -0.06, 3, delta)
+      }
+      camera.position.set(currentFraming.centerX + parallax.x, currentFraming.centerY + parallax.y, 9)
+      camera.lookAt(currentFraming.centerX, currentFraming.centerY, 0)
+      for (const key of ['left', 'right', 'top', 'bottom']) camera[key] = currentFraming[key]
+      camera.updateProjectionMatrix()
+      canvas.dataset.framing = props.framing
+    }
     const render = (now) => {
       raf = 0
       if (cancelled || !character) return
@@ -45,6 +69,7 @@ export default function CompanionRenderer({ action, pointer, motion, active, onU
           last = now
           elapsed += props.motion ? delta : 0
           character.update({ time: elapsed, delta: props.motion ? delta : 1, action: props.action, pointer: props.pointer.current, motion: props.motion })
+          updateCamera(delta)
           renderer.render(scene, camera)
           canvas.dataset.rendered = 'true'
         }
@@ -56,12 +81,8 @@ export default function CompanionRenderer({ action, pointer, motion, active, onU
       const { width, height } = canvas.getBoundingClientRect()
       if (!width || !height) return
       renderer.setSize(width, height, false)
-      const span = 4.25
-      camera.left = -span * width / height / 2
-      camera.right = span * width / height / 2
-      camera.top = span / 2
-      camera.bottom = -span / 2
-      camera.updateProjectionMatrix()
+      aspect = width / height
+      updateCamera(0, true)
       kick()
     }
     const observer = new ResizeObserver(resize)
@@ -90,7 +111,7 @@ export default function CompanionRenderer({ action, pointer, motion, active, onU
     }
   }, [onUnavailable, onReady, pointer])
 
-  useEffect(() => { runtime.current?.update({ action, pointer, motion, active }) }, [action, pointer, motion, active])
+  useEffect(() => { runtime.current?.update({ action, pointer, motion, active, framing }) }, [action, pointer, motion, active, framing])
 
   return <div ref={canvasRef} aria-hidden="true" className="companion-canvas" />
 }

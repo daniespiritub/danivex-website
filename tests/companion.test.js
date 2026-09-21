@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { companionReducer, initialCompanionState } from '../src/companion/machine.js'
 import { canAnimatePlacement, chooseCompanionPlacement, intersects } from '../src/companion/placement.js'
+import { getCompanionFraming } from '../src/companion/framing.js'
 import { devices, createManualDevice, filterDevicesByPlatform, loadMassiveDeviceCatalog } from '../src/data/devices.js'
 import { calculateSensitivity } from '../src/utils/sensitivity.js'
 
@@ -51,6 +52,36 @@ test('Placement: right content forces a collision-free left position', () => {
   const result = chooseCompanionPlacement({ width: 1440, height: 900, obstacles: [obstacle] })
   assert.equal(result.side, 'left')
   assert.equal(intersects(result, obstacle), false)
+})
+
+test('Placement: full character stays at the bottom on desktop/mobile and after resizing', () => {
+  for (const [width, height] of [[1440, 900], [390, 844], [320, 568]]) {
+    const previous = chooseCompanionPlacement({ width, height })
+    assert.equal(previous.mode, 'floating')
+    assert.equal(previous.bottom, height - 60)
+    const next = chooseCompanionPlacement({ width, height: height + 90, previous })
+    assert.equal(next.bottom, height + 30)
+    assert.ok(next.height < 200)
+  }
+})
+
+test('Placement: blocked bottom corners dock instead of moving up over content', () => {
+  const result = chooseCompanionPlacement({ width: 1440, height: 900, obstacles: [rect(0, 640, 1440, 260)] })
+  assert.equal(result.mode, 'dock')
+})
+
+test('Framing: hero crops the lower half; compact mode includes the entire character', () => {
+  for (const aspect of [.7, 1, 1.5]) {
+    const portrait = getCompanionFraming('portrait', aspect)
+    const full = getCompanionFraming('full', aspect)
+    assert.ok(portrait.centerY + portrait.bottom > 1.6)
+    assert.ok(portrait.centerY + portrait.top > 3.7)
+    assert.ok(full.centerY + full.bottom < 0)
+    assert.ok(full.centerY + full.top > 3.7)
+    assert.equal(portrait.right, -portrait.left)
+    assert.ok(portrait.top < full.top)
+  }
+  assert.deepEqual(getCompanionFraming('unknown', NaN), getCompanionFraming('full'))
 })
 
 test('Placement: dense mobile layout docks; mobile keyboard/dialog hides', () => {
