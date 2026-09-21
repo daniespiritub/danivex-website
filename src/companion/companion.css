@@ -7,7 +7,9 @@
 }
 .danivex-companion[data-travel="true"] { transition: transform 440ms cubic-bezier(.2,.8,.2,1); }
 .danivex-companion[data-mode="hero"] { z-index: 5; }
+.danivex-companion[data-mode="floating"] .companion-stage { animation: companion-arrive 180ms ease-out; }
 .companion-stage { position: absolute; inset: 0 0 28px; pointer-events: none; }
+.danivex-companion[data-framing="portrait"] .companion-stage { left: -24px; right: -24px; }
 .companion-canvas { width: 100%; height: 100%; display: block; }
 .companion-hit { position: absolute; inset: 6px 12px 30px; cursor: pointer; pointer-events: auto; background: transparent; border: 0; border-radius: 6px; }
 .companion-controls { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; opacity: 0; transition: opacity 140ms ease; pointer-events: auto; }
@@ -19,5 +21,12 @@
 [data-companion-dock] { flex: 0 0 40px; width: 40px; height: 40px; }
 [data-companion-anchor] { width: 210px; height: 268px; flex: none; }
 @media (hover: none) { .companion-controls { opacity: 1; } .companion-controls button { width: 36px; height: 32px; } }
-@media (max-width: 700px) { [data-companion-anchor] { width: 116px; height: 162px; } }
-@media (prefers-reduced-motion: reduce) { .danivex-companion[data-travel] { transition: none; } }
+@media (max-width: 700px) {
+  [data-companion-anchor] { width: 116px; height: 162px; }
+  .danivex-companion[data-framing="portrait"] .companion-stage { left: -10px; right: -10px; }
+}
+@keyframes companion-arrive { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .danivex-companion[data-travel] { transition: none; }
+  .danivex-companion[data-mode="floating"] .companion-stage { animation: none; }
+}

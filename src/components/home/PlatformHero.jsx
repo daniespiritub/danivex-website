@@ -14,7 +14,7 @@ export default function PlatformHero({ language }) {
             <h2>{text.purpose}</h2>
             <p>{text.hero}</p>
           </div>
-          <div data-companion-anchor aria-hidden="true" />
+          <div data-companion-anchor data-companion-framing="portrait" aria-hidden="true" />
         </div>
         <div className="hero-shortcuts" aria-label={text.tools} data-companion-obstacle>
           {tools.map((tool) => {

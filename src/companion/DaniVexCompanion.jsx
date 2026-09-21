@@ -37,6 +37,7 @@ function Companion() {
 
   return (
     <div data-companion-root data-mode={position.mode} data-state={state.action}
+      data-framing={position.framing || 'full'}
       data-travel={Boolean(position.animate)}
       data-motion={paused ? 'paused' : 'active'} className="danivex-companion"
       aria-hidden={hidden || undefined}
@@ -64,7 +65,7 @@ function Companion() {
       <div className="companion-stage" style={{ display: docked ? 'none' : undefined }}>
         {ready && !unavailable && !preferences.minimized && (
           <Suspense fallback={null}>
-            <Renderer action={state.action} pointer={pointer} motion={!paused}
+            <Renderer action={state.action} pointer={pointer} motion={!paused} framing={position.framing || 'full'}
               active={visible && !hidden && !docked} onUnavailable={onUnavailable} onReady={onReady} />
           </Suspense>
         )}
