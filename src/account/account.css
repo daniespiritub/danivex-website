@@ -178,9 +178,10 @@
 @media (max-width: 860px) {
   .account-main { padding: 96px 16px 48px; }
   .account-main h1 { font-size: 26px; }
-  .account-layout { grid-template-columns: 1fr; gap: 20px; }
-  .account-layout aside nav { grid-auto-flow: column; overflow-x: auto; padding-bottom: 4px; }
-  .account-layout aside a { white-space: nowrap; }
+  .account-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .account-layout aside { min-width: 0; }
+  .account-layout aside nav { display: flex; overflow-x: auto; padding-bottom: 6px; }
+  .account-layout aside nav a { flex-shrink: 0; white-space: nowrap; }
   .account-layout aside > button { margin: 0; }
   .account-topline { margin-bottom: 24px; }
   .auth-surface { margin: 12px auto 64px; padding: 30px 22px; }
