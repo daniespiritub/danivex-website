@@ -27,20 +27,51 @@
 .rm-stat b { display: block; font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; }
 .rm-stat span { display: block; font-size: 0.72rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
 
-/* mock de la pantalla real del bootloader, usada como ancla visual del logro */
-.rm-screen {
-  background: #000; border-radius: 18px; padding: 20px; border: 1px solid var(--border-strong);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; color: #cfd6e0;
-  box-shadow: var(--shadow-panel); margin: 28px 0 40px; max-width: 420px;
+/* Capturas reales del proceso (no mockups). rm-hero-shot es la foto ancla del
+   logro en el header; rm-shot es la unidad reutilizable dentro de las fases. */
+.rm-hero-shot { margin: 0; max-width: 300px; }
+.rm-hero-shot img {
+  display: block; width: 100%; border-radius: 16px; border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-panel);
 }
-.rm-screen .title { color: var(--accent2-strong); font-weight: 600; font-size: 0.92rem; }
-.rm-screen .muted { color: var(--text-faint); font-size: 0.7rem; margin: 8px 0 12px; line-height: 1.5; }
-.rm-screen .row { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; font-size: 0.75rem; }
-.rm-screen .row b { color: var(--text); font-weight: 500; }
-.rm-screen .row.win b { color: var(--positive); font-weight: 600; }
-.rm-screen hr { border: none; border-top: 2px solid var(--accent2); margin: 10px 0; opacity: 0.85; }
-.rm-screen .prompt { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-strong); color: var(--text-faint); font-size: 0.68rem; }
-.rm-screen .prompt b { color: var(--positive); }
+.rm-hero-shot figcaption { margin-top: 10px; font-size: 0.74rem; color: var(--text-faint); text-align: center; }
+
+.rm-shot { margin: 18px 0; }
+.rm-shot img {
+  display: block; width: 100%; border-radius: var(--radius-panel); border: 1px solid var(--border);
+  box-shadow: var(--shadow-panel); background: #000;
+}
+.rm-shot figcaption { margin-top: 8px; font-size: 0.76rem; color: var(--text-faint); }
+.rm-shot.wide { max-width: 100%; }
+.rm-shot.wide img { object-fit: cover; }
+
+.rm-shot-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }
+.rm-shot-pair .rm-shot { margin: 0; }
+@media (max-width: 560px) { .rm-shot-pair { grid-template-columns: 1fr; } }
+
+/* Sub-pasos dentro de una fase: cada uno es una tarjeta numerada e independiente,
+   para seguir "columna por columna" en vez de un bloque largo de texto. */
+.rm-substeps { display: flex; flex-direction: column; gap: 14px; margin: 20px 0; }
+.rm-substep {
+  border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius-panel);
+  padding: 16px 18px;
+}
+.rm-substep-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.rm-substep-num {
+  font-family: var(--font-display); font-weight: 700; font-size: 0.82rem; color: var(--accent2-strong);
+  background: var(--accent2-soft); border: 1px solid var(--accent2-line); border-radius: 999px;
+  padding: 2px 10px; white-space: nowrap;
+}
+.rm-substep-title { font-family: var(--font-display); font-weight: 600; font-size: 1rem; color: var(--text); }
+.rm-substep p { margin: 0 0 10px; color: var(--text-muted); font-size: 0.92rem; max-width: none; }
+.rm-substep p:last-child { margin-bottom: 0; }
+.rm-substep .rm-shot, .rm-substep .rm-term { margin: 10px 0 0; }
+.rm-expect {
+  display: flex; align-items: flex-start; gap: 8px; margin-top: 10px; padding: 10px 12px;
+  background: var(--green-chip, rgba(79,174,138,0.08)); border: 1px solid rgba(79,174,138,0.28);
+  border-radius: 8px; font-size: 0.86rem; color: var(--text-muted);
+}
+.rm-expect b { color: var(--positive); font-weight: 700; white-space: nowrap; }
 
 .rm-phase { margin: 56px 0; scroll-margin-top: 24px; }
 .rm-phase-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
@@ -97,3 +128,15 @@ code.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospac
 
 .rm-footer-note { border-top: 1px solid var(--border); margin-top: 60px; padding-top: 24px; color: var(--text-faint); font-size: 0.86rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .rm-footer-note code.mono { color: var(--text-faint); }
+
+.rm-help-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 20px 0 12px; }
+.rm-help-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px;
+  font-family: var(--font-body); font-weight: 700; font-size: 0.92rem; text-decoration: none; color: #fff;
+  transition: transform 0.15s ease; border: 1px solid transparent;
+}
+.rm-help-btn:hover { transform: translateY(-1px); }
+.rm-help-btn.tiktok { background: #0a0a0a; border-color: #2a2a2a; }
+.rm-help-btn.tiktok::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: linear-gradient(135deg, #25F4EE, #FE2C55); }
+.rm-help-btn.discord { background: #5865F2; }
+.rm-help-note { color: var(--text-faint); font-size: 0.82rem; margin-top: 4px; }
