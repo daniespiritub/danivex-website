@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import SiteNav from '../components/SiteNav.jsx'
 import '../styles/redmagic-root.css'
+import { socialLinks } from '../data/ecosystem.js'
 import fastbootLocked from '../assets/redmagic-guide/fastboot-locked.webp'
 import fastbootUnlocked from '../assets/redmagic-guide/fastboot-unlocked.webp'
 import unlockWarning from '../assets/redmagic-guide/unlock-warning.webp'
@@ -8,6 +9,7 @@ import magiskAlldone from '../assets/redmagic-guide/magisk-alldone.webp'
 import magiskSuperuser from '../assets/redmagic-guide/magisk-superuser.webp'
 import powershellRoot from '../assets/redmagic-guide/powershell-root.webp'
 import homeBooted from '../assets/redmagic-guide/home-booted.webp'
+import toolboxSession from '../assets/redmagic-guide/toolbox-session.webp'
 
 // Foto real con su etiqueta, para las capturas del proceso (no mockups).
 function Shot({ src, alt, caption, wide }) {
@@ -92,6 +94,7 @@ export default function RootRedMagic11Pro() {
             <li><a href="#fase-6">06 · Root con Magisk</a></li>
             <li><a href="#resumen">07 · Resumen de trabas</a></li>
             <li><a href="#recursos">08 · Recursos</a></li>
+            <li><a href="#ayuda">09 · ¿Te trabaste?</a></li>
           </ol>
         </div>
 
@@ -153,6 +156,8 @@ export default function RootRedMagic11Pro() {
             <span className="tag">Como entrar a modo EDL</span>
             <p>Con el telefono encendido y conectado: <code className="mono">adb reboot edl</code>. La pantalla se queda completamente negra — asi se ve EDL, sin interfaz. Si el PC no lo reconoce, instala el driver Qualcomm oficial (Fase 01) y revisa el Administrador de dispositivos: debe aparecer como &quot;Qualcomm HS-USB QDLoader 9008&quot;.</p>
           </div>
+          <p>Asi se ve el toolbox corriendo el proceso completo, de principio a fin — deteccion del telefono, respaldo de <code className="mono">efisp</code>, flasheo, y la pregunta final sobre la advertencia amarilla:</p>
+          <Shot src={toolboxSession} alt="Ventana de ZTE Family Toolbox mostrando el procedimiento completo de desbloqueo en chino, con progreso en tiempo real" caption="Captura real de la herramienta — asi se ve la secuencia completa." />
         </section>
 
         <section className="rm-phase" id="fase-5">
@@ -224,6 +229,16 @@ export default function RootRedMagic11Pro() {
             <span className="tag">Sobre la herramienta comunitaria</span>
             <p>ZTE Family Toolbox no tiene firma digital de una empresa — es trabajo de la comunidad de modding. Descargala solo del hilo oficial de XDA, sube el archivo a VirusTotal antes de ejecutarlo, y desconfia de cualquier version que no venga de esa fuente.</p>
           </div>
+        </section>
+
+        <section className="rm-phase" id="ayuda" style={{ marginBottom: 20 }}>
+          <div className="rm-phase-head"><span className="rm-phase-num">09</span><div><h2>¿Te trabaste?</h2><p className="sub">Antes de escribirme, ten esto a mano</p></div></div>
+          <p>Si te confundes en algun paso o no sabes como seguir, con gusto te ayudo directamente. Pero antes de contactarme, asegurate de tener <strong>todos los recursos de la seccion anterior ya descargados</strong> — con eso a la mano puedo ayudarte mucho mas rapido.</p>
+          <div className="rm-help-row">
+            <a className="rm-help-btn tiktok" href={socialLinks.tiktokMain} target="_blank" rel="noopener noreferrer">TikTok — @.mashesp</a>
+            <a className="rm-help-btn discord" href={socialLinks.discord} target="_blank" rel="noopener noreferrer">Discord</a>
+          </div>
+          <p className="rm-help-note">Estoy activo en ambos — TikTok suele ser mas rapido, pero Discord es mejor si necesitas mandar capturas o logs largos.</p>
         </section>
 
         <div className="rm-footer-note">

@@ -104,3 +104,15 @@ code.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospac
 
 .rm-footer-note { border-top: 1px solid var(--border); margin-top: 60px; padding-top: 24px; color: var(--text-faint); font-size: 0.86rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .rm-footer-note code.mono { color: var(--text-faint); }
+
+.rm-help-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 20px 0 12px; }
+.rm-help-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px;
+  font-family: var(--font-body); font-weight: 700; font-size: 0.92rem; text-decoration: none; color: #fff;
+  transition: transform 0.15s ease; border: 1px solid transparent;
+}
+.rm-help-btn:hover { transform: translateY(-1px); }
+.rm-help-btn.tiktok { background: #0a0a0a; border-color: #2a2a2a; }
+.rm-help-btn.tiktok::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: linear-gradient(135deg, #25F4EE, #FE2C55); }
+.rm-help-btn.discord { background: #5865F2; }
+.rm-help-note { color: var(--text-faint); font-size: 0.82rem; margin-top: 4px; }
