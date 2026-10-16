@@ -10,6 +10,7 @@ import './App.css'
 const PlayerScanner = lazy(() => import('./pages/PlayerScanner.jsx'))
 const AccountPage = lazy(() => import('./account/AccountPage.jsx'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage.jsx'))
+const RootRedMagic11Pro = lazy(() => import('./pages/RootRedMagic11Pro.jsx'))
 const AssistantWidget = lazy(() => import('./account/AssistantWidget.jsx'))
 // Admin-only bundle: lazy so it never ships in the public/critical path.
 const AdminPage = lazy(() => import('./account/AdminPage.jsx'))
@@ -32,6 +33,7 @@ function resolveRoute(pathname) {
   if (LEGACY_SCANNER_PATHS.has(path)) return 'legacyScanner'
   if (path === '/player-scanner') return 'player'
   if (path === '/privacy') return 'privacy'
+  if (path === '/root-redmagic-11-pro') return 'redmagicRoot'
   if (/^\/account(?:\/(favorites|saved|downloads|activity|assistant|support|settings))?$/.test(path)) return 'account'
   if (['/signin', '/register', '/reset-password', '/auth/confirm'].includes(path)) return 'account'
   if (/^\/admin(?:\/(users|platform|audit))?$/.test(path)) return 'admin'
@@ -52,6 +54,7 @@ function App() {
         : route === 'account' ? { ...SEO.account, path: window.location.pathname }
         : route === 'privacy' ? SEO.privacy
         : route === 'player' ? SEO.playerScanner
+        : route === 'redmagicRoot' ? SEO.redmagicRoot
         : route === 'notFound' ? SEO.notFound
           : SEO.home,
     )
@@ -63,7 +66,7 @@ function App() {
   return (
     <AccountProvider>
       <Suspense fallback={<div className="page-loading" role="status">DaniVex</div>}>
-        {route === 'admin' ? <AdminPage /> : route === 'account' ? <AccountPage /> : route === 'privacy' ? <PrivacyPage /> : route === 'player' ? <PlayerScanner /> : <HomePage />}
+        {route === 'admin' ? <AdminPage /> : route === 'account' ? <AccountPage /> : route === 'privacy' ? <PrivacyPage /> : route === 'player' ? <PlayerScanner /> : route === 'redmagicRoot' ? <RootRedMagic11Pro /> : <HomePage />}
       </Suspense>
       {['home', 'player'].includes(route) && <DaniVexCompanion />}
       <OptionalAssistant />

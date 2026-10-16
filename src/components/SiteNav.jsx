@@ -15,6 +15,7 @@ export default function SiteNav({ activeSection, language = 'es', onLanguage, sc
   const items = [
     { href: `${prefix}#sensibilidad`, id: 'sensibilidad', label: text.nav[1] },
     { href: '/player-scanner', id: 'scanner', label: text.primeScanner },
+    { href: '/root-redmagic-11-pro', id: 'redmagic-root', label: 'Root RedMagic' },
     { href: `${prefix}#herramientas`, id: 'herramientas', label: 'Tools' },
     { href: `${prefix}#mobilador`, id: 'mobilador', label: 'Mobilador' },
     { href: `${prefix}#comunidad`, id: 'comunidad', label: text.community },

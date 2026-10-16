@@ -24,6 +24,12 @@ export const SEO = {
       'Busca cualquier jugador de Free Fire por UID y consulta su informacion publica: nickname, region, nivel, rangos, clan, outfit e historial de cambios. Gratis y sin registro.',
     path: '/player-scanner',
   },
+  redmagicRoot: {
+    title: 'Root RedMagic 11 Pro gratis (NX809J) - Guia paso a paso | DaniVex',
+    description:
+      'Guia completa y gratuita para desbloquear el bootloader y rootear un REDMAGIC 11 Pro (NX809J): preparacion, downgrade del abl, Magisk, y los errores reales que aparecen con su solucion.',
+    path: '/root-redmagic-11-pro',
+  },
   notFound: {
     title: 'Pagina no encontrada | DaniVex',
     description: 'La pagina que buscas no existe en DaniVex.',
@@ -38,5 +44,6 @@ export const PRERENDER_ROUTES = [
   { out: 'privacy.html', meta: SEO.privacy },
   { out: 'account.html', meta: SEO.account },
   { out: 'admin.html', meta: SEO.admin },
+  { out: 'root-redmagic-11-pro.html', meta: SEO.redmagicRoot },
   { out: '404.html', meta: SEO.notFound },
 ]

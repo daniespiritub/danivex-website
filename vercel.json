@@ -77,6 +77,14 @@
     {
       "source": "/cuenta/:uid.html",
       "destination": "/player-scanner.html"
+    },
+    {
+      "source": "/root-redmagic-11-pro",
+      "destination": "/root-redmagic-11-pro.html"
+    },
+    {
+      "source": "/root-redmagic-11-pro/",
+      "destination": "/root-redmagic-11-pro.html"
     }
   ],
   "functions": {
