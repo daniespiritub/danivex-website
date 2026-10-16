@@ -1,6 +1,23 @@
 import { useState } from 'react'
 import SiteNav from '../components/SiteNav.jsx'
 import '../styles/redmagic-root.css'
+import fastbootLocked from '../assets/redmagic-guide/fastboot-locked.webp'
+import fastbootUnlocked from '../assets/redmagic-guide/fastboot-unlocked.webp'
+import unlockWarning from '../assets/redmagic-guide/unlock-warning.webp'
+import magiskAlldone from '../assets/redmagic-guide/magisk-alldone.webp'
+import magiskSuperuser from '../assets/redmagic-guide/magisk-superuser.webp'
+import powershellRoot from '../assets/redmagic-guide/powershell-root.webp'
+import homeBooted from '../assets/redmagic-guide/home-booted.webp'
+
+// Foto real con su etiqueta, para las capturas del proceso (no mockups).
+function Shot({ src, alt, caption, wide }) {
+  return (
+    <figure className={`rm-shot${wide ? ' wide' : ''}`}>
+      <img src={src} alt={alt} loading="lazy" />
+      {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+  )
+}
 
 // Bloque de comandos con boton de copiar. Sin librerias externas: solo
 // navigator.clipboard, con fallback silencioso si el host lo bloquea.
@@ -57,16 +74,10 @@ export default function RootRedMagic11Pro() {
             <div className="rm-stat"><b>2</b><span>intentos fallidos, resueltos</span></div>
           </div>
 
-          <div className="rm-screen" aria-hidden="true">
-            <div className="title">FastBoot Mode</div>
-            <div className="muted">Press volume key to select, and press power key to select.</div>
-            <div className="row"><span>PRODUCT_NAME</span><b>canoe</b></div>
-            <div className="row"><span>SERIAL NUMBER</span><b>cc3d6654</b></div>
-            <div className="row"><span>SECURE BOOT</span><b>yes</b></div>
-            <div className="row win"><span>DEVICE STATE</span><b>unlocked</b></div>
-            <hr />
-            <div className="prompt"><b>$</b> adb shell su -c id<br />uid=0(root) gid=0(root) groups=0(root) context=u:r:magisk:s0</div>
-          </div>
+          <figure className="rm-hero-shot">
+            <img src={fastbootUnlocked} alt="Pantalla FastBoot Mode del REDMAGIC 11 Pro mostrando DEVICE STATE - unlocked" />
+            <figcaption>Captura real del telefono — no es una recreacion.</figcaption>
+          </figure>
         </section>
 
         <div className="rm-toc">
@@ -148,15 +159,18 @@ export default function RootRedMagic11Pro() {
           <div className="rm-phase-head"><span className="rm-phase-num">05</span><div><h2>Reintentar el desbloqueo</h2><p className="sub">Ahora si deberia funcionar</p></div></div>
           <p>Con el <code className="mono">abl</code> viejo ya en el telefono, vuelve al menu principal de ZTE Family Toolbox y corre de nuevo la opcion <code className="mono">0. 解锁BL</code>. El proceso va a borrar todos los datos (ya tienes tu respaldo) y reiniciar varias veces solo. No desconectes el cable en ningun momento.</p>
           <p>La confirmacion real no es un mensaje bonito — es este campo, visible al entrar en modo fastboot (<code className="mono">adb reboot bootloader</code>):</p>
-          <Term label="Pantalla del telefono">
-            FastBoot Mode{'\n'}DEVICE STATE - <span className="ok">unlocked</span>
-          </Term>
-          <p>Si dice <code className="mono">unlocked</code>, listo — bootloader desbloqueado de verdad, no supuesto.</p>
+          <div className="rm-shot-pair">
+            <Shot src={fastbootLocked} alt="FastBoot Mode mostrando DEVICE STATE - locked, antes del proceso" caption="Antes: DEVICE STATE - locked" />
+            <Shot src={fastbootUnlocked} alt="FastBoot Mode mostrando DEVICE STATE - unlocked, despues del proceso" caption="Despues: DEVICE STATE - unlocked" />
+          </div>
+          <p>Si dice <code className="mono">unlocked</code>, listo — bootloader desbloqueado de verdad, no supuesto. Durante el arranque tambien deberia aparecer un aviso de advertencia (normal, no es error):</p>
+          <Shot src={unlockWarning} alt="Pantalla de advertencia: the boot loader is unlocked and software integrity cannot be guaranteed" caption="Aviso de bootloader desbloqueado al encender — normal y esperado." />
         </section>
 
         <section className="rm-phase" id="fase-6">
           <div className="rm-phase-head"><span className="rm-phase-num">06</span><div><h2>Root con Magisk</h2><p className="sub">Con el bootloader ya desbloqueado, esta parte es estandar</p></div></div>
           <p>Tu REDMAGIC usa particion <code className="mono">init_boot</code> separada (tipico desde Android 13+), asi que se parchea esa, no el <code className="mono">boot.img</code> completo. Sacala del respaldo de particiones que hiciste en la Fase 02, instala <strong>Magisk</strong> (APK oficial, ver Recursos), y desde la app: <em>Install → Select and Patch a File</em>, elige <code className="mono">init_boot_a.img</code>.</p>
+          <Shot src={magiskAlldone} alt="App Magisk mostrando All done tras parchear init_boot_a.img" caption="Magisk termina el parcheo en segundos — queda guardado en Download." />
           <div className="rm-snagfix">
             <div className="line" />
             <div className="boxes">
@@ -169,6 +183,11 @@ export default function RootRedMagic11Pro() {
             <span className="prompt-char">PS&gt;</span> <span className="cmd">adb shell su -c id</span>{'\n'}uid=0(root) gid=0(root) groups=0(root) context=u:r:magisk:s0
           </Term>
           <p>Si ves <code className="mono">uid=0(root)</code>, terminaste. Acepta el dialogo de permiso que aparece en pantalla la primera vez.</p>
+          <Shot src={powershellRoot} alt="Terminal PowerShell mostrando la salida real uid=0(root) gid=0(root)" caption="Nuestra propia terminal, sin editar — asi se ve cuando funciona." wide />
+          <div className="rm-shot-pair">
+            <Shot src={magiskSuperuser} alt="App Magisk, pestana Superusuario, con Shell autorizado" caption="Permiso root concedido en Magisk" />
+            <Shot src={homeBooted} alt="Pantalla de inicio del REDMAGIC ya rooteado, con apps instaladas" caption="El telefono, funcionando normal despues de todo" />
+          </div>
         </section>
 
         <section className="rm-phase" id="resumen">
