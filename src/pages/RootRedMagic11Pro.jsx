@@ -343,13 +343,11 @@ export default function RootRedMagic11Pro() {
 
         <section className="rm-phase" id="resultado">
           <div className="rm-phase-head"><span className="rm-phase-num">07</span><div><h2>Resultado real</h2><p className="sub">Esto es a lo que lleva hacer el root</p></div></div>
-          <p>Esto es de alguien a quien ayude a pasar por todo el proceso de esta guia. El root por si solo ya vale la pena, pero esto es a lo que realmente apunta: 144 FPS reales en Free Fire, con el telefono reconociendose a si mismo como lo que es.</p>
           <div className="rm-shot-pair">
-            <Shot src={fps144Gameplay} alt="Free Fire corriendo a 144 FPS en un REDMAGIC 11 Pro rooteado, contador de FPS visible en pantalla" caption="144 FPS reales, en partida — no es un numero de marketing." />
+            <Shot src={fps144Gameplay} alt="Free Fire corriendo a 144 FPS en un REDMAGIC 11 Pro rooteado, contador de FPS visible en pantalla" caption="144 FPS reales, en partida." />
             <Shot src={fps144Settings} alt="Ajustes de Free Fire mostrando la opcion 144 FPS disponible y seleccionada tras el root" caption="La opcion 144 FPS, disponible en Ajustes." />
           </div>
-          <p>Y para confirmar que el root quedo bien instalado, no solo el permiso — esto es la propia app de Magisk, en su pantalla de inicio:</p>
-          <Shot src={magiskInstalledHome} alt="App Magisk, pantalla de inicio, mostrando Version instalada 30.7 (30700), Zygisk No, Ramdisk Si" caption="Magisk instalado de verdad — version 30.7, no solo root concedido." />
+          <Shot src={magiskInstalledHome} alt="App Magisk, pantalla de inicio, mostrando Version instalada 30.7 (30700), Zygisk No, Ramdisk Si" caption="Magisk instalado — version 30.7." />
           <div className="rm-callout">
             <span className="tag">Sobre el modulo de 144 FPS</span>
             <p>Los 144 FPS reales en Free Fire no vienen del root solo — hace falta ademas un modulo de Magisk que ajusta como el telefono se identifica ante el juego. Ese modulo <strong>no es parte de esta guia</strong> y no lo vamos a explicar aqui — lo comparto yo personalmente, caso por caso, con la gente a la que ayudo. Si lo quieres, escribeme por TikTok o Discord (seccion de abajo).</p>
