@@ -18,6 +18,10 @@ import toolboxAblFlash from '../assets/redmagic-guide/toolbox-abl-flash.webp'
 import toolboxUnlockRun from '../assets/redmagic-guide/toolbox-unlock-run.webp'
 import downloadsFolder from '../assets/redmagic-guide/downloads-folder.webp'
 import firmwareCorruptError from '../assets/redmagic-guide/firmware-corrupt-error.webp'
+import fps144Gameplay from '../assets/redmagic-guide/144fps-gameplay.webp'
+import fps144Settings from '../assets/redmagic-guide/144fps-settings.webp'
+import magiskInstalledHome from '../assets/redmagic-guide/magisk-installed-home.webp'
+import fps144Module from '../assets/redmagic-guide/144fps-module.webp'
 
 // Foto real con su etiqueta, para las capturas del proceso (no mockups).
 function Shot({ src, alt, caption, wide }) {
@@ -119,9 +123,10 @@ export default function RootRedMagic11Pro() {
             <li><a href="#fase-4">04 · La solucion real</a></li>
             <li><a href="#fase-5">05 · Desbloqueo exitoso</a></li>
             <li><a href="#fase-6">06 · Root con Magisk</a></li>
-            <li><a href="#resumen">07 · Resumen de trabas</a></li>
-            <li><a href="#recursos">08 · Recursos</a></li>
-            <li><a href="#ayuda">09 · ¿Te trabaste?</a></li>
+            <li><a href="#resultado">07 · Resultado real</a></li>
+            <li><a href="#resumen">08 · Resumen de trabas</a></li>
+            <li><a href="#recursos">09 · Recursos</a></li>
+            <li><a href="#ayuda">10 · ¿Te trabaste?</a></li>
           </ol>
         </div>
 
@@ -336,8 +341,22 @@ export default function RootRedMagic11Pro() {
           </div>
         </section>
 
+        <section className="rm-phase" id="resultado">
+          <div className="rm-phase-head"><span className="rm-phase-num">07</span><div><h2>Resultado real</h2><p className="sub">Esto es a lo que lleva hacer el root</p></div></div>
+          <div className="rm-shot-pair">
+            <Shot src={fps144Gameplay} alt="Free Fire corriendo a 144 FPS en un REDMAGIC 11 Pro rooteado, contador de FPS visible en pantalla" caption="144 FPS reales, en partida." />
+            <Shot src={fps144Settings} alt="Ajustes de Free Fire mostrando la opcion 144 FPS disponible y seleccionada tras el root" caption="La opcion 144 FPS, disponible en Ajustes." />
+          </div>
+          <Shot src={magiskInstalledHome} alt="App Magisk, pantalla de inicio, mostrando Version instalada 30.7 (30700), Zygisk No, Ramdisk Si" caption="Magisk instalado — version 30.7." />
+          <div className="rm-callout">
+            <span className="tag">Sobre el modulo de 144 FPS</span>
+            <p>Los 144 FPS reales en Free Fire no vienen del root solo — hace falta ademas un modulo de Magisk que ajusta como el telefono se identifica ante el juego. Ese modulo <strong>no es parte de esta guia</strong> y no lo vamos a explicar aqui — lo comparto yo personalmente, caso por caso, con la gente a la que ayudo. Si lo quieres, escribeme por TikTok o Discord (seccion de abajo).</p>
+          </div>
+          <Shot src={fps144Module} alt="Pantalla de Modulos de Magisk mostrando el perfil de 144 FPS instalado y activado" caption="Asi se ve instalado — lo paso aparte, directamente." wide />
+        </section>
+
         <section className="rm-phase" id="resumen">
-          <div className="rm-phase-head"><span className="rm-phase-num">07</span><div><h2>Resumen de trabas y soluciones</h2><p className="sub">Para cuando te topes con alguna a mitad de camino</p></div></div>
+          <div className="rm-phase-head"><span className="rm-phase-num">08</span><div><h2>Resumen de trabas y soluciones</h2><p className="sub">Para cuando te topes con alguna a mitad de camino</p></div></div>
           <div className="rm-table-wrap">
             <table className="rm-table">
               <thead><tr><th>Lo que ves</th><th>Por que pasa</th><th>Que hacer</th></tr></thead>
@@ -351,7 +370,7 @@ export default function RootRedMagic11Pro() {
         </section>
 
         <section className="rm-phase" id="recursos" style={{ marginBottom: 20 }}>
-          <div className="rm-phase-head"><span className="rm-phase-num">08</span><div><h2>Recursos usados, todos verificados</h2><p className="sub">Herramientas oficiales primero, comunitarias despues</p></div></div>
+          <div className="rm-phase-head"><span className="rm-phase-num">09</span><div><h2>Recursos usados, todos verificados</h2><p className="sub">Herramientas oficiales primero, comunitarias despues</p></div></div>
           <div className="rm-table-wrap">
             <table className="rm-table">
               <thead><tr><th>Herramienta</th><th>Para que</th><th>Fuente</th></tr></thead>
@@ -373,7 +392,7 @@ export default function RootRedMagic11Pro() {
         </section>
 
         <section className="rm-phase" id="ayuda" style={{ marginBottom: 20 }}>
-          <div className="rm-phase-head"><span className="rm-phase-num">09</span><div><h2>¿Te trabaste?</h2><p className="sub">Antes de escribirme, ten esto a mano</p></div></div>
+          <div className="rm-phase-head"><span className="rm-phase-num">10</span><div><h2>¿Te trabaste?</h2><p className="sub">Antes de escribirme, ten esto a mano</p></div></div>
           <p>Si te confundes en algun paso o no sabes como seguir, con gusto te ayudo directamente. Pero antes de contactarme, asegurate de tener <strong>todos los recursos de la seccion anterior ya descargados</strong> — con eso a la mano puedo ayudarte mucho mas rapido.</p>
           <div className="rm-help-row">
             <a className="rm-help-btn tiktok" href={socialLinks.tiktokMain} target="_blank" rel="noopener noreferrer">TikTok — @.mashesp</a>
