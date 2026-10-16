@@ -13,6 +13,11 @@ import toolboxSession from '../assets/redmagic-guide/toolbox-session.webp'
 import toolboxOpening from '../assets/redmagic-guide/toolbox-opening.webp'
 import toolboxMenu from '../assets/redmagic-guide/toolbox-menu.webp'
 import toolboxModelSelect from '../assets/redmagic-guide/toolbox-model-select.webp'
+import toolboxUnlockWarningText from '../assets/redmagic-guide/toolbox-unlock-warning-text.webp'
+import toolboxAblFlash from '../assets/redmagic-guide/toolbox-abl-flash.webp'
+import toolboxUnlockRun from '../assets/redmagic-guide/toolbox-unlock-run.webp'
+import downloadsFolder from '../assets/redmagic-guide/downloads-folder.webp'
+import firmwareCorruptError from '../assets/redmagic-guide/firmware-corrupt-error.webp'
 
 // Foto real con su etiqueta, para las capturas del proceso (no mockups).
 function Shot({ src, alt, caption, wide }) {
@@ -129,12 +134,50 @@ export default function RootRedMagic11Pro() {
             <span className="tag">Leer esto primero</span>
             <p>Desbloquear el bootloader <strong>borra todos los datos del telefono</strong>. Hacemos un respaldo completo antes de tocar nada, pero es tu responsabilidad confirmarlo. Tambien se pierde la garantia oficial y puede fallar el lector de huellas (tiene arreglo, mas adelante). Nadie te puede garantizar cero riesgo — nosotros tampoco. Lo hacemos con cuidado, no a ciegas.</p>
           </div>
+          <div className="rm-callout">
+            <span className="tag">¿Sirve para otros RedMagic?</span>
+            <p>El metodo en si (ZTE Family Toolbox + downgrade del <code className="mono">abl</code> si hace falta + Magisk) cubre a toda la familia — el toolbox trae mas de 30 modelos de RedMagic, Nubia y ZTE en su menu, no solo el 11 Pro. Lo que <strong>no</strong> se puede copiar entre modelos es la version exacta de firmware viejo (Fase 04): cada modelo tiene su propio umbral de version vulnerable y su propia URL de descarga. Si tienes otro RedMagic, sigue la guia igual, pero busca el firmware viejo <em>de tu modelo</em> en vez del NX809J.</p>
+          </div>
         </section>
 
         <section className="rm-phase" id="fase-1">
           <div className="rm-phase-head"><span className="rm-phase-num">01</span><div><h2>Preparar la PC</h2><p className="sub">Las herramientas base, todas de fuentes oficiales</p></div></div>
-          <p>Instala <strong>Android SDK Platform-Tools</strong> (adb + fastboot) directo de Google, y el <strong>driver Qualcomm USB</strong> — este ultimo ahora lo publica el propio Qualcomm, firmado, en GitHub. Antes habia que buscarlo en mirrors dudosos; ya no.</p>
-          <p>Activa <strong>Depuracion USB</strong> en el telefono: Ajustes → Acerca del telefono → toca 7 veces &quot;Numero de compilacion&quot; → Opciones de desarrollador → Depuracion USB.</p>
+
+          <div className="rm-substeps">
+            <SubStep n="1.1" title="Descarga las herramientas base" expect="Android SDK Platform-Tools y el driver Qualcomm USB, listos en tu carpeta de Descargas.">
+              <p>Instala <strong>Android SDK Platform-Tools</strong> (adb + fastboot) directo de Google, y el <strong>driver Qualcomm USB</strong> — este ultimo ahora lo publica el propio Qualcomm, firmado, en GitHub. Antes habia que buscarlo en mirrors dudosos; ya no. Los enlaces exactos estan en la seccion Recursos, al final de la guia.</p>
+              <p>Activa tambien <strong>Depuracion USB</strong> en el telefono: Ajustes → Acerca del telefono → toca 7 veces &quot;Numero de compilacion&quot; → Opciones de desarrollador → Depuracion USB.</p>
+            </SubStep>
+
+            <SubStep n="1.2" title="Organiza todo en una sola carpeta" expect="Una carpeta C:\ZTE con el toolbox, el firmware y las herramientas, cada cosa en su lugar.">
+              <p>A esta altura vas a tener varios archivos sueltos en Descargas — asi se veian los nuestros antes de mover nada:</p>
+              <Shot src={downloadsFolder} alt="Carpeta de Descargas de Windows con Magisk, ZTE Family Toolbox, el driver Qualcomm y el firmware ya descargados" caption="Lo que necesitas, todo descargado — antes de organizarlo." />
+              <p>Para no perderte despues, muevelos asi (la guia asume esta estructura en los comandos que siguen):</p>
+              <div className="rm-table-wrap">
+                <table className="rm-table">
+                  <thead><tr><th>Archivo descargado</th><th>Va en</th></tr></thead>
+                  <tbody>
+                    <tr><td className="strong">platform-tools (zip)</td><td><code className="mono">C:\ZTE\Tools</code> — descomprimido ahi mismo</td></tr>
+                    <tr><td className="strong">Driver Qualcomm USB</td><td><code className="mono">C:\ZTE\Tools</code></td></tr>
+                    <tr><td className="strong">ZTE Family Toolbox (.7z)</td><td><code className="mono">C:\ZTE\Toolbox</code> — descomprimido ahi mismo</td></tr>
+                    <tr><td className="strong">Firmware viejo (update.zip)</td><td><code className="mono">C:\ZTE\Firmware</code></td></tr>
+                    <tr><td className="strong">Magisk (APK)</td><td><code className="mono">C:\ZTE\Magisk</code></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>Si prefieres no mover cada archivo a mano, hay un script que hace exactamente esta tabla por ti: crea las carpetas, busca cada archivo en Descargas/Escritorio por su nombre, lo copia a su lugar (nunca borra el original) y te abre las carpetas que vas a usar primero.</p>
+              <Term label="PowerShell — PC" copy={'cd ~\\Downloads\\redmagic; .\\Organize-RedMagicDownloads.ps1'}>
+                <span className="prompt-char">PS&gt;</span> <span className="cmd">.\Organize-RedMagicDownloads.ps1</span>{'\n'}[1] Creando C:\ZTE y sus subcarpetas{'\n'}  OK -&gt; C:\ZTE listo (Tools, Toolbox, Firmware, OldAbl, Magisk){'\n'}[2] Buscando cada herramienta{'\n'}  OK -&gt; ZTE Family Toolbox -&gt; ZTE Family Toolbox 1.2.1-beta3.7z{'\n'}[3] Copiando 4 archivo(s) a C:\ZTE{'\n'}[4] Abriendo las carpetas que vas a necesitar ahora
+              </Term>
+              <div className="rm-help-row" style={{ marginTop: 4 }}>
+                <a className="rm-help-btn discord" href="/downloads/redmagic/Organize-RedMagicDownloads.ps1" download>Descargar Organize-RedMagicDownloads.ps1</a>
+              </div>
+              <div className="rm-callout">
+                <span className="tag">Antes de correrlo</span>
+                <p>Es un script de PowerShell comun y corriente — <strong>abrelo con el Bloc de notas y leelo</strong> antes de ejecutarlo, como harias con cualquier script que te bajas de internet. Solo copia archivos dentro de tu propio PC (de Descargas/Escritorio a <code className="mono">C:\ZTE</code>); no descarga nada, no toca el telefono ni escribe en ninguna particion.</p>
+              </div>
+            </SubStep>
+          </div>
         </section>
 
         <section className="rm-phase" id="fase-2">
@@ -172,7 +215,9 @@ export default function RootRedMagic11Pro() {
             </SubStep>
 
             <SubStep n="3.3" title="Ejecuta la opcion de desbloqueo" expect="Al final, un mensaje en rojo que dice 解锁失败 (desbloqueo fallido) — si tu build es reciente, esto es normal, sigue a la Fase 04.">
-              <p>En el menu principal escribe <code className="mono">0</code> y presiona Enter (esa opcion dice <code className="mono">解锁BL</code> = Desbloquear Bootloader). Confirma las advertencias que aparezcan presionando cualquier tecla. Si tu build es reciente, termina asi:</p>
+              <p>En el menu principal escribe <code className="mono">0</code> y presiona Enter (esa opcion dice <code className="mono">解锁BL</code> = Desbloquear Bootloader). Primero te muestra una advertencia real — leela, dice exactamente que arriesgas y que necesitas tener listo antes de seguir:</p>
+              <Shot src={toolboxUnlockWarningText} alt="Advertencia real del ZTE Family Toolbox antes de desbloquear: perdida de garantia, formateo de datos, requisitos previos" caption="La advertencia completa, tal cual aparece — leela antes de presionar cualquier tecla." />
+              <p>Confirma presionando cualquier tecla. Si tu build es reciente, termina asi:</p>
               <Term label="ZTE Family Toolbox">
                 刷入解锁程序...{'\n'}设置自动恢复出厂...{'\n'}<span className="fail">解锁失败。请加交流群反馈。</span>
               </Term>
@@ -195,6 +240,14 @@ export default function RootRedMagic11Pro() {
           <div className="rm-substeps">
             <SubStep n="4.1" title="Descarga el firmware viejo, de la fuente oficial" expect="Un archivo update.zip de varios GB descargandose desde rom.download.nubia.com.">
               <p>Nubia no lo anuncia en su pagina, pero su servidor sigue sirviendo versiones antiguas si conoces la URL exacta (esta en la seccion Recursos, al final). Para la region Europa/EEA usamos la version <code className="mono">11.0.16MR1_EA</code> — cualquier version <strong>11.0.18 o anterior</strong> sirve igual.</p>
+              <div className="rm-snagfix">
+                <div className="line" />
+                <div className="boxes">
+                  <div className="rm-box snag"><span className="tag">Nos paso a nosotros</span><p>Un primer intento desde un mirror de comunidad nos dio esto al extraerlo:</p></div>
+                  <div className="rm-box fix"><span className="tag">Solucion</span><p>Era un archivo subido incompleto en ese mirror — nada que ver con nuestra conexion. Cambiamos al servidor oficial de Nubia (<code className="mono">rom.download.nubia.com</code>) y se descargo completo, con el SHA1 verificado.</p></div>
+                </div>
+              </div>
+              <Shot src={firmwareCorruptError} alt="Error real de 7-Zip: Unexpected end of archive, Open ERROR: Cannot open the file as 7z archive" caption="Esto es lo que ves si el archivo quedo incompleto — no es un error tuyo, es el mirror." wide />
             </SubStep>
 
             <SubStep n="4.2" title="Extrae solo la pieza que necesitas (abl.img)" expect="abl (242 kB) [=====...] 100% — una carpeta nueva con un archivo abl.img adentro.">
@@ -211,7 +264,9 @@ export default function RootRedMagic11Pro() {
                 <p>Con el telefono encendido y conectado: <code className="mono">adb reboot edl</code>. La pantalla se queda completamente negra — asi se ve EDL, sin interfaz. Si el PC no lo reconoce, instala el driver Qualcomm oficial (Fase 01) y revisa el Administrador de dispositivos: debe aparecer como &quot;Qualcomm HS-USB QDLoader 9008&quot;.</p>
               </div>
               <p>Ya en el menu principal del toolbox, escribe <code className="mono">12</code> y Enter (esa opcion dice <code className="mono">刷入任意分区</code> = flashear particion especifica). Cuando pida el nombre, escribe <code className="mono">abl_a</code> y selecciona tu <code className="mono">abl.img</code> viejo. Cuando termine, el programa vuelve a preguntar el nombre de particion — repite todo escribiendo <code className="mono">abl_b</code> esta vez (el telefono guarda dos copias, slot A y B, hay que reemplazar ambas).</p>
-              <p>Asi se ve el toolbox corriendo esta parte en la practica — fijate que primero detecta el telefono, pide seleccionar el archivo, y confirma con <code className="mono">刷入完成</code>:</p>
+              <p>Esto es exactamente lo que vimos en nuestra pantalla — los dos flasheos, uno tras otro, cada uno terminando en <code className="mono">刷入完成</code>:</p>
+              <Shot src={toolboxAblFlash} alt="ZTE Family Toolbox flasheando abl_a y luego abl_b desde C:\ZTE\OldAbl\abl.img, cada uno confirmando 刷入完成" caption="abl_a y abl_b, flasheados uno despues del otro — captura real, sin editar." />
+              <p>El resto de la sesion completa — desde que el toolbox detecta el telefono hasta el final — se ve asi:</p>
               <Shot src={toolboxSession} alt="Ventana de ZTE Family Toolbox mostrando el procedimiento completo de desbloqueo en chino, con progreso en tiempo real" caption="Captura real de la herramienta, sin editar." />
             </SubStep>
           </div>
@@ -223,6 +278,8 @@ export default function RootRedMagic11Pro() {
           <div className="rm-substeps">
             <SubStep n="5.1" title="Corre la Opcion 0 de nuevo" expect="El telefono se reinicia varias veces solo. No lo toques, no desconectes el cable.">
               <p>Con el <code className="mono">abl</code> viejo ya en el telefono (fin de la Fase 04), vuelve al menu principal de ZTE Family Toolbox y corre de nuevo la opcion <code className="mono">0. 解锁BL</code> — exactamente igual que en el Paso 3.3. Este proceso <strong>va a borrar todos los datos</strong> (ya tienes tu respaldo de la Fase 02).</p>
+              <p>Esta vez el toolbox reconecta el telefono en modo 9008 solo, sin que falle — asi se ve en vivo:</p>
+              <Shot src={toolboxUnlockRun} alt="ZTE Family Toolbox reconectando el telefono en modo 9008 para el segundo intento de desbloqueo" caption="El reintento, funcionando — reconexion 9008 en tiempo real." />
             </SubStep>
 
             <SubStep n="5.2" title="Confirma el resultado — no te quedes con la duda" expect="DEVICE STATE - unlocked (en rojo o verde, da igual el color, lo que importa es la palabra).">
@@ -315,6 +372,10 @@ export default function RootRedMagic11Pro() {
             <a className="rm-help-btn discord" href={socialLinks.discord} target="_blank" rel="noopener noreferrer">Discord</a>
           </div>
           <p className="rm-help-note">Estoy activo en ambos — TikTok suele ser mas rapido, pero Discord es mejor si necesitas mandar capturas o logs largos.</p>
+          <div className="rm-callout">
+            <span className="tag">Si quieres que te ayude controlando tu PC a distancia</span>
+            <p>Para eso uso <strong>RustDesk</strong> (gratis, open source). Antes de escribirme, descargalo e instalalo en tu PC desde <a href="https://rustdesk.com/" target="_blank" rel="noopener noreferrer">rustdesk.com</a> y dejalo abierto — te voy a pedir el ID y la contraseña de la ventana principal para conectarme. Nunca te voy a pedir que instales nada mas, ni que entres a otra pagina.</p>
+          </div>
         </section>
 
         <div className="rm-footer-note">
