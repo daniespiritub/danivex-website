@@ -7,13 +7,15 @@
 
 .rm-main { max-width: 760px; margin: 0 auto; padding: 48px 20px 96px; }
 
+.rm-eyebrow-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
 .rm-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
   font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--accent2-strong); background: var(--accent2-soft);
   border: 1px solid var(--accent2-line); padding: 6px 12px; border-radius: var(--radius-pill);
-  margin-bottom: 18px;
+  margin-bottom: 0;
 }
+.rm-eyebrow-alt { color: var(--positive); background: rgba(79, 174, 138, 0.08); border-color: rgba(79, 174, 138, 0.28); }
 
 .rm-hero h1 {
   font-family: var(--font-display); font-weight: 700;
