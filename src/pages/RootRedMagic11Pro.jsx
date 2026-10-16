@@ -10,14 +10,30 @@ import magiskSuperuser from '../assets/redmagic-guide/magisk-superuser.webp'
 import powershellRoot from '../assets/redmagic-guide/powershell-root.webp'
 import homeBooted from '../assets/redmagic-guide/home-booted.webp'
 import toolboxSession from '../assets/redmagic-guide/toolbox-session.webp'
+import toolboxOpening from '../assets/redmagic-guide/toolbox-opening.webp'
 
 // Foto real con su etiqueta, para las capturas del proceso (no mockups).
 function Shot({ src, alt, caption, wide }) {
   return (
     <figure className={`rm-shot${wide ? ' wide' : ''}`}>
-      <img src={src} alt={alt} loading="lazy" />
+      <img src={src} alt={alt} />
       {caption && <figcaption>{caption}</figcaption>}
     </figure>
+  )
+}
+
+// Tarjeta de sub-paso numerado (ej. "3.1"), para desglosar una fase en acciones
+// chicas y concretas en vez de un bloque largo de texto.
+function SubStep({ n, title, children, expect }) {
+  return (
+    <div className="rm-substep">
+      <div className="rm-substep-head">
+        <span className="rm-substep-num">{n}</span>
+        <span className="rm-substep-title">{title}</span>
+      </div>
+      {children}
+      {expect && <div className="rm-expect"><b>Deberías ver:</b><span>{expect}</span></div>}
+    </div>
   )
 }
 
@@ -131,14 +147,37 @@ export default function RootRedMagic11Pro() {
 
         <section className="rm-phase" id="fase-3">
           <div className="rm-phase-head"><span className="rm-phase-num">03</span><div><h2>El primer intento (y por que probablemente falle)</h2><p className="sub">Esto nos paso a nosotros — es la parte que nadie te explica</p></div></div>
-          <p>La herramienta comunitaria para este modelo es <strong>ZTE Family Toolbox</strong> (ver Recursos). Tiene un menu con la opcion <code className="mono">0. 解锁BL</code> (Desbloquear Bootloader). Si tu build es reciente, muy probablemente va a terminar asi:</p>
-          <Term label="ZTE Family Toolbox">
-            刷入解锁程序...{'\n'}设置自动恢复出厂...{'\n'}<span className="fail">解锁失败。请加交流群反馈。</span>
-          </Term>
+          <p>La herramienta comunitaria para este modelo es <strong>ZTE Family Toolbox</strong> (ver seccion de Recursos, mas abajo, para el enlace). Vamos paso por paso con lo que vas a ver en pantalla:</p>
+
+          <div className="rm-substeps">
+            <SubStep n="3.1" title="Descomprime y abre el programa" expect="Una ventana negra con un logo hecho de texto (BFF) y un mensaje en chino.">
+              <p>Descomprime el <code className="mono">.7z</code> que descargaste y haz doble clic en el archivo <code className="mono">中兴家族工具箱.bat</code> (el icono con engranaje azul). Se abre una consola negra.</p>
+              <Shot src={toolboxOpening} alt="Ventana de inicio del ZTE Family Toolbox mostrando el logo BFF y un error de ruta con espacios" caption="Esto es lo primero que vas a ver al abrirlo." />
+              <div className="rm-snagfix">
+                <div className="line" />
+                <div className="boxes">
+                  <div className="rm-box snag"><span className="tag">Traba comun aqui mismo</span><p>Si la ventana se cierra sola o dice <code className="mono">工具箱路径中不允许有空格或英文括号</code> (&quot;la ruta no puede tener espacios&quot;), es porque la carpeta esta en una ruta con espacios — por ejemplo &quot;Mis Documentos&quot; o &quot;Nueva carpeta (2)&quot;.</p></div>
+                  <div className="rm-box fix"><span className="tag">Solucion</span><p>Mueve toda la carpeta del toolbox a una ruta corta y sin espacios, por ejemplo <code className="mono">C:\ZTE\</code>, y abrelo de nuevo desde ahi.</p></div>
+                </div>
+              </div>
+            </SubStep>
+
+            <SubStep n="3.2" title="Elige tu modelo de telefono" expect="Un menu numerado con varios modelos de RedMagic/Nubia. Escribe el numero del tuyo y presiona Enter.">
+              <p>El programa pregunta que telefono tienes. Para el REDMAGIC 11 Pro (NX809J), busca la linea que diga algo como <code className="mono">骁龙8E5 红魔11系列</code> (Snapdragon 8 Elite Gen5, serie RedMagic 11) — <strong>no</strong> elijas una que diga &quot;(不支持解锁)&quot; (no soporta desbloqueo), esas son para otros modelos.</p>
+            </SubStep>
+
+            <SubStep n="3.3" title="Ejecuta la opcion de desbloqueo" expect="Al final, un mensaje en rojo que dice 解锁失败 (desbloqueo fallido) — si tu build es reciente, esto es normal, sigue a la Fase 04.">
+              <p>En el menu principal escribe <code className="mono">0</code> y presiona Enter (esa opcion dice <code className="mono">解锁BL</code> = Desbloquear Bootloader). Confirma las advertencias que aparezcan presionando cualquier tecla. Si tu build es reciente, termina asi:</p>
+              <Term label="ZTE Family Toolbox">
+                刷入解锁程序...{'\n'}设置自动恢复出厂...{'\n'}<span className="fail">解锁失败。请加交流群反馈。</span>
+              </Term>
+            </SubStep>
+          </div>
+
           <div className="rm-snagfix">
             <div className="line" />
             <div className="boxes">
-              <div className="rm-box snag"><span className="tag">La traba real</span><p>&quot;解锁失败&quot; = <strong>desbloqueo fallido</strong>. El exploit que usa la herramienta (llamado <code className="mono">efisp</code>) depende de un error en el bootloader que Nubia <strong>ya corrigio en firmwares posteriores a la version 11.0.18</strong>. Si tu build es mas nuevo que eso — y casi todos los telefonos vendidos hoy lo son — el ataque simplemente no tiene con que funcionar. No es que lo hagas mal: la vulnerabilidad ya no esta en tu bootloader actual.</p></div>
+              <div className="rm-box snag"><span className="tag">La traba real (la del paso 3.3)</span><p>&quot;解锁失败&quot; = <strong>desbloqueo fallido</strong>. El exploit que usa la herramienta (llamado <code className="mono">efisp</code>) depende de un error en el bootloader que Nubia <strong>ya corrigio en firmwares posteriores a la version 11.0.18</strong>. Si tu build es mas nuevo que eso — y casi todos los telefonos vendidos hoy lo son — el ataque simplemente no tiene con que funcionar. No es que lo hagas mal: la vulnerabilidad ya no esta en tu bootloader actual.</p></div>
               <div className="rm-box fix"><span className="tag">La solucion</span><p>No hace falta reinstalar todo el sistema. Solo una particion pequenisima — el <code className="mono">abl</code> (menos de 300 KB) — necesita volver a una version vieja que si tenga el error. El resto del telefono se queda exactamente como esta. Fase 04.</p></div>
             </div>
           </div>
@@ -146,52 +185,84 @@ export default function RootRedMagic11Pro() {
 
         <section className="rm-phase" id="fase-4">
           <div className="rm-phase-head"><span className="rm-phase-num">04</span><div><h2>La solucion: downgrade quirurgico del ABL</h2><p className="sub">La parte que te ahorra el dinero que cobran los &quot;servicios&quot;</p></div></div>
-          <p><strong>Paso A — Conseguir el firmware viejo, de la fuente oficial.</strong> Nubia no lo anuncia, pero su servidor de descargas sigue sirviendo versiones antiguas si conoces la URL exacta (ver Recursos). Para nuestra region (Europa/EEA) usamos la version <code className="mono">11.0.16MR1_EA</code> — cualquier version 11.0.18 o anterior sirve.</p>
-          <p><strong>Paso B — Extraer solo la particion abl.</strong> El firmware viene como un <code className="mono">update.zip</code> con un <code className="mono">payload.bin</code> adentro (formato estandar de Android). No hace falta descomprimir los 9 GB enteros a mano: <strong>payload-dumper-go</strong> saca una sola particion en segundos.</p>
-          <Term label="PowerShell — PC" copy={'payload-dumper-go.exe -p abl -o C:\\OldAbl payload.bin'}>
-            <span className="prompt-char">PS&gt;</span> <span className="cmd">payload-dumper-go.exe -p abl -o C:\OldAbl payload.bin</span>{'\n'}abl (242 kB)  [=======================================] 100%
-          </Term>
-          <p><strong>Paso C — Flashear ese abl.img viejo, via modo 9008 (EDL).</strong> Esto NO se puede hacer con el bootloader actual bloqueado usando fastboot normal — por eso se usa EDL, un modo de bajo nivel del propio chip Qualcomm que no depende de Android ni de si el bootloader esta bloqueado. Desde ZTE Family Toolbox, opcion <code className="mono">12. 刷入任意分区</code> (flashear particion especifica), escribe el nombre de la particion y selecciona tu <code className="mono">abl.img</code> viejo. Repite para <code className="mono">abl_a</code> y <code className="mono">abl_b</code> (el telefono tiene dos copias, slot A y B).</p>
-          <div className="rm-callout">
-            <span className="tag">Como entrar a modo EDL</span>
-            <p>Con el telefono encendido y conectado: <code className="mono">adb reboot edl</code>. La pantalla se queda completamente negra — asi se ve EDL, sin interfaz. Si el PC no lo reconoce, instala el driver Qualcomm oficial (Fase 01) y revisa el Administrador de dispositivos: debe aparecer como &quot;Qualcomm HS-USB QDLoader 9008&quot;.</p>
+          <p>Esto son 3 pasos chicos. No hace falta reinstalar todo el telefono — solo movemos una pieza minuscula (menos de 300 KB) a una version anterior que si tiene el error que el exploit necesita.</p>
+
+          <div className="rm-substeps">
+            <SubStep n="4.1" title="Descarga el firmware viejo, de la fuente oficial" expect="Un archivo update.zip de varios GB descargandose desde rom.download.nubia.com.">
+              <p>Nubia no lo anuncia en su pagina, pero su servidor sigue sirviendo versiones antiguas si conoces la URL exacta (esta en la seccion Recursos, al final). Para la region Europa/EEA usamos la version <code className="mono">11.0.16MR1_EA</code> — cualquier version <strong>11.0.18 o anterior</strong> sirve igual.</p>
+            </SubStep>
+
+            <SubStep n="4.2" title="Extrae solo la pieza que necesitas (abl.img)" expect="abl (242 kB) [=====...] 100% — una carpeta nueva con un archivo abl.img adentro.">
+              <p>El firmware viene como un <code className="mono">update.zip</code> con un <code className="mono">payload.bin</code> adentro (formato estandar de Android). No hace falta descomprimir los varios GB enteros a mano: la herramienta <strong>payload-dumper-go</strong> saca una sola pieza en segundos.</p>
+              <Term label="PowerShell — PC" copy={'payload-dumper-go.exe -p abl -o C:\\OldAbl payload.bin'}>
+                <span className="prompt-char">PS&gt;</span> <span className="cmd">payload-dumper-go.exe -p abl -o C:\OldAbl payload.bin</span>{'\n'}abl (242 kB)  [=======================================] 100%
+              </Term>
+            </SubStep>
+
+            <SubStep n="4.3" title="Flashea ese abl.img viejo, via modo 9008 (EDL)" expect="刷入完成 (flasheo completado) en la ventana del toolbox, dos veces (una por cada slot)">
+              <p>Esto <strong>no</strong> se puede hacer con fastboot normal mientras el bootloader sigue bloqueado — por eso usamos EDL, un modo de bajisimo nivel del propio chip Qualcomm que no depende de Android ni de si el bootloader esta bloqueado.</p>
+              <div className="rm-callout">
+                <span className="tag">Primero, entra a modo EDL</span>
+                <p>Con el telefono encendido y conectado: <code className="mono">adb reboot edl</code>. La pantalla se queda completamente negra — asi se ve EDL, sin interfaz. Si el PC no lo reconoce, instala el driver Qualcomm oficial (Fase 01) y revisa el Administrador de dispositivos: debe aparecer como &quot;Qualcomm HS-USB QDLoader 9008&quot;.</p>
+              </div>
+              <p>Ya en el menu principal del toolbox, escribe <code className="mono">12</code> y Enter (esa opcion dice <code className="mono">刷入任意分区</code> = flashear particion especifica). Cuando pida el nombre, escribe <code className="mono">abl_a</code> y selecciona tu <code className="mono">abl.img</code> viejo. Cuando termine, el programa vuelve a preguntar el nombre de particion — repite todo escribiendo <code className="mono">abl_b</code> esta vez (el telefono guarda dos copias, slot A y B, hay que reemplazar ambas).</p>
+              <p>Asi se ve el toolbox corriendo esta parte en la practica — fijate que primero detecta el telefono, pide seleccionar el archivo, y confirma con <code className="mono">刷入完成</code>:</p>
+              <Shot src={toolboxSession} alt="Ventana de ZTE Family Toolbox mostrando el procedimiento completo de desbloqueo en chino, con progreso en tiempo real" caption="Captura real de la herramienta, sin editar." />
+            </SubStep>
           </div>
-          <p>Asi se ve el toolbox corriendo el proceso completo, de principio a fin — deteccion del telefono, respaldo de <code className="mono">efisp</code>, flasheo, y la pregunta final sobre la advertencia amarilla:</p>
-          <Shot src={toolboxSession} alt="Ventana de ZTE Family Toolbox mostrando el procedimiento completo de desbloqueo en chino, con progreso en tiempo real" caption="Captura real de la herramienta — asi se ve la secuencia completa." />
         </section>
 
         <section className="rm-phase" id="fase-5">
           <div className="rm-phase-head"><span className="rm-phase-num">05</span><div><h2>Reintentar el desbloqueo</h2><p className="sub">Ahora si deberia funcionar</p></div></div>
-          <p>Con el <code className="mono">abl</code> viejo ya en el telefono, vuelve al menu principal de ZTE Family Toolbox y corre de nuevo la opcion <code className="mono">0. 解锁BL</code>. El proceso va a borrar todos los datos (ya tienes tu respaldo) y reiniciar varias veces solo. No desconectes el cable en ningun momento.</p>
-          <p>La confirmacion real no es un mensaje bonito — es este campo, visible al entrar en modo fastboot (<code className="mono">adb reboot bootloader</code>):</p>
-          <div className="rm-shot-pair">
-            <Shot src={fastbootLocked} alt="FastBoot Mode mostrando DEVICE STATE - locked, antes del proceso" caption="Antes: DEVICE STATE - locked" />
-            <Shot src={fastbootUnlocked} alt="FastBoot Mode mostrando DEVICE STATE - unlocked, despues del proceso" caption="Despues: DEVICE STATE - unlocked" />
+
+          <div className="rm-substeps">
+            <SubStep n="5.1" title="Corre la Opcion 0 de nuevo" expect="El telefono se reinicia varias veces solo. No lo toques, no desconectes el cable.">
+              <p>Con el <code className="mono">abl</code> viejo ya en el telefono (fin de la Fase 04), vuelve al menu principal de ZTE Family Toolbox y corre de nuevo la opcion <code className="mono">0. 解锁BL</code> — exactamente igual que en el Paso 3.3. Este proceso <strong>va a borrar todos los datos</strong> (ya tienes tu respaldo de la Fase 02).</p>
+            </SubStep>
+
+            <SubStep n="5.2" title="Confirma el resultado — no te quedes con la duda" expect="DEVICE STATE - unlocked (en rojo o verde, da igual el color, lo que importa es la palabra).">
+              <p>La confirmacion real no es un mensaje bonito en la pantalla — es este campo exacto, visible al entrar en modo fastboot (<code className="mono">adb reboot bootloader</code>):</p>
+              <div className="rm-shot-pair">
+                <Shot src={fastbootLocked} alt="FastBoot Mode mostrando DEVICE STATE - locked, antes del proceso" caption="Antes: DEVICE STATE - locked" />
+                <Shot src={fastbootUnlocked} alt="FastBoot Mode mostrando DEVICE STATE - unlocked, despues del proceso" caption="Despues: DEVICE STATE - unlocked" />
+              </div>
+              <p>Si dice <code className="mono">unlocked</code>, listo — bootloader desbloqueado de verdad, no supuesto. Durante el arranque tambien deberia aparecer un aviso de advertencia (normal, no es error):</p>
+              <Shot src={unlockWarning} alt="Pantalla de advertencia: the boot loader is unlocked and software integrity cannot be guaranteed" caption="Aviso de bootloader desbloqueado al encender — normal y esperado." />
+            </SubStep>
           </div>
-          <p>Si dice <code className="mono">unlocked</code>, listo — bootloader desbloqueado de verdad, no supuesto. Durante el arranque tambien deberia aparecer un aviso de advertencia (normal, no es error):</p>
-          <Shot src={unlockWarning} alt="Pantalla de advertencia: the boot loader is unlocked and software integrity cannot be guaranteed" caption="Aviso de bootloader desbloqueado al encender — normal y esperado." />
         </section>
 
         <section className="rm-phase" id="fase-6">
           <div className="rm-phase-head"><span className="rm-phase-num">06</span><div><h2>Root con Magisk</h2><p className="sub">Con el bootloader ya desbloqueado, esta parte es estandar</p></div></div>
-          <p>Tu REDMAGIC usa particion <code className="mono">init_boot</code> separada (tipico desde Android 13+), asi que se parchea esa, no el <code className="mono">boot.img</code> completo. Sacala del respaldo de particiones que hiciste en la Fase 02, instala <strong>Magisk</strong> (APK oficial, ver Recursos), y desde la app: <em>Install → Select and Patch a File</em>, elige <code className="mono">init_boot_a.img</code>.</p>
-          <Shot src={magiskAlldone} alt="App Magisk mostrando All done tras parchear init_boot_a.img" caption="Magisk termina el parcheo en segundos — queda guardado en Download." />
-          <div className="rm-snagfix">
-            <div className="line" />
-            <div className="boxes">
-              <div className="rm-box snag"><span className="tag">Otra traba</span><p><code className="mono">fastboot flash init_boot_a imagen.img</code> puede fallar con <code className="mono">FAILED (remote: &apos;unknown command&apos;)</code>. El <code className="mono">abl</code> viejo que pusiste tiene un fastboot mas limitado que no soporta bien ese comando.</p></div>
-              <div className="rm-box fix"><span className="tag">La solucion</span><p>Flashea la imagen parcheada de Magisk <strong>por el mismo camino EDL</strong> que usaste para el abl (opcion 12 del toolbox, con el telefono en modo 9008). Es mas confiable que el fastboot estandar en este escenario. Hazlo en ambos slots: <code className="mono">init_boot_a</code> e <code className="mono">init_boot_b</code>.</p></div>
-            </div>
-          </div>
-          <p>Reinicia normal. Verificacion final:</p>
-          <Term label="PowerShell — PC" copy="adb shell su -c id">
-            <span className="prompt-char">PS&gt;</span> <span className="cmd">adb shell su -c id</span>{'\n'}uid=0(root) gid=0(root) groups=0(root) context=u:r:magisk:s0
-          </Term>
-          <p>Si ves <code className="mono">uid=0(root)</code>, terminaste. Acepta el dialogo de permiso que aparece en pantalla la primera vez.</p>
-          <Shot src={powershellRoot} alt="Terminal PowerShell mostrando la salida real uid=0(root) gid=0(root)" caption="Nuestra propia terminal, sin editar — asi se ve cuando funciona." wide />
-          <div className="rm-shot-pair">
-            <Shot src={magiskSuperuser} alt="App Magisk, pestana Superusuario, con Shell autorizado" caption="Permiso root concedido en Magisk" />
-            <Shot src={homeBooted} alt="Pantalla de inicio del REDMAGIC ya rooteado, con apps instaladas" caption="El telefono, funcionando normal despues de todo" />
+          <p>Tu REDMAGIC usa particion <code className="mono">init_boot</code> separada (tipico desde Android 13+), asi que se parchea esa, no el <code className="mono">boot.img</code> completo.</p>
+
+          <div className="rm-substeps">
+            <SubStep n="6.1" title="Parchea init_boot_a.img con Magisk" expect="All done! y un archivo nuevo en la carpeta Download del telefono.">
+              <p>Saca <code className="mono">init_boot_a.img</code> del respaldo de particiones que hiciste en la Fase 02, pasalo al telefono, instala <strong>Magisk</strong> (APK oficial, ver Recursos), y desde la app: <em>Install → Select and Patch a File</em>, elige ese archivo.</p>
+              <Shot src={magiskAlldone} alt="App Magisk mostrando All done tras parchear init_boot_a.img" caption="Magisk termina el parcheo en segundos — queda guardado en Download." />
+            </SubStep>
+
+            <SubStep n="6.2" title="Flashea la imagen parcheada — por EDL, no por fastboot" expect="刷入完成 (flasheo completado), igual que en el Paso 4.3.">
+              <div className="rm-snagfix">
+                <div className="line" />
+                <div className="boxes">
+                  <div className="rm-box snag"><span className="tag">Traba comun aqui</span><p><code className="mono">fastboot flash init_boot_a imagen.img</code> puede fallar con <code className="mono">FAILED (remote: &apos;unknown command&apos;)</code>. El <code className="mono">abl</code> viejo que pusiste tiene un fastboot mas limitado que no soporta bien ese comando.</p></div>
+                  <div className="rm-box fix"><span className="tag">La solucion</span><p>Flashea la imagen parcheada de Magisk <strong>por el mismo camino EDL</strong> que usaste para el abl (opcion 12 del toolbox, con el telefono en modo 9008). Hazlo en ambos slots: <code className="mono">init_boot_a</code> e <code className="mono">init_boot_b</code>.</p></div>
+                </div>
+              </div>
+            </SubStep>
+
+            <SubStep n="6.3" title="Reinicia normal y verifica" expect="uid=0(root) — eso confirma que el acceso root esta funcionando de verdad.">
+              <Term label="PowerShell — PC" copy="adb shell su -c id">
+                <span className="prompt-char">PS&gt;</span> <span className="cmd">adb shell su -c id</span>{'\n'}uid=0(root) gid=0(root) groups=0(root) context=u:r:magisk:s0
+              </Term>
+              <p>Acepta el dialogo de permiso que aparece en la pantalla del telefono la primera vez que corras este comando.</p>
+              <Shot src={powershellRoot} alt="Terminal PowerShell mostrando la salida real uid=0(root) gid=0(root)" caption="Nuestra propia terminal, sin editar — asi se ve cuando funciona." wide />
+              <div className="rm-shot-pair">
+                <Shot src={magiskSuperuser} alt="App Magisk, pestana Superusuario, con Shell autorizado" caption="Permiso root concedido en Magisk" />
+                <Shot src={homeBooted} alt="Pantalla de inicio del REDMAGIC ya rooteado, con apps instaladas" caption="El telefono, funcionando normal despues de todo" />
+              </div>
+            </SubStep>
           </div>
         </section>
 
