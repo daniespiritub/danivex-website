@@ -71,7 +71,8 @@ const RECURSOS = [
   { tool: 'Driver Qualcomm', use: 'Reconocer modo EDL/9008', href: 'https://github.com/qualcomm/qcom-usb-kernel-drivers/releases', label: 'github.com/qualcomm (oficial, firmado)' },
   { tool: 'payload-dumper-go', use: 'Extraer una sola particion del firmware', href: 'https://github.com/ssut/payload-dumper-go/releases', label: 'github.com/ssut (open source)' },
   { tool: 'Magisk', use: 'Parchear init_boot y dar root', href: 'https://github.com/topjohnwu/Magisk/releases', label: 'github.com/topjohnwu (oficial)' },
-  { tool: 'Firmware oficial Nubia', use: 'Conseguir un abl vulnerable, de fuente limpia', href: null, label: 'rom.download.nubia.com/Europe/NX809J/<version>/update.zip' },
+  { tool: 'Firmware viejo (11.0.16MR1_EA)', use: 'El abl vulnerable que downgradeamos en la Fase 04', href: 'https://rom.download.nubia.com/Europe/NX809J/REDMAGICOS11.0.16MR1_EA/update.zip', label: 'rom.download.nubia.com — ~9.3 GB, SHA1 verificado' },
+  { tool: 'Firmware actual (11.0.19)', use: 'Respaldo del stock oficial, por si necesitas restaurar', href: 'https://rom.download.nubia.com/Europe/NX809J/REDMAGICOS11.0.19/update.zip', label: 'rom.download.nubia.com — ~9.3 GB' },
   { tool: 'ZTE Family Toolbox', use: 'Desbloqueo BL + flasheo por EDL', href: 'https://xdaforums.com/t/red-magic-11-pro-guide-bootloader-unlock-free-also-support-rm10-pad3pro-z70u-z80u-unlock-zte-family-toolbox.4780930/', label: 'hilo oficial en XDA Forums — comunitaria, revisa el hash antes de correrla' },
 ]
 
@@ -239,7 +240,11 @@ export default function RootRedMagic11Pro() {
 
           <div className="rm-substeps">
             <SubStep n="4.1" title="Descarga el firmware viejo, de la fuente oficial" expect="Un archivo update.zip de varios GB descargandose desde rom.download.nubia.com.">
-              <p>Nubia no lo anuncia en su pagina, pero su servidor sigue sirviendo versiones antiguas si conoces la URL exacta (esta en la seccion Recursos, al final). Para la region Europa/EEA usamos la version <code className="mono">11.0.16MR1_EA</code> — cualquier version <strong>11.0.18 o anterior</strong> sirve igual.</p>
+              <p>Nubia no lo anuncia en su pagina, pero su servidor sigue sirviendo versiones antiguas si conoces la URL exacta. Para la region Europa/EEA, esta es la que usamos nosotros — <code className="mono">11.0.16MR1_EA</code>, cualquier version <strong>11.0.18 o anterior</strong> sirve igual:</p>
+              <Term label="Descarga directa" copy="https://rom.download.nubia.com/Europe/NX809J/REDMAGICOS11.0.16MR1_EA/update.zip">
+                <a href="https://rom.download.nubia.com/Europe/NX809J/REDMAGICOS11.0.16MR1_EA/update.zip" target="_blank" rel="noopener noreferrer">rom.download.nubia.com/Europe/NX809J/REDMAGICOS11.0.16MR1_EA/update.zip</a>
+              </Term>
+              <p className="rm-help-note" style={{ marginTop: -6 }}>~9.3 GB. Si tu telefono es de otra region (no Europa/EEA), cambia solo esa palabra en la URL — el resto de la ruta es igual.</p>
               <div className="rm-snagfix">
                 <div className="line" />
                 <div className="boxes">
