@@ -91,7 +91,10 @@ export default function RootRedMagic11Pro() {
       <main id="main-content" className="rm-main" data-companion-obstacle>
 
         <section className="rm-hero">
-          <span className="rm-eyebrow">Guia DaniVex · gratis</span>
+          <div className="rm-eyebrow-row">
+            <span className="rm-eyebrow">Guia DaniVex · gratis</span>
+            <span className="rm-eyebrow rm-eyebrow-alt">Sirve para toda la familia RedMagic</span>
+          </div>
           <h1>Root a tu REDMAGIC<br /><em>sin pagar un centavo.</em></h1>
           <p className="lead">El RedMagic 11 Pro (NX809J) se puede desbloquear y rootear por tu cuenta. El unico &quot;secreto&quot; es que las herramientas estan en chino. Esto es exactamente lo que hicimos, con los tropiezos reales y como los resolvimos.</p>
           <div className="rm-stats">
