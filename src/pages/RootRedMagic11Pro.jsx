@@ -11,6 +11,8 @@ import powershellRoot from '../assets/redmagic-guide/powershell-root.webp'
 import homeBooted from '../assets/redmagic-guide/home-booted.webp'
 import toolboxSession from '../assets/redmagic-guide/toolbox-session.webp'
 import toolboxOpening from '../assets/redmagic-guide/toolbox-opening.webp'
+import toolboxMenu from '../assets/redmagic-guide/toolbox-menu.webp'
+import toolboxModelSelect from '../assets/redmagic-guide/toolbox-model-select.webp'
 
 // Foto real con su etiqueta, para las capturas del proceso (no mockups).
 function Shot({ src, alt, caption, wide }) {
@@ -160,10 +162,13 @@ export default function RootRedMagic11Pro() {
                   <div className="rm-box fix"><span className="tag">Solucion</span><p>Mueve toda la carpeta del toolbox a una ruta corta y sin espacios, por ejemplo <code className="mono">C:\ZTE\</code>, y abrelo de nuevo desde ahi.</p></div>
                 </div>
               </div>
+              <p>Una vez que abre bien, este es el menu principal con el que vas a trabajar durante toda la guia:</p>
+              <Shot src={toolboxMenu} alt="Menu principal del ZTE Family Toolbox con todas las opciones numeradas en chino" caption="Menu principal real del ZTE Family Toolbox." />
             </SubStep>
 
             <SubStep n="3.2" title="Elige tu modelo de telefono" expect="Un menu numerado con varios modelos de RedMagic/Nubia. Escribe el numero del tuyo y presiona Enter.">
-              <p>El programa pregunta que telefono tienes. Para el REDMAGIC 11 Pro (NX809J), busca la linea que diga algo como <code className="mono">骁龙8E5 红魔11系列</code> (Snapdragon 8 Elite Gen5, serie RedMagic 11) — <strong>no</strong> elijas una que diga &quot;(不支持解锁)&quot; (no soporta desbloqueo), esas son para otros modelos.</p>
+              <p>En el menu principal escribe <code className="mono">B</code> (opcion <code className="mono">选择机型</code> = elegir modelo) y presiona Enter. El programa pregunta que telefono tienes. Para el REDMAGIC 11 Pro (NX809J), busca la linea que diga <code className="mono">骁龙8E5 红魔11系列</code> (Snapdragon 8 Elite Gen5, serie RedMagic 11) — <strong>no</strong> elijas una que diga &quot;(不支持解锁)&quot; (no soporta desbloqueo), esas son para otros modelos.</p>
+              <Shot src={toolboxModelSelect} alt="Lista de modelos del ZTE Family Toolbox mostrando la entrada 33, Snapdragon 8 Elite Gen5, serie RedMagic 11" caption="La entrada que buscas: [33] 骁龙8E5 红魔11系列." />
             </SubStep>
 
             <SubStep n="3.3" title="Ejecuta la opcion de desbloqueo" expect="Al final, un mensaje en rojo que dice 解锁失败 (desbloqueo fallido) — si tu build es reciente, esto es normal, sigue a la Fase 04.">
@@ -239,7 +244,7 @@ export default function RootRedMagic11Pro() {
           <div className="rm-substeps">
             <SubStep n="6.1" title="Parchea init_boot_a.img con Magisk" expect="All done! y un archivo nuevo en la carpeta Download del telefono.">
               <p>Saca <code className="mono">init_boot_a.img</code> del respaldo de particiones que hiciste en la Fase 02, pasalo al telefono, instala <strong>Magisk</strong> (APK oficial, ver Recursos), y desde la app: <em>Install → Select and Patch a File</em>, elige ese archivo.</p>
-              <Shot src={magiskAlldone} alt="App Magisk mostrando All done tras parchear init_boot_a.img" caption="Magisk termina el parcheo en segundos — queda guardado en Download." />
+              <Shot src={magiskAlldone} alt="App Magisk mostrando Installing 30.7 y All done tras parchear init_boot_a.img, confirmando que Magisk quedo instalado" caption="Magisk 30.7 instalado y el parcheo terminado — queda guardado en Download." />
             </SubStep>
 
             <SubStep n="6.2" title="Flashea la imagen parcheada — por EDL, no por fastboot" expect="刷入完成 (flasheo completado), igual que en el Paso 4.3.">
