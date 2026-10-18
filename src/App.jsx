@@ -11,6 +11,8 @@ const PlayerScanner = lazy(() => import('./pages/PlayerScanner.jsx'))
 const AccountPage = lazy(() => import('./account/AccountPage.jsx'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage.jsx'))
 const RootRedMagic11Pro = lazy(() => import('./pages/RootRedMagic11Pro.jsx'))
+const RootRedMagic10SPro = lazy(() => import('./pages/RootRedMagic10SPro.jsx'))
+const RootRedMagicIndex = lazy(() => import('./pages/RootRedMagicIndex.jsx'))
 const AssistantWidget = lazy(() => import('./account/AssistantWidget.jsx'))
 // Admin-only bundle: lazy so it never ships in the public/critical path.
 const AdminPage = lazy(() => import('./account/AdminPage.jsx'))
@@ -33,7 +35,9 @@ function resolveRoute(pathname) {
   if (LEGACY_SCANNER_PATHS.has(path)) return 'legacyScanner'
   if (path === '/player-scanner') return 'player'
   if (path === '/privacy') return 'privacy'
+  if (path === '/root-redmagic') return 'redmagicRootIndex'
   if (path === '/root-redmagic-11-pro') return 'redmagicRoot'
+  if (path === '/root-redmagic-10s-pro') return 'redmagicRoot10sPro'
   if (/^\/account(?:\/(favorites|saved|downloads|activity|assistant|support|settings))?$/.test(path)) return 'account'
   if (['/signin', '/register', '/reset-password', '/auth/confirm'].includes(path)) return 'account'
   if (/^\/admin(?:\/(users|platform|audit))?$/.test(path)) return 'admin'
@@ -54,7 +58,9 @@ function App() {
         : route === 'account' ? { ...SEO.account, path: window.location.pathname }
         : route === 'privacy' ? SEO.privacy
         : route === 'player' ? SEO.playerScanner
+        : route === 'redmagicRootIndex' ? SEO.redmagicRootIndex
         : route === 'redmagicRoot' ? SEO.redmagicRoot
+        : route === 'redmagicRoot10sPro' ? SEO.redmagicRoot10sPro
         : route === 'notFound' ? SEO.notFound
           : SEO.home,
     )
@@ -66,7 +72,7 @@ function App() {
   return (
     <AccountProvider>
       <Suspense fallback={<div className="page-loading" role="status">DaniVex</div>}>
-        {route === 'admin' ? <AdminPage /> : route === 'account' ? <AccountPage /> : route === 'privacy' ? <PrivacyPage /> : route === 'player' ? <PlayerScanner /> : route === 'redmagicRoot' ? <RootRedMagic11Pro /> : <HomePage />}
+        {route === 'admin' ? <AdminPage /> : route === 'account' ? <AccountPage /> : route === 'privacy' ? <PrivacyPage /> : route === 'player' ? <PlayerScanner /> : route === 'redmagicRootIndex' ? <RootRedMagicIndex /> : route === 'redmagicRoot' ? <RootRedMagic11Pro /> : route === 'redmagicRoot10sPro' ? <RootRedMagic10SPro /> : <HomePage />}
       </Suspense>
       {['home', 'player'].includes(route) && <DaniVexCompanion />}
       <OptionalAssistant />
