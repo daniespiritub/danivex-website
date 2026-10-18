@@ -78,6 +78,7 @@ const RECURSOS = [
   { tool: 'Firmware viejo (11.0.16MR1_EA)', use: 'El abl vulnerable que downgradeamos en la Fase 04', href: 'https://rom.download.nubia.com/Europe/NX809J/REDMAGICOS11.0.16MR1_EA/update.zip', label: 'rom.download.nubia.com — ~9.3 GB, SHA1 verificado' },
   { tool: 'Firmware actual (11.0.19)', use: 'Respaldo del stock oficial, por si necesitas restaurar', href: 'https://rom.download.nubia.com/Europe/NX809J/REDMAGICOS11.0.19/update.zip', label: 'rom.download.nubia.com — ~9.3 GB' },
   { tool: 'ZTE Family Toolbox', use: 'Desbloqueo BL + flasheo por EDL', href: 'https://xdaforums.com/t/red-magic-11-pro-guide-bootloader-unlock-free-also-support-rm10-pad3pro-z70u-z80u-unlock-zte-family-toolbox.4780930/', label: 'hilo oficial en XDA Forums — comunitaria, revisa el hash antes de correrla' },
+  { tool: 'Descarga directa del toolbox', use: 'Todas las versiones, para no andar buscandola', href: 'https://syxz.lanzoue.com/b01g0i33c', label: 'syxz.lanzoue.com — usa siempre la mas reciente arriba de todo, boton 普通下载' },
 ]
 
 const TROUBLESHOOTING = [

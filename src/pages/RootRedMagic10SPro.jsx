@@ -47,6 +47,7 @@ const RECURSOS = [
   { tool: 'Driver especifico ZTE', use: 'Reconocer modo EDL/9008 en este modelo', href: null, label: 'incluido dentro de ZTE Family Toolbox (archivo 刷机驱动和运行库.txt)' },
   { tool: 'Magisk', use: 'Parchear init_boot y dar root', href: 'https://github.com/topjohnwu/Magisk/releases', label: 'github.com/topjohnwu (oficial) — tambien viene integrado en el toolbox' },
   { tool: 'ZTE Family Toolbox', use: 'Desbloqueo BL + root + flasheo por EDL', href: 'https://xdaforums.com/t/red-magic-11-pro-guide-bootloader-unlock-free-also-support-rm10-pad3pro-z70u-z80u-unlock-zte-family-toolbox.4780930/', label: 'hilo oficial en XDA Forums — comunitaria, revisa el hash antes de correrla' },
+  { tool: 'Descarga directa del toolbox', use: 'Todas las versiones, para no andar buscandola', href: 'https://syxz.lanzoue.com/b01g0i33c', label: 'syxz.lanzoue.com — usa siempre la mas reciente arriba de todo, boton 普通下载' },
 ]
 
 const TROUBLESHOOTING = [
@@ -123,7 +124,7 @@ export default function RootRedMagic10SPro() {
           <div className="rm-phase-head"><span className="rm-phase-num">02</span><div><h2>Conseguir el toolbox y elegir tu modelo</h2><p className="sub">Un detalle que cambia entre versiones</p></div></div>
           <p><strong>ZTE Family Toolbox</strong> se descarga desde un enlace de lanzou (ver Recursos). Usa el boton <strong>普通下载</strong> (descarga normal) — los otros dos son para lineas de operadores chinos especificos y pueden pedir login.</p>
           <Shot src={toolboxDownload} alt="Pagina de descarga de lanzou mostrando ZTE Family Toolbox 1.2.9-beta1 con el boton 普通下载 resaltado" caption="Descarga con 普通下载 — los otros dos botones son para operadores especificos." />
-          <p>Descomprimi el <code className="mono">.7z</code> en una ruta corta y sin espacios (por ejemplo <code className="mono">C:\ZTE\Toolbox</code>) y abri el <code className="mono">.bat</code>. En el selector de modelo elegi <strong>红魔10系列</strong> (serie RedMagic 10) — no confundas con el 10Air (chip distinto) ni con el 11系列 (chip mas nuevo).</p>
+          <p>Descomprime el <code className="mono">.7z</code> en una ruta corta y sin espacios (por ejemplo <code className="mono">C:\ZTE\Toolbox</code>) y abre el <code className="mono">.bat</code>. En el selector de modelo elige <strong>红魔10系列</strong> (serie RedMagic 10) — no confundas con el 10Air (chip distinto) ni con el 11系列 (chip mas nuevo).</p>
         </section>
 
         <section className="rm-phase" id="fase-3">
@@ -148,17 +149,17 @@ export default function RootRedMagic10SPro() {
           <p>La pantalla queda completamente negra — asi se ve EDL en este modelo, sin interfaz ni luz. Confirma en el Administrador de dispositivos, seccion &quot;Puertos (COM y LPT)&quot;: debe decir <strong>Qualcomm HS-USB QDLoader 9008</strong>.</p>
           <div className="rm-callout">
             <span className="tag">Si el telefono no bootea (esta trabado)</span>
-            <p>La alternativa por botones es: telefono completamente apagado → mantener <strong>Volumen Arriba + Volumen Abajo</strong> juntos → conectar el cable mientras los sostenes, unos 5-8 segundos. Funciona, pero depende mas del timing que el metodo por ADB.</p>
+            <p>La alternativa por botones es: telefono completamente apagado → mantener <strong>Volumen Arriba + Volumen Abajo</strong> juntos → conectar el cable mientras los sostienes, unos 5-8 segundos. Funciona, pero depende mas del timing que el metodo por ADB.</p>
           </div>
         </section>
 
         <section className="rm-phase" id="fase-5">
           <div className="rm-phase-head"><span className="rm-phase-num">05</span><div><h2>Desbloqueo</h2><p className="sub">Automatico una vez que el driver y el EDL estan resueltos</p></div></div>
-          <p>En el menu del modelo (红魔10系列), elegi <code className="mono">0. 解锁BL</code>. El toolbox pide arrancar el proceso desde sistema (opcion recomendada <code className="mono">1.从系统开始</code>) para leer la info del dispositivo, y despues el mismo maneja los reinicios a 9008 para hacer el backup de particiones, modificar lo necesario, y reiniciar a Fastboot.</p>
+          <p>En el menu del modelo (红魔10系列), elige <code className="mono">0. 解锁BL</code>. El toolbox pide arrancar el proceso desde sistema (opcion recomendada <code className="mono">1.从系统开始</code>) para leer la info del dispositivo, y despues el mismo maneja los reinicios a 9008 para hacer el backup de particiones, modificar lo necesario, y reiniciar a Fastboot.</p>
           <Term label="ZTE Family Toolbox — resumen del log">
             设备代号：NX789J{'\n'}安卓版本：15{'\n'}当前槽位：a{'\n'}重启到9008...{'\n'}备份frp...{'\n'}备份gpt_main4...{'\n'}备份abl_a...{'\n'}备份boot_a...{'\n'}修改gpt_main4...{'\n'}刷入旧版abl...{'\n'}刷入解锁uefi...{'\n'}刷入解锁frp...{'\n'}重启...
           </Term>
-          <p>En Fastboot vas a ver el aviso estandar de Android y tenes que confirmar en la pantalla fisica del telefono:</p>
+          <p>En Fastboot vas a ver el aviso estandar de Android y tienes que confirmar en la pantalla fisica del telefono:</p>
           <Term label="Pantalla del telefono">
             By unlocking the bootloader, you will be able to{'\n'}install custom operating system on this phone...{'\n\n'}Press the Volume keys to select whether to unlock{'\n'}the bootloader, then the Power Button to continue.{'\n\n'}DO NOT UNLOCK THE BOOTLOADER{'\n'}<span className="ok">UNLOCK THE BOOTLOADER</span>
           </Term>
@@ -171,7 +172,7 @@ export default function RootRedMagic10SPro() {
 
         <section className="rm-phase" id="fase-6">
           <div className="rm-phase-head"><span className="rm-phase-num">06</span><div><h2>Root con Magisk</h2><p className="sub">Totalmente integrado en el toolbox para este modelo</p></div></div>
-          <p>Con el telefono booteado y la depuracion USB reactivada (el reset de fabrica la apaga, hay que prenderla de nuevo), volve al menu del toolbox → <code className="mono">1. 获取Root</code> → <code className="mono">1. [Recomendado] usar el Magisk integrado</code>. El toolbox hace todo el ciclo solo: conecta por ADB, respalda <code className="mono">init_boot_a</code>, lo parchea con Magisk, lo reflashea por EDL y reinicia.</p>
+          <p>Con el telefono booteado y la depuracion USB reactivada (el reset de fabrica la apaga, hay que prenderla de nuevo), vuelve al menu del toolbox → <code className="mono">1. 获取Root</code> → <code className="mono">1. [Recomendado] usar el Magisk integrado</code>. El toolbox hace todo el ciclo solo: conecta por ADB, respalda <code className="mono">init_boot_a</code>, lo parchea con Magisk, lo reflashea por EDL y reinicia.</p>
           <Term label="ZTE Family Toolbox — resumen del log">
             备份init_boot_a...{'\n'}文件已备份到bin\res\NX789J\bak.{'\n'}Magisk修补...{'\n'}刷入init_boot_a...{'\n'}重启...
           </Term>
@@ -181,12 +182,12 @@ export default function RootRedMagic10SPro() {
           <Term label="PowerShell — PC" copy="adb shell su -c id">
             <span className="prompt-char">PS&gt;</span> <span className="cmd">adb shell su -c id</span>{'\n'}uid=0(root) gid=0(root) groups=0(root) context=u:r:magisk:s0
           </Term>
-          <p>Si el comando devuelve <code className="mono">Permission denied</code>, abri la app Magisk → pestana <strong>Superusuario</strong> y activa el acceso para <code className="mono">[SharedUID] Shell</code> (queda desactivado por defecto la primera vez):</p>
+          <p>Si el comando devuelve <code className="mono">Permission denied</code>, abre la app Magisk → pestana <strong>Superusuario</strong> y activa el acceso para <code className="mono">[SharedUID] Shell</code> (queda desactivado por defecto la primera vez):</p>
           <div className="rm-shot-pair">
             <Shot src={superuserOff} alt="Pantalla Superusuario de Magisk con el acceso de Shell desactivado" caption="Asi aparece la primera vez — desactivado" />
             <Shot src={superuserOn} alt="Pantalla Superusuario de Magisk con el acceso de Shell activado" caption="Toca el interruptor para activarlo" />
           </div>
-          <p>Volve a correr el comando. Si ves <code className="mono">uid=0(root)</code>, terminaste.</p>
+          <p>Vuelve a correr el comando. Si ves <code className="mono">uid=0(root)</code>, terminaste.</p>
         </section>
 
         <section className="rm-phase" id="resumen">
@@ -227,7 +228,7 @@ export default function RootRedMagic10SPro() {
 
         <section className="rm-phase" id="ayuda" style={{ marginBottom: 20 }}>
           <div className="rm-phase-head"><span className="rm-phase-num">09</span><div><h2>¿Te trabaste?</h2><p className="sub">Antes de escribirme, ten esto a mano</p></div></div>
-          <p>Si te confundis en algun paso o no sabes como seguir, con gusto te ayudo directamente. Pero antes de contactarme, asegurate de tener <strong>todos los recursos de la seccion anterior ya descargados</strong> — con eso a la mano puedo ayudarte mucho mas rapido.</p>
+          <p>Si te confundes en algun paso o no sabes como seguir, con gusto te ayudo directamente. Pero antes de contactarme, asegurate de tener <strong>todos los recursos de la seccion anterior ya descargados</strong> — con eso a la mano puedo ayudarte mucho mas rapido.</p>
           <div className="rm-help-row">
             <a className="rm-help-btn tiktok" href={socialLinks.tiktokMain} target="_blank" rel="noopener noreferrer">TikTok — @.mashesp</a>
             <a className="rm-help-btn discord" href={socialLinks.discord} target="_blank" rel="noopener noreferrer">Discord</a>

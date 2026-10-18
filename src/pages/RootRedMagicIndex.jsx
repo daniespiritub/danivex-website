@@ -30,7 +30,7 @@ export default function RootRedMagicIndex() {
             <span className="rm-eyebrow">Guia DaniVex · gratis</span>
           </div>
           <h1>Root a tu REDMAGIC<br /><em>sin pagar un centavo.</em></h1>
-          <p className="lead">Desbloquear el bootloader y rootear un RedMagic se puede hacer vos mismo, sin pagar un &quot;servicio tecnico&quot; por algo que son basicamente herramientas en chino y un rato de paciencia. Elegi tu modelo abajo — cada guia tiene los pasos exactos, con capturas reales del proceso.</p>
+          <p className="lead">Desbloquear el bootloader y rootear un RedMagic se puede hacer tu mismo, sin pagar un &quot;servicio tecnico&quot; por algo que son basicamente herramientas en chino y un rato de paciencia. Elige tu modelo abajo — cada guia tiene los pasos exactos, con capturas reales del proceso.</p>
           <div className="rm-stats">
             <div className="rm-stat"><b>$0</b><span>costo real</span></div>
             <div className="rm-stat"><b>1-3h</b><span>tiempo estimado</span></div>
@@ -44,7 +44,7 @@ export default function RootRedMagicIndex() {
         </section>
 
         <section className="rm-phase" style={{ marginTop: 0 }}>
-          <div className="rm-phase-head"><span className="rm-phase-num">00</span><div><h2>Elegi tu modelo</h2><p className="sub">Cada uno tiene su propia guia completa</p></div></div>
+          <div className="rm-phase-head"><span className="rm-phase-num">00</span><div><h2>Elige tu modelo</h2><p className="sub">Cada uno tiene su propia guia completa</p></div></div>
           <div className="rm-picker">
             <a className="rm-model-card" href="/root-redmagic-11-pro">
               <span className="chip">Guia completa</span>
@@ -66,7 +66,7 @@ export default function RootRedMagicIndex() {
           <p><strong>ZTE Family Toolbox</strong> no es exclusivo del 11 Pro ni del 10S Pro — es una herramienta unica que cubre toda la linea RedMagic (y los Axon/nubia Z de la misma fabrica). El flujo general es el mismo en todos: instalar el driver correcto, entrar a modo 9008/EDL, desbloquear desde el menu del modelo, y rootear con el Magisk integrado. Lo que cambia es el numero de menu y, en los modelos mas viejos, si el exploit de desbloqueo sigue vigente para tu build.</p>
           <div className="rm-callout">
             <span className="tag">Importante sobre los numeros de menu</span>
-            <p>El numero que le corresponde a cada modelo <strong>cambia entre versiones del toolbox</strong> — nos paso entre dos versiones distintas haciendo estas mismas guias. No memorices un numero: al abrir el toolbox, elegi tu modelo por el <strong>nombre y chipset</strong> que aparecen en pantalla, no por una posicion fija.</p>
+            <p>El numero que le corresponde a cada modelo <strong>cambia entre versiones del toolbox</strong> — nos paso entre dos versiones distintas haciendo estas mismas guias. No memorices un numero: al abrir el toolbox, elige tu modelo por el <strong>nombre y chipset</strong> que aparecen en pantalla, no por una posicion fija.</p>
           </div>
           <div className="rm-table-wrap">
             <table className="rm-table">
@@ -82,12 +82,12 @@ export default function RootRedMagicIndex() {
               </tbody>
             </table>
           </div>
-          <p>Para cualquiera de estos: segui la <strong>Fase 00 (Preparar la PC)</strong> de cualquiera de las dos guias tal cual, y despues usa como referencia los pasos del 10S Pro — es el proceso mas directo y el que menos depende de la version exacta de tu firmware. Si tu modelo es de la serie 7 para atras, puede que necesites algo parecido al downgrade de particion que se explica en la guia del 11 Pro, segun que tan reciente sea tu build.</p>
+          <p>Para cualquiera de estos: sigue la <strong>Fase 00 (Preparar la PC)</strong> de cualquiera de las dos guias tal cual, y despues usa como referencia los pasos del 10S Pro — es el proceso mas directo y el que menos depende de la version exacta de tu firmware. Si tu modelo es de la serie 7 para atras, puede que necesites algo parecido al downgrade de particion que se explica en la guia del 11 Pro, segun que tan reciente sea tu build.</p>
         </section>
 
         <section className="rm-phase" id="ayuda" style={{ marginBottom: 20 }}>
           <div className="rm-phase-head"><span className="rm-phase-num">02</span><div><h2>¿Te trabaste?</h2><p className="sub">Antes de escribirme, ten esto a mano</p></div></div>
-          <p>Si te confundis en algun paso o no sabes como seguir, con gusto te ayudo directamente. Entra a la guia de tu modelo primero — ahi esta la seccion de Recursos con todo lo que vas a necesitar tener descargado antes de contactarme.</p>
+          <p>Si te confundes en algun paso o no sabes como seguir, con gusto te ayudo directamente. Entra a la guia de tu modelo primero — ahi esta la seccion de Recursos con todo lo que vas a necesitar tener descargado antes de contactarme.</p>
           <div className="rm-help-row">
             <a className="rm-help-btn tiktok" href={socialLinks.tiktokMain} target="_blank" rel="noopener noreferrer">TikTok — @.mashesp</a>
             <a className="rm-help-btn discord" href={socialLinks.discord} target="_blank" rel="noopener noreferrer">Discord</a>
