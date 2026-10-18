@@ -142,3 +142,20 @@ code.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospac
 .rm-help-btn.tiktok::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: linear-gradient(135deg, #25F4EE, #FE2C55); }
 .rm-help-btn.discord { background: #5865F2; }
 .rm-help-note { color: var(--text-faint); font-size: 0.82rem; margin-top: 4px; }
+
+/* Hub de modelos (pagina indice /root-redmagic): tarjetas para elegir guia. */
+.rm-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0 8px; }
+@media (max-width: 560px) { .rm-picker { grid-template-columns: 1fr; } }
+.rm-model-card {
+  display: block; text-decoration: none; color: inherit; border: 1px solid var(--border);
+  background: var(--surface); border-radius: var(--radius-panel); padding: 20px 22px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.rm-model-card:hover { transform: translateY(-2px); border-color: var(--accent-strong); }
+.rm-model-card .chip {
+  font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--positive);
+  margin-bottom: 8px; display: block;
+}
+.rm-model-card h3 { font-family: var(--font-display); font-size: 1.2rem; margin: 0 0 6px; }
+.rm-model-card p { color: var(--text-muted); font-size: 0.88rem; margin: 0; max-width: none; }
+.rm-model-card .spec { margin-top: 12px; font-size: 0.76rem; color: var(--text-faint); }

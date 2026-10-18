@@ -24,11 +24,23 @@ export const SEO = {
       'Busca cualquier jugador de Free Fire por UID y consulta su informacion publica: nickname, region, nivel, rangos, clan, outfit e historial de cambios. Gratis y sin registro.',
     path: '/player-scanner',
   },
+  redmagicRootIndex: {
+    title: 'Root RedMagic gratis - 11 Pro y 10S Pro | DaniVex',
+    description:
+      'Desbloquea el bootloader y rootea tu REDMAGIC sin pagar un centavo. Guias paso a paso, con capturas reales, para el 11 Pro y el 10S Pro.',
+    path: '/root-redmagic',
+  },
   redmagicRoot: {
     title: 'Root RedMagic 11 Pro gratis (NX809J) - Guia paso a paso | DaniVex',
     description:
       'Guia completa y gratuita para desbloquear el bootloader y rootear un REDMAGIC 11 Pro (NX809J): preparacion, downgrade del abl, Magisk, y los errores reales que aparecen con su solucion.',
     path: '/root-redmagic-11-pro',
+  },
+  redmagicRoot10sPro: {
+    title: 'Root RedMagic 10S Pro gratis (NX789J) - Guia paso a paso | DaniVex',
+    description:
+      'Guia completa y gratuita para desbloquear el bootloader y rootear un REDMAGIC 10S Pro (NX789J): driver correcto, modo EDL por ADB, desbloqueo y root con Magisk.',
+    path: '/root-redmagic-10s-pro',
   },
   notFound: {
     title: 'Pagina no encontrada | DaniVex',
@@ -44,6 +56,8 @@ export const PRERENDER_ROUTES = [
   { out: 'privacy.html', meta: SEO.privacy },
   { out: 'account.html', meta: SEO.account },
   { out: 'admin.html', meta: SEO.admin },
+  { out: 'root-redmagic.html', meta: SEO.redmagicRootIndex },
   { out: 'root-redmagic-11-pro.html', meta: SEO.redmagicRoot },
+  { out: 'root-redmagic-10s-pro.html', meta: SEO.redmagicRoot10sPro },
   { out: '404.html', meta: SEO.notFound },
 ]
